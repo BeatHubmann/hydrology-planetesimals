@@ -1,4 +1,4 @@
-[![MATLAB](https://github.com/BeatHubmann/hydrology-planetesimals/actions/workflows/ci.yml/badge.svg)](https://github.com/BeatHubmann/hydrology-planetesimals/actions/workflows/ci.yml)
+[![MATLAB Build](https://github.com/BeatHubmann/hydrology-planetesimals/actions/workflows/ci.yml/badge.svg)](https://github.com/BeatHubmann/hydrology-planetesimals/actions/workflows/ci.yml)
 
 # hydrology-planetesimals
 
