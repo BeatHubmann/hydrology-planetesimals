@@ -184,7 +184,7 @@ phimax=1-phimin; # Max porosity
 rplanet=50000; # Planetary radius
 rcrust=48000; # Crust radius
 psurface=1e+3; # Surface pressure
-m=1; # Marker counter
+global m=1; # Marker counter
 for jm=1:1:Nxm
     for im=1:1:Nym
         # Define marker coordinates
