@@ -9,19 +9,19 @@ using MAT
 # using FD with staggered grid()
 # Clearing memory & figures
 
-# Load mat file
-# fdata=fopen("file.txt','rt")
-io = open("file.txt", "r")
-# timestep=fscanf(fdata,"#d",1)
-timestep = parse(Int, read(io, String));
-# fclose(fdata)
-close(io)
-if(timestep>0)
-    # namemat    =  ["madcph_",num2str(timestep)]
-    namemat = "madcph_" * string(timestep) * ".mat"
-    vars = matread(namemat)
-else # if uncommented; uncoment end in line 266
-# clear all()
+# # Load mat file
+# # fdata=fopen("file.txt','rt")
+# io = open("file.txt", "r")
+# # timestep=fscanf(fdata,"#d",1)
+# timestep = parse(Int, read(io, String));
+# # fclose(fdata)
+# close(io)
+# if(timestep>0)
+#     # namemat    =  ["madcph_",num2str(timestep)]
+#     namemat = "madcph_" * string(timestep) * ".mat"
+#     vars = matread(namemat)
+# else # if uncommented; uncoment end in line 266
+# # clear all()
 
 #Switch for radioactive heating
 hr_al=1;  #if 1 radioactive heating from 26Al active
@@ -80,7 +80,7 @@ gx=zeros(Ny1,Nx1); # gx-gravity, m/s^2
 # Vy-Nodes
 RHOY=zeros(Ny1,Nx1); # Density, kg/m^3
 RHOFY=zeros(Ny1,Nx1); # Fluid Density, kg/m^3
-KY=zeros(Ny1,Nx1); # Thermal conductivity, W/m/K
+KY=zeros(Ny1,Nx1); # Thermal cnductivity, W/m/K
 PHIY=zeros(Ny1,Nx1); # Porosity
 vy=zeros(Ny1,Nx1); # Solid vy-velocity m/s
 vyf=zeros(Ny1,Nx1); # Fluid vy-velocity m/s
@@ -128,7 +128,7 @@ dym=ysize/Nym; # Marker grid step in vertical direction;m
 marknum=Nxm*Nym; # Number of markers
 xm=zeros(1,marknum); # Horizontal coordinates, m
 ym=zeros(1,marknum); # Vertical coordinates, m
-tm=zeros(1,marknum); # Material type()
+tm=zeros(Int8, 1,marknum); # Material type()
 tkm=zeros(1,marknum); # Marker temperature, K
 sxxm=zeros(1,marknum); # SIGMA'xx, Pa
 sxym=zeros(1,marknum); # SIGMAxy, Pa
@@ -137,22 +137,22 @@ phim=zeros(1,marknum); # Marker porosity
 
 # Define properties of materials: 
 #            Planet  Crust Space
-rhosolidm   = [3300   3300   1     ]; # Solid Density, kg/m^3
-rhofluidm   = [7000   7000   1     ]; # Fluid Density, kg/m^3
+rhosolidm   = [3300.0 3300.0 1.0   ]; # Solid Density, kg/m^3
+rhofluidm   = [7000.0 7000.0 1.0   ]; # Fluid Density, kg/m^3
 etasolidm   = [1e+16  1e+16  1e+14 ]; # Solid Viscosity, Pa s
 etasolidmm  = [1e+14  1e+14  1e+14 ]; # Molten Solid Viscosity, Pa s
 etafluidm   = [1e-2   1e-2   1e+12 ]; # Fluid Viscosity, Pa s
-etafluidmm  = [1e-2  1e-2   1e+12  ]; # Molten Fluid Viscosity, Pa s
+etafluidmm  = [1e-2   1e-2   1e+12 ]; # Molten Fluid Viscosity, Pa s
 rhocpsolidm = [3.3e+6 3.3e+6 3.0e+6]; # Solid Volumetric heat capacity, kg/m^3
 rhocpfluidm = [7.0e+6 7.0e+6 3.0e+6]; # Fluid Volumetric heat capacity, kg/m^3
-alphasolidm = [3e-5   3e-5   0     ]; # Solid Thermal expansion, 1/K
-alphafluidm = [5e-5   5e-5   0     ]; # Fluid Thermal expansion, 1/K
-ksolidm     = [3      3      3000  ]; # Solid Thermal conductivity, W/m/K
-kfluidm     = [50     50     3000  ]; # Fluid Thermal conductivity, W/m/K
-hrsolidm    = [0      0      0     ]; # Solid Radiogenic heat production, W/m^3
-hrfluidm    = [0      0      0     ]; # Fluid Radiogenic heat production, W/m^3
+alphasolidm = [3e-5   3e-5   0.0   ]; # Solid Thermal expansion, 1/K
+alphafluidm = [5e-5   5e-5   0.0   ]; # Fluid Thermal expansion, 1/K
+ksolidm     = [3.0    3.0    3000.0]; # Solid Thermal conductivity, W/m/K
+kfluidm     = [50     50     3000.0]; # Fluid Thermal conductivity, W/m/K
+hrsolidm    = [0.0    0.0    0.0   ]; # Solid Radiogenic heat production, W/m^3
+hrfluidm    = [0.0    0.0    0.0   ]; # Fluid Radiogenic heat production, W/m^3
 gggsolidm   = [1e+10  1e+10  1e+10 ]; # Solid Shear Modulus, Pa
-frictsolidm = [0.6    0.6      0   ]; # Solid Friction coefficient
+frictsolidm = [0.6    0.6    0.0   ]; # Solid Friction coefficient
 cohessolidm = [1e+8   1e+8   1e+8  ]; # Solid compressive strength, Pa
 tenssolidm  = [6e+7   6e+7   6e+7  ]; # Solid tensile strength, Pa
 kphim0      = [1e-13  1e-13  1e-17 ]; # Standard permeability, m^2
@@ -184,32 +184,33 @@ phimax=1-phimin; # Max porosity
 rplanet=50000; # Planetary radius
 rcrust=48000; # Crust radius
 psurface=1e+3; # Surface pressure
-local m=1; # Marker counter
-for jm=1:1:Nxm
-    for im=1:1:Nym
-        # Define marker coordinates
-        xm[m]=dxm/2+(jm-1)*dxm+(rand()-0.5)*dxm
-        ym[m]=dym/2+(im-1)*dym+(rand()-0.5)*dym
-        # Marker properties
-        rmark=((xm[m]-xsize/2)^2+(ym[m]-ysize/2)^2)^0.5
-        if(rmark<rplanet)
-            # Planet
-            tm[m]=1; # mantle
-            if(rmark>rcrust) 
-                tm[m]=2; # crust
+let m=1; # Marker counter
+    for jm=1:1:Nxm
+        for im=1:1:Nym
+            # Define marker coordinates
+            xm[m]=dxm/2+(jm-1)*dxm+(rand()-0.5)*dxm
+            ym[m]=dym/2+(im-1)*dym+(rand()-0.5)*dym
+            # Marker properties
+            rmark=((xm[m]-xsize/2)^2+(ym[m]-ysize/2)^2)^0.5
+            if(rmark<rplanet)
+                # Planet
+                tm[m]=1; # mantle
+                if(rmark>rcrust) 
+                    tm[m]=2; # crust
+                end
+                tkm[m]=300; # Temperature
+                phim[m]=phim0*(1+1.0*(rand()-0.5)); # Porosity
+                etavpm[m]=etasolidm[tm[m]];#*exp(-28*phim[m]); # Matrix viscosity
+            else()
+                # Sticky space [to have internal free surface]
+                tm[m]=3; # Material type()
+                tkm[m]=273; # Temperature
+                phim[m]=phimin; # Porosity
+                etavpm[m]=etasolidm[tm[m]]; # Matrix viscosity
             end
-            tkm[m]=300; # Temperature
-            phim[m]=phim0*(1+1.0*(rand()-0.5)); # Porosity
-            etavpm[m]=etasolidm[tm[m]];#*exp(-28*phim[m]); # Matrix viscosity
-        else()
-            # Sticky space [to have internal free surface]
-            tm[m]=3; # Material type()
-            tkm[m]=273; # Temperature
-            phim[m]=phimin; # Porosity
-            etavpm[m]=etasolidm[tm[m]]; # Matrix viscosity
+            # Update marker counter
+            m=m+1
         end
-        # Update marker counter
-        m=m+1
     end
 end
 
@@ -262,7 +263,7 @@ vpratio=1/3; # Weight of averaged velocity for moving markers
 DTmax=20; # Max temperature change per time step; K
 dsubgridt=0; # Subgrid temperature diffusion parameter
 dsubgrids=0; # Subgrid stress diffusion parameter
-timesum=1e6*365.25*24*3600; # Time sum; s
+global timesum=1e6*365.25*24*3600; # Time sum; s
 etamin=1e+12; # Lower viscosity cut-off; Pa s
 etamax=1e+23; # Upper viscosity cut-off; Pa s
 nplast=100000; # Number of plastic iterations
@@ -273,7 +274,7 @@ etawt=0; # Weight for old viscosity
 dphimax=0.01; # max porosity ratio change per time step
 nsteps=30000; # number of timesteps
 timestep=1
-end
+# end - CLOSES else FROM LINE 23
 savematstep=50; #.mat storage periodicity
 for timestep=timestep:1:nsteps
 
@@ -2575,7 +2576,7 @@ marknumnew=marknum
 
 
 # Update timesum
-timesum=timesum+dtm
+global timesum=timesum+dtm
 
 # Translate vx;vy & qxD;qyD into polar coordinates for visualization
 vrp=sqrt((vxp+vxp[(Ny+1)*(Nx+1)/2]).^2+(vyp+vyp[(Ny+1)*(Nx+1)/2]).^2)
