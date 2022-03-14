@@ -376,8 +376,8 @@ for m=1:1:marknum
   
     # Interpolation to basic nodes
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-x[1])/dx)+1
-    i=fix((ym[m]-y[1])/dy)+1
+    j=trunc((xm[m]-x[1])/dx)+1
+    i=trunc((ym[m]-y[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx-1]
@@ -437,8 +437,8 @@ for m=1:1:marknum
     
     # Interpolation to vx-nodes
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-xvx[1])/dx)+1
-    i=fix((ym[m]-yvx[1])/dy)+1
+    j=trunc((xm[m]-xvx[1])/dx)+1
+    i=trunc((ym[m]-yvx[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx-1]
@@ -489,8 +489,8 @@ for m=1:1:marknum
 
     # Interpolation to vy-nodes
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-xvy[1])/dx)+1
-    i=fix((ym[m]-yvy[1])/dy)+1
+    j=trunc((xm[m]-xvy[1])/dx)+1
+    i=trunc((ym[m]-yvy[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx]
@@ -541,8 +541,8 @@ for m=1:1:marknum
 
     # Interpolation to P-nodes
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-xp[1])/dx)+1
-    i=fix((ym[m]-yp[1])/dy)+1
+    j=trunc((xm[m]-xp[1])/dx)+1
+    i=trunc((ym[m]-yp[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx]
@@ -1294,7 +1294,7 @@ if(ynpl==0 || iplast==nplast || YERRNOD[iplast]<yerrmax)
 # Repeat iteration
 else()
     # Decrease computational timestep if too many iterations
-    if(fix(iplast/dtstep)*dtstep==iplast)
+    if(trunc(iplast/dtstep)*dtstep==iplast)
         # Decrease timestep
         dt=dt/dtkoef
         # Reset old viscoplastic viscosity
@@ -1315,8 +1315,8 @@ end
 for m=1:1:marknum
     # Interpolation viscosity from basic nodes
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-x[1])/dx)+1
-    i=fix((ym[m]-y[1])/dy)+1
+    j=trunc((xm[m]-x[1])/dx)+1
+    i=trunc((ym[m]-y[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx-1]
@@ -1372,8 +1372,8 @@ WTPSUM=zeros(Ny1,Nx1)
 for m=1:1:marknum
     # SIGMA'xx
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-xp[1])/dx)+1
-    i=fix((ym[m]-yp[1])/dy)+1
+    j=trunc((xm[m]-xp[1])/dx)+1
+    i=trunc((ym[m]-yp[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx]
@@ -1415,8 +1415,8 @@ for m=1:1:marknum
 
     # SIGMAxy
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-x[1])/dx)+1
-    i=fix((ym[m]-y[1])/dy)+1
+    j=trunc((xm[m]-x[1])/dx)+1
+    i=trunc((ym[m]-y[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx-1]
@@ -1486,8 +1486,8 @@ end
 for m=1:1:marknum
     # SIGMA'xx
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-xp[1])/dx)+1
-    i=fix((ym[m]-yp[1])/dy)+1
+    j=trunc((xm[m]-xp[1])/dx)+1
+    i=trunc((ym[m]-yp[1])/dy)+1
     if(j<2)
         j=2
     elseif[j>Nx-1]
@@ -1511,8 +1511,8 @@ for m=1:1:marknum
 
     # SIGMAxy
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-x[1])/dx)+1
-    i=fix((ym[m]-y[1])/dy)+1
+    j=trunc((xm[m]-x[1])/dx)+1
+    i=trunc((ym[m]-y[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx-1]
@@ -1715,8 +1715,8 @@ TKSUM=zeros(Ny1,Nx1)
 RHOCPSUM=zeros(Ny1,Nx1)
 for m=1:1:marknum
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-xp[1])/dx)+1
-    i=fix((ym[m]-yp[1])/dy)+1
+    j=trunc((xm[m]-xp[1])/dx)+1
+    i=trunc((ym[m]-yp[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx]
@@ -1783,8 +1783,8 @@ end
 # Interpolate DT to markers
 for m=1:1:marknum
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-xp[1])/dx)+1
-    i=fix((ym[m]-yp[1])/dy)+1
+    j=trunc((xm[m]-xp[1])/dx)+1
+    i=trunc((ym[m]-yp[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx]
@@ -1818,8 +1818,8 @@ for m=1:1:marknum
     if(tm[m]<3)
         # Interpolate APHI
         # Define i;j indexes for the upper left node
-        j=fix((xm[m]-xp[1])/dx)+1
-        i=fix((ym[m]-yp[1])/dy)+1
+        j=trunc((xm[m]-xp[1])/dx)+1
+        i=trunc((ym[m]-yp[1])/dy)+1
         if(j<1)
             j=1
         elseif[j>Nx]
@@ -1928,8 +1928,8 @@ for m=1:1:marknum
     
     # Interpolate solid temperature for the initial marker location
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-xp[1])/dx)+1
-    i=fix((ym[m]-yp[1])/dy)+1
+    j=trunc((xm[m]-xp[1])/dx)+1
+    i=trunc((ym[m]-yp[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx]
@@ -1953,8 +1953,8 @@ for m=1:1:marknum
         
     # Interpolate local rotation rate
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-x[1])/dx)+1
-    i=fix((ym[m]-y[1])/dy)+1
+    j=trunc((xm[m]-x[1])/dx)+1
+    i=trunc((ym[m]-y[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx-1]
@@ -1987,8 +1987,8 @@ for m=1:1:marknum
     for rk=1:1:4
         # Interpolate vx
         # Define i;j indexes for the upper left node
-        j=fix((xm[m]-xvx[1])/dx)+1
-        i=fix((ym[m]-yvx[1])/dy)+1
+        j=trunc((xm[m]-xvx[1])/dx)+1
+        i=trunc((ym[m]-yvx[1])/dy)+1
         if(j<1)
             j=1
         elseif[j>Nx-1]
@@ -2023,8 +2023,8 @@ for m=1:1:marknum
         
         # Interpolate vy
         # Define i;j indexes for the upper left node
-        j=fix((xm[m]-xvy[1])/dx)+1
-        i=fix((ym[m]-yvy[1])/dy)+1
+        j=trunc((xm[m]-xvy[1])/dx)+1
+        i=trunc((ym[m]-yvy[1])/dy)+1
         if(j<1)
             j=1
         elseif[j>Nx]
@@ -2084,8 +2084,8 @@ for m=1:1:marknum
     for rk=1:1:4
         # Interpolate vx
         # Define i;j indexes for the upper left node
-        j=fix((xcur-xvx[1])/dx)+1
-        i=fix((ycur-yvx[1])/dy)+1
+        j=trunc((xcur-xvx[1])/dx)+1
+        i=trunc((ycur-yvx[1])/dy)+1
         if(j<1)
             j=1
         elseif[j>Nx-1]
@@ -2120,8 +2120,8 @@ for m=1:1:marknum
         
         # Interpolate vy
         # Define i;j indexes for the upper left node
-        j=fix((xcur-xvy[1])/dx)+1
-        i=fix((ycur-yvy[1])/dy)+1
+        j=trunc((xcur-xvy[1])/dx)+1
+        i=trunc((ycur-yvy[1])/dy)+1
         if(j<1)
             j=1
         elseif[j>Nx]
@@ -2171,8 +2171,8 @@ for m=1:1:marknum
     ycur=yA-dtm*vymeff
     # Interpolate fluid temperature
     # Define i;j indexes for the upper left node
-    j=fix((xcur-xp[1])/dx)+1
-    i=fix((ycur-yp[1])/dy)+1
+    j=trunc((xcur-xp[1])/dx)+1
+    i=trunc((ycur-yp[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx]
@@ -2215,8 +2215,8 @@ for ii=2:1:Ny
     for rk=1:1:4
         # Interpolate vx
         # Define i;j indexes for the upper left node
-        j=fix((xcur-xvx[1])/dx)+1
-        i=fix((ycur-yvx[1])/dy)+1
+        j=trunc((xcur-xvx[1])/dx)+1
+        i=trunc((ycur-yvx[1])/dy)+1
         if(j<1)
             j=1
         elseif[j>Nx-1]
@@ -2251,8 +2251,8 @@ for ii=2:1:Ny
         
         # Interpolate vy
         # Define i;j indexes for the upper left node
-        j=fix((xcur-xvy[1])/dx)+1
-        i=fix((ycur-yvy[1])/dy)+1
+        j=trunc((xcur-xvy[1])/dx)+1
+        i=trunc((ycur-yvy[1])/dy)+1
         if(j<1)
             j=1
         elseif[j>Nx]
@@ -2303,8 +2303,8 @@ for ii=2:1:Ny
     # Interpolate nodal property
     # SIGMA'xx; P
     # Define i;j indexes for the upper left node
-    j=fix((xcur-xp[1])/dx)+1
-    i=fix((ycur-yp[1])/dy)+1
+    j=trunc((xcur-xp[1])/dx)+1
+    i=trunc((ycur-yp[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx]
@@ -2341,8 +2341,8 @@ for ii=2:1:Ny
     for rk=1:1:4
         # Interpolate vx
         # Define i;j indexes for the upper left node
-        j=fix((xcur-xvx[1])/dx)+1
-        i=fix((ycur-yvx[1])/dy)+1
+        j=trunc((xcur-xvx[1])/dx)+1
+        i=trunc((ycur-yvx[1])/dy)+1
         if(j<1)
             j=1
         elseif[j>Nx-1]
@@ -2377,8 +2377,8 @@ for ii=2:1:Ny
         
         # Interpolate vy
         # Define i;j indexes for the upper left node
-        j=fix((xcur-xvy[1])/dx)+1
-        i=fix((ycur-yvy[1])/dy)+1
+        j=trunc((xcur-xvy[1])/dx)+1
+        i=trunc((ycur-yvy[1])/dy)+1
         if(j<1)
             j=1
         elseif[j>Nx]
@@ -2430,8 +2430,8 @@ for ii=2:1:Ny
     # Interpolate nodal property
     # SIGMA'xx; P
     # Define i;j indexes for the upper left node
-    j=fix((xcur-xp[1])/dx)+1
-    i=fix((ycur-yp[1])/dy)+1
+    j=trunc((xcur-xp[1])/dx)+1
+    i=trunc((ycur-yp[1])/dy)+1
     if(j<1)
         j=1
     elseif[j>Nx]
@@ -2468,8 +2468,8 @@ for m=1:1:marknum
     
     # Check markers with the nearest nodes
     # Define i;j indexes for the upper left node
-    j=fix((xm[m]-xxm[1])/dxm)+1
-    i=fix((ym[m]-yym[1])/dym)+1
+    j=trunc((xm[m]-xxm[1])/dxm)+1
+    i=trunc((ym[m]-yym[1])/dym)+1
     if(j<1)
         j=1
     elseif[j>Nxm-1]
@@ -2582,7 +2582,7 @@ global timesum=timesum+dtm
 vrp=sqrt((vxp+vxp[(Ny+1)*(Nx+1)/2]).^2+(vyp+vyp[(Ny+1)*(Nx+1)/2]).^2)
 qrD=sqrt((qxD+qxD[(Ny+1)*(Nx+1)/2]).^2+(qyD+qyD[(Ny+1)*(Nx+1)/2]).^2)
 
-if(fix(timestep/savematstep)*savematstep==timestep)
+if(trunc(timestep/savematstep)*savematstep==timestep)
     namemat    =  [nname,num2str(timestep)]
     save(namemat)
     fdata=fopen("file.txt','wt")
