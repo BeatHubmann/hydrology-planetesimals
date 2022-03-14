@@ -188,7 +188,6 @@ local m=1; # Marker counter
 for jm=1:1:Nxm
     for im=1:1:Nym
         # Define marker coordinates
-        print(m)
         xm[m]=dxm/2+(jm-1)*dxm+(rand()-0.5)*dxm
         ym[m]=dym/2+(im-1)*dym+(rand()-0.5)*dym
         # Marker properties
