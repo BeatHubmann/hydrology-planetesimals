@@ -188,8 +188,8 @@ m=1; # Marker counter
 for jm=1:1:Nxm
     for im=1:1:Nym
         # Define marker coordinates
-        xm[m]=dxm/2+(jm-1)*dxm+(rand-0.5)*dxm
-        ym[m]=dym/2+(im-1)*dym+(rand-0.5)*dym
+        xm[m]=dxm/2+(jm-1)*dxm+(rand()-0.5)*dxm
+        ym[m]=dym/2+(im-1)*dym+(rand()-0.5)*dym
         # Marker properties
         rmark=((xm[m]-xsize/2)^2+(ym[m]-ysize/2)^2)^0.5
         if(rmark<rplanet)
@@ -199,7 +199,7 @@ for jm=1:1:Nxm
                 tm[m]=2; # crust
             end
             tkm[m]=300; # Temperature
-            phim[m]=phim0*(1+1.0*(rand-0.5)); # Porosity
+            phim[m]=phim0*(1+1.0*(rand()-0.5)); # Porosity
             etavpm[m]=etasolidm[tm[m]];#*exp(-28*phim[m]); # Matrix viscosity
         else()
             # Sticky space [to have internal free surface]
@@ -2556,8 +2556,8 @@ for j=1:1:Nxm
                 # Add marker number
                 marknum=marknum+1
                 # Assign marker coordinates
-                xm[marknum]=xxm[j]+(rand-0.5)*dxm
-                ym[marknum]=yym[i]+(rand-0.5)*dym
+                xm[marknum]=xxm[j]+(rand()-0.5)*dxm
+                ym[marknum]=yym[i]+(rand()-0.5)*dym
                 # Copy marker properties
                 m=-mnum[i,j]
                 tm[marknum]=tm[m]; # Material type()
