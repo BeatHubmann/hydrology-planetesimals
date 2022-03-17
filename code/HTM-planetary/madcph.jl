@@ -43,21 +43,21 @@ using DocStringExtensions
 # const G = 6.672e-11 # Gravity constant; N*m^2/kg^2
 
 """"
-Simulation parameters: Grids, markers, switches
+Parameters: Grids, markers, switches, constants
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct SimParams
+Base.@kwdef struct Params
     # Radioactive switches
     "radioactive heating from 26Al active"
-    hr_al::Bool
+    hr_al::Bool = true
     "radioactive heating from 60Fe active"	
-    hr_fe::Bool
+    hr_fe::Bool = true
     # Model size and resolution
     "horizontal model size [m]"
-    xsize::Int
+    xsize::Int = 140000
     "vertical model size [m]"
-    ysize::Int
+    ysize::Int = 140000
     "horizontal grid resolution"
     Nx::Int
     "vertical grid resolution"	
@@ -70,11 +70,11 @@ Base.@kwdef struct SimParams
     dy::Float64 = ysize / (Ny-1)
     # Planetary parameters
     "planetary radius [m]"
-    rplanet::Int
+    rplanet::Int = 50000
     "crust radius [m]"
-    rcrust::Int
+    rcrust::Int = 48000
     "surface pressure [Pa]"
-    psurface::Float64
+    psurface::Float64 = 1e+3
     # Markers
     "number of markers per cell in horizontal direction"
     Nxmc::Int
@@ -90,35 +90,97 @@ Base.@kwdef struct SimParams
     dym::Float64 = ysize / Nym
     "number of markers"
     marknum::Int = Nxm * Nym
+    # Physical constants
+    "gravitational constant [m^3*kg^-1*s^-2]"
+    G::Float64 = 6.672e-11
+    "scaled pressure"    
+    pscale::Float64 = 1e+23 / dx
+    # Materials properties:         Planet      Crust       Space
+    "solid Density [kg/m^3]"
+    rhosolidm::Array{Float64}   = [ 3300.0    , 3300.0    ,    1.0    ]
+    "fluid density [kg/m^3]"	
+    rhofluidm::Array{Float64}   = [ 7000.0    , 7000.0    , 1000.0    ]
+    "solid viscosity [Pa*s]"
+    etasolidm::Array{Float64}   = [    1.0e+16,    1.0e+16,    1.0e+14]
+    "molten solid viscosity [Pa*s]"
+    etasolidmm::Array{Float64}  = [    1.0e+14,    1.0e+14,    1.0e+14]
+    "fluid viscosity [Pa*s]"
+    etafluidm::Array{Float64}   = [    1.0e-02,    1.0e-02,    1.0e+12]
+    "molten fluid viscosity [Pa*s]"
+    etafluidmm::Array{Float64}  = [    1.0e-02,    1.0e-02,    1.0e+12]
+    "solid volumetric heat capacity [kg/m^3]"
+    rhocpsolidm::Array{Float64} = [    3.3e+06,    3.3e+06,    3.0e+06]
+    "fluid volumetric heat capacity [kg/m^3]"
+    rhocpfluidm::Array{Float64} = [    7.0e+06,    7.0e+06,    3.0e+06]
+    "solid thermal expansion [1/K]"
+    alphasolidm::Array{Float64} = [    3.0e-05,    3.0e-05,    0.0    ]
+    "fluid thermal expansion [1/K]"
+    alphafluidm::Array{Float64} = [    5.0e-05,    5.0e-05,    0.0    ]
+    "solid thermal conductivity [W/m/K]"
+    ksolidm::Array{Float64}     = [    3.0    ,    3.0    , 3000.0    ]
+    "fluid thermal conductivity [W/m/K]"
+    kfluidm::Array{Float64}     = [   50.0    ,   50.0    , 3000.0    ]
+    "solid radiogenic heat production [W/m^3]"
+    hrsolidm::Array{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
+    "fluid radiogenic heat production [W/m^3]"
+    hrfluidm::Array{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
+    "solid shear modulus [Pa]"
+    gggsolidm::Array{Float64}   = [    1.0e+10,    1.0e+10,    1.0e+10]
+    "solid friction coefficient"
+    frictsolidm::Array{Float64} = [    0.6    ,    0.6    ,    0.0    ]
+    "solid compressive strength [Pa]"
+    cohessolidm::Array{Float64} = [    1.0e+08,    1.0e+08,    1.0e+08]
+    "solid tensile strength [Pa]"
+    tenssolidm ::Array{Float64} = [    6.0e+07,    6.0e+07,    6.0e+07]
+    "standard permeability [m^2]"
+    kphim0::Array{Float64}      = [    1.0e-13,    1.0e-13,    1.0e-17]
+    "Coefficient to compute compaction viscosity from shear viscosity"
+    etaphikoef::Float64 = 1e-4
+    # 26Al decay
+    "26Al half life [s]"
+    t_half_al::Float64 = 717000 * 31540000
+    "26Al decay constant"
+    tau_al::Float64 = t_half_al / log(2)
+    "initial ratio of 26Al and 27Al isotopes"
+    ratio_al::Float64 = 5.0e-5
+    "E 26Al [J]"
+    E_al::Float64 = 5.0470e-13
+    "26Al atoms/kg"
+    f_al::Float64 = 1.9e23
+    # 60Fe decay
+    "60Fe half life [s]"	
+    t_half_fe::Float64 = 2620000 * 31540000
+    "60Fe decay constant"
+    tau_fe::Float64 = t_half_fe / log(2)
+    "initial ratio of 60Fe and 56Fe isotopes"	
+    ratio_fe::Float64 = 1e-6
+    "E 60Fe [J]"	
+    E_fe::Float64 = 4.34e-13
+    "60Fe atoms/kg"	
+    f_fe::Float64 = 1.957e24
+    # Melting temperatures
+    "silicate melting temperature [K]"
+    tmsilicate::Float64 = 1e+6
+    "iron melting temperature [K]"
+    tmiron::Float64 = 1273 
+    # Porosities
+    "standard Fe fraction [porosity]"
+    phim0::Float64 = 0.2
+    "min porosity"	
+    phimin::Float64 = 1e-4
+    "max porosity"
+    phimax::Float64 = 1 - phimin            
 end
 
 # Initialize parameters
-const simparams = SimParams(
-    hr_al = true,
-    hr_fe = true,
-    xsize = 140000,
-    ysize = 140000,
+const params = Params(
     Nx = 141,
     Ny = 141,
-    rplanet = 50000,
-    rcrust = 48000,
-    psurface = 1e+3,
     Nxmc = 4,
     Nymc = 4
 )
 
-"""
-Physical parameters
-
-$(TYPEDFIELDS)
-"""
-Base.@kwdef struct PhysParams
-    "gravity constant [m^3*kg^-1*s^-2]"
-    G::Float64 = 6.672e-11
-end
-
-
-# Coordinates of different nodal points
+# Coordinates of different nodal points (constant)
 # # Basic nodes
 # const x = 0:dx:xsize # Horizontal coordinates of basic grid points; m
 # const y = 0:dy:ysize # Vertical coordinates of basic grid points; m
@@ -205,20 +267,19 @@ const vxnodes = VxNodes(para.xsize, para.ysize, para.dx, para.dy)
 const vynodes = VyNodes(para.xsize, para.ysize, para.dx, para.dy)
 const pnodes = PNodes(para.xsize, para.ysize, para.dx, para.dy)
 
-# Nodal arrays
-# Basic nodes
-ETA=zeros(Ny,Nx); # Viscoplastic Viscosity, Pa*s
-ETA0=zeros(Ny,Nx); # Viscous Viscosity, Pa*s
-GGG=zeros(Ny,Nx); # Shear modulus, Pa
-EXY=zeros(Ny,Nx); # EPSILONxy, 1/s
-SXY=zeros(Ny,Nx); # SIGMAxy, 1/s
-SXY0=zeros(Ny,Nx); # SIGMA0xy, 1/s
-wyx=zeros(Ny,Nx); # Rotation rate, 1/s
-COH=zeros(Ny,Nx); # Compressive strength, Pa
-TEN=zeros(Ny,Nx); # Tensile strength, Pa
-FRI=zeros(Ny,Nx); # Friction
-YNY=zeros(Ny,Nx); # Plastic yielding mark, 1=yes,0=no
-
+# Nodal arrays (mutable)
+# # Basic nodes
+# ETA=zeros(Ny,Nx); # Viscoplastic Viscosity, Pa*s
+# ETA0=zeros(Ny,Nx); # Viscous Viscosity, Pa*s
+# GGG=zeros(Ny,Nx); # Shear modulus, Pa
+# EXY=zeros(Ny,Nx); # EPSILONxy, 1/s
+# SXY=zeros(Ny,Nx); # SIGMAxy, 1/s
+# SXY0=zeros(Ny,Nx); # SIGMA0xy, 1/s
+# wyx=zeros(Ny,Nx); # Rotation rate, 1/s
+# COH=zeros(Ny,Nx); # Compressive strength, Pa
+# TEN=zeros(Ny,Nx); # Tensile strength, Pa
+# FRI=zeros(Ny,Nx); # Friction
+# YNY=zeros(Ny,Nx); # Plastic yielding mark, 1=yes,0=no
 
 """
 Basic node properties
@@ -245,7 +306,7 @@ Base.@kwdef mutable struct BasicNodalArrays
     "friction"
     fri::Array{Float64}
     "plastic yielding mark, 1=yes,0=no"
-    yny::Array{Float64}
+    yny::Array{Int8}
     "inner constructor"
     NodalArrays(Nx, Ny) = new(
         zeros(Ny,Nx),
@@ -264,15 +325,15 @@ end
 
 
 # Vx-Nodes
-RHOX=zeros(Ny1,Nx1); # Density, kg/m^3
-RHOFX=zeros(Ny1,Nx1); # Fluid Density, kg/m^3
-KX=zeros(Ny1,Nx1); # Thermal conductivity, W/m/K
-PHIX=zeros(Ny1,Nx1); # Porosity
-vx=zeros(Ny1,Nx1); # Solid vx-velocity m/s
-vxf=zeros(Ny1,Nx1); # Fluid vx-velocity m/s
-RX=zeros(Ny1,Nx1); # ETAfluid/Kphi ratio , m^2
-qxD=zeros(Ny1,Nx1); # qx-Darcy flux m/s
-gx=zeros(Ny1,Nx1); # gx-gravity, m/s^2
+# RHOX=zeros(Ny1,Nx1); # Density, kg/m^3
+# RHOFX=zeros(Ny1,Nx1); # Fluid Density, kg/m^3
+# KX=zeros(Ny1,Nx1); # Thermal conductivity, W/m/K
+# PHIX=zeros(Ny1,Nx1); # Porosity
+# vx=zeros(Ny1,Nx1); # Solid vx-velocity m/s
+# vxf=zeros(Ny1,Nx1); # Fluid vx-velocity m/s
+# RX=zeros(Ny1,Nx1); # ETAfluid/Kphi ratio , m^2
+# qxD=zeros(Ny1,Nx1); # qx-Darcy flux m/s
+# gx=zeros(Ny1,Nx1); # gx-gravity, m/s^2
 
 """
 Vx node properties
@@ -313,15 +374,15 @@ Base.@kwdef mutable struct VxNodalArrays
 end
 
 # Vy-Nodes
-RHOY=zeros(Ny1,Nx1); # Density, kg/m^3
-RHOFY=zeros(Ny1,Nx1); # Fluid Density, kg/m^3
-KY=zeros(Ny1,Nx1); # Thermal cnductivity, W/m/K
-PHIY=zeros(Ny1,Nx1); # Porosity
-vy=zeros(Ny1,Nx1); # Solid vy-velocity m/s
-vyf=zeros(Ny1,Nx1); # Fluid vy-velocity m/s
-RY=zeros(Ny1,Nx1); # ETAfluid/Kphi ratio , m^2
-qyD=zeros(Ny1,Nx1); # qy-Darcy flux m/s
-gy=zeros(Ny1,Nx1); # gy-gravity, m/s^2
+# RHOY=zeros(Ny1,Nx1); # Density, kg/m^3
+# RHOFY=zeros(Ny1,Nx1); # Fluid Density, kg/m^3
+# KY=zeros(Ny1,Nx1); # Thermal cnductivity, W/m/K
+# PHIY=zeros(Ny1,Nx1); # Porosity
+# vy=zeros(Ny1,Nx1); # Solid vy-velocity m/s
+# vyf=zeros(Ny1,Nx1); # Fluid vy-velocity m/s
+# RY=zeros(Ny1,Nx1); # ETAfluid/Kphi ratio , m^2
+# qyD=zeros(Ny1,Nx1); # qy-Darcy flux m/s
+# gy=zeros(Ny1,Nx1); # gy-gravity, m/s^2
 
 """
 Vy node properties
@@ -362,35 +423,35 @@ Base.@kwdef mutable struct VyNodalArrays
 end
 
 # P-nodes
-RHO=zeros(Ny1,Nx1); # Density, kg/m^3
-RHOCP=zeros(Ny1,Nx1); # Volumetric heat capacity, J/m^3/K
-ALPHA=zeros(Ny1,Nx1); # Thermal expansion, J/m^3/K
-ALPHAF=zeros(Ny1,Nx1); # Fluid Thermal expansion, J/m^3/K
-HR=zeros(Ny1,Nx1); # Radioactive heating, W/m^3
-HA=zeros(Ny1,Nx1); # Adiabatic heating, W/m^3
-HS=zeros(Ny1,Nx1); # Shear heating, W/m^3
-ETAP=zeros(Ny1,Nx1); # Viscosity, Pa*s
-GGGP=zeros(Ny1,Nx1); # Shear modulus, Pa
-EXX=zeros(Ny,Nx); # EPSILONxx, 1/s
-SXX=zeros(Ny,Nx); # SIGMA'xx, 1/s
-SXX0=zeros(Ny,Nx); # SIGMA0'xx, 1/s
-tk1=zeros(Ny1,Nx1); # Old temperature, K
-tk2=zeros(Ny1,Nx1); # New temperature, K
-vxp=zeros(Ny1,Nx1); # Solid Vx in pressure nodes, m/s
-vyp=zeros(Ny1,Nx1); # Solid Vy in pressure nodes, m/s
-vxpf=zeros(Ny1,Nx1); # Fluid Vx in pressure nodes, m/s
-vypf=zeros(Ny1,Nx1); # Fluid Vy in pressure nodes, m/s
-pr=zeros(Ny1,Nx1); # Total Pressure, Pa
-pf=zeros(Ny1,Nx1); # Fluid Pressure, Pa
-ps=zeros(Ny1,Nx1); # Solid Pressure, Pa
-pr0=zeros(Ny1,Nx1); # Old Total Pressure, Pa
-pf0=zeros(Ny1,Nx1); # Old Fluid Pressure, Pa
-ps0=zeros(Ny1,Nx1); # Old Solid Pressure, Pa
-ETAPHI=zeros(Ny1,Nx1); # Bulk Viscosity, Pa*s
-BETTAPHI=zeros(Ny1,Nx1); # Bulk compresibility, Pa*s
-PHI=zeros(Ny1,Nx1); # porosity
-APHI=zeros(Ny1,Nx1); # Dln[(1-PHI)/PHI]/Dt
-FI=zeros(Ny1,Nx1); # Gravity potential, J/kg
+# RHO=zeros(Ny1,Nx1); # Density, kg/m^3
+# RHOCP=zeros(Ny1,Nx1); # Volumetric heat capacity, J/m^3/K
+# ALPHA=zeros(Ny1,Nx1); # Thermal expansion, J/m^3/K
+# ALPHAF=zeros(Ny1,Nx1); # Fluid Thermal expansion, J/m^3/K
+# HR=zeros(Ny1,Nx1); # Radioactive heating, W/m^3
+# HA=zeros(Ny1,Nx1); # Adiabatic heating, W/m^3
+# HS=zeros(Ny1,Nx1); # Shear heating, W/m^3
+# ETAP=zeros(Ny1,Nx1); # Viscosity, Pa*s
+# GGGP=zeros(Ny1,Nx1); # Shear modulus, Pa
+# EXX=zeros(Ny,Nx); # EPSILONxx, 1/s
+# SXX=zeros(Ny,Nx); # SIGMA'xx, 1/s
+# SXX0=zeros(Ny,Nx); # SIGMA0'xx, 1/s
+# tk1=zeros(Ny1,Nx1); # Old temperature, K
+# tk2=zeros(Ny1,Nx1); # New temperature, K
+# vxp=zeros(Ny1,Nx1); # Solid Vx in pressure nodes, m/s
+# vyp=zeros(Ny1,Nx1); # Solid Vy in pressure nodes, m/s
+# vxpf=zeros(Ny1,Nx1); # Fluid Vx in pressure nodes, m/s
+# vypf=zeros(Ny1,Nx1); # Fluid Vy in pressure nodes, m/s
+# pr=zeros(Ny1,Nx1); # Total Pressure, Pa
+# pf=zeros(Ny1,Nx1); # Fluid Pressure, Pa
+# ps=zeros(Ny1,Nx1); # Solid Pressure, Pa
+# pr0=zeros(Ny1,Nx1); # Old Total Pressure, Pa
+# pf0=zeros(Ny1,Nx1); # Old Fluid Pressure, Pa
+# ps0=zeros(Ny1,Nx1); # Old Solid Pressure, Pa
+# ETAPHI=zeros(Ny1,Nx1); # Bulk Viscosity, Pa*s
+# BETTAPHI=zeros(Ny1,Nx1); # Bulk compresibility, Pa*s
+# PHI=zeros(Ny1,Nx1); # porosity
+# APHI=zeros(Ny1,Nx1); # Dln[(1-PHI)/PHI]/Dt
+# FI=zeros(Ny1,Nx1); # Gravity potential, J/kg
 
 """
 P node properties
@@ -542,56 +603,58 @@ Base.@kwdef mutable struct MarkerArrays
     )
 end
 
-# Define properties of materials: 
-#            Planet  Crust Space
-rhosolidm   = [3300.0 3300.0 1.0   ]; # Solid Density, kg/m^3
-rhofluidm   = [7000.0 7000.0 1.0   ]; # Fluid Density, kg/m^3
-etasolidm   = [1e+16  1e+16  1e+14 ]; # Solid Viscosity, Pa s
-etasolidmm  = [1e+14  1e+14  1e+14 ]; # Molten Solid Viscosity, Pa s
-etafluidm   = [1e-2   1e-2   1e+12 ]; # Fluid Viscosity, Pa s
-etafluidmm  = [1e-2   1e-2   1e+12 ]; # Molten Fluid Viscosity, Pa s
-rhocpsolidm = [3.3e+6 3.3e+6 3.0e+6]; # Solid Volumetric heat capacity, kg/m^3
-rhocpfluidm = [7.0e+6 7.0e+6 3.0e+6]; # Fluid Volumetric heat capacity, kg/m^3
-alphasolidm = [3e-5   3e-5   0.0   ]; # Solid Thermal expansion, 1/K
-alphafluidm = [5e-5   5e-5   0.0   ]; # Fluid Thermal expansion, 1/K
-ksolidm     = [3.0    3.0    3000.0]; # Solid Thermal conductivity, W/m/K
-kfluidm     = [50     50     3000.0]; # Fluid Thermal conductivity, W/m/K
-hrsolidm    = [0.0    0.0    0.0   ]; # Solid Radiogenic heat production, W/m^3
-hrfluidm    = [0.0    0.0    0.0   ]; # Fluid Radiogenic heat production, W/m^3
-gggsolidm   = [1e+10  1e+10  1e+10 ]; # Solid Shear Modulus, Pa
-frictsolidm = [0.6    0.6    0.0   ]; # Solid Friction coefficient
-cohessolidm = [1e+8   1e+8   1e+8  ]; # Solid compressive strength, Pa
-tenssolidm  = [6e+7   6e+7   6e+7  ]; # Solid tensile strength, Pa
-kphim0      = [1e-13  1e-13  1e-17 ]; # Standard permeability, m^2
-etaphikoef=1e-4; # Koefficient to compute compaction viscosity from shear viscosity
+# # Define properties of materials: 
+# #            Planet  Crust Space
+# rhosolidm   = [3300.0 3300.0 1.0   ]; # Solid Density, kg/m^3
+# rhofluidm   = [7000.0 7000.0 1.0   ]; # Fluid Density, kg/m^3
+# etasolidm   = [1e+16  1e+16  1e+14 ]; # Solid Viscosity, Pa s
+# etasolidmm  = [1e+14  1e+14  1e+14 ]; # Molten Solid Viscosity, Pa s
+# etafluidm   = [1e-2   1e-2   1e+12 ]; # Fluid Viscosity, Pa s
+# etafluidmm  = [1e-2   1e-2   1e+12 ]; # Molten Fluid Viscosity, Pa s
+# rhocpsolidm = [3.3e+6 3.3e+6 3.0e+6]; # Solid Volumetric heat capacity, kg/m^3
+# rhocpfluidm = [7.0e+6 7.0e+6 3.0e+6]; # Fluid Volumetric heat capacity, kg/m^3
+# alphasolidm = [3e-5   3e-5   0.0   ]; # Solid Thermal expansion, 1/K
+# alphafluidm = [5e-5   5e-5   0.0   ]; # Fluid Thermal expansion, 1/K
+# ksolidm     = [3.0    3.0    3000.0]; # Solid Thermal conductivity, W/m/K
+# kfluidm     = [50     50     3000.0]; # Fluid Thermal conductivity, W/m/K
+# hrsolidm    = [0.0    0.0    0.0   ]; # Solid Radiogenic heat production, W/m^3
+# hrfluidm    = [0.0    0.0    0.0   ]; # Fluid Radiogenic heat production, W/m^3
+# gggsolidm   = [1e+10  1e+10  1e+10 ]; # Solid Shear Modulus, Pa
+# frictsolidm = [0.6    0.6    0.0   ]; # Solid Friction coefficient
+# cohessolidm = [1e+8   1e+8   1e+8  ]; # Solid compressive strength, Pa
+# tenssolidm  = [6e+7   6e+7   6e+7  ]; # Solid tensile strength, Pa
+# kphim0      = [1e-13  1e-13  1e-17 ]; # Standard permeability, m^2
+# etaphikoef=1e-4; # Koefficient to compute compaction viscosity from shear viscosity
 
-# Constants for 26Al decay
-t_half_al=717000*31540000; #s
-tau_al=t_half_al/log(2)
-ratio_al=5.0e-5; # ratio of 26Al & 27Al Isotopes 
-E_al=5.0470e-13; # [J]
-f_al=1.9e23; #atoms/kg
+# # Constants for 26Al decay
+# t_half_al=717000*31540000; #s
+# tau_al=t_half_al/log(2)
+# ratio_al=5.0e-5; # ratio of 26Al & 27Al Isotopes 
+# E_al=5.0470e-13; # [J]
+# f_al=1.9e23; #atoms/kg
 
-#Constants for 60Fe decay
-t_half_fe=2620000*31540000; #s
-tau_fe=t_half_fe/log(2)
-ratio_fe=1e-6; #Initial 60Fe/56Fe
-E_fe=4.34e-13; #[J]
-f_fe=1.957e24; #atoms/kg
+# #Constants for 60Fe decay
+# t_half_fe=2620000*31540000; #s
+# tau_fe=t_half_fe/log(2)
+# ratio_fe=1e-6; #Initial 60Fe/56Fe
+# E_fe=4.34e-13; #[J]
+# f_fe=1.957e24; #atoms/kg
 
-# Melting temperatures
-tmsilicate=1e+6;#1416; 
-tmiron=1273; 
+# # Melting temperatures
+# tmsilicate=1e+6;#1416; 
+# tmiron=1273; 
 
-phim0=0.2; # standard iron fraction [porosity]
-phimin=1e-4; # Min porosity
-phimax=1-phimin; # Max porosity
+# phim0=0.2; # standard iron fraction [porosity]
+# phimin=1e-4; # Min porosity
+# phimax=1-phimin; # Max porosity
 
 
 # Define marker coordinates; temperature & material type()
 # rplanet=50000; # Planetary radius
 # rcrust=48000; # Crust radius
 # psurface=1e+3; # Surface pressure
+
+
 let m=1; # Marker counter
     for jm=1:1:Nxm
         for im=1:1:Nym
@@ -623,7 +686,7 @@ let m=1; # Marker counter
 end
 
 # Introducing scaled pressure
-pscale=1e+23/dx
+# pscale=1e+23/dx
 
 # Define global matrixes 
 # Hydro-Mechanical solution: L[], R[]
