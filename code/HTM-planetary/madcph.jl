@@ -478,14 +478,6 @@ Base.@kwdef mutable struct PNodalArrays
     )
 end
 
-
-"""
-Marker properties
-
-$(TYPEDFIELDS)
-"""
-Base.@kwdef 
-
 # # Define markers
 # Nxmc=4; # Number of markers per cell in horizontal direction
 # Nymc=4; # Number of markers per cell in vertical direction
@@ -494,14 +486,49 @@ Base.@kwdef
 # dxm=xsize/Nxm; # Marker grid step in horizontal direction,m
 # dym=ysize/Nym; # Marker grid step in vertical direction,m
 # marknum=Nxm*Nym; # Number of markers
-xm=zeros(1,marknum); # Horizontal coordinates, m
-ym=zeros(1,marknum); # Vertical coordinates, m
-tm=zeros(Int8, 1,marknum); # Material type()
-tkm=zeros(1,marknum); # Marker temperature, K
-sxxm=zeros(1,marknum); # SIGMA'xx, Pa
-sxym=zeros(1,marknum); # SIGMAxy, Pa
-etavpm=zeros(1,marknum); # Visco-plastic viscosity, Pa
-phim=zeros(1,marknum); # Marker porosity
+# xm=zeros(1,marknum); # Horizontal coordinates, m
+# ym=zeros(1,marknum); # Vertical coordinates, m
+# tm=zeros(Int8, 1,marknum); # Material type()
+# tkm=zeros(1,marknum); # Marker temperature, K
+# sxxm=zeros(1,marknum); # SIGMA'xx, Pa
+# sxym=zeros(1,marknum); # SIGMAxy, Pa
+# etavpm=zeros(1,marknum); # Visco-plastic viscosity, Pa
+# phim=zeros(1,marknum); # Marker porosity
+
+"""
+Marker properties
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef mutable struct MarkerArrays
+    "horizontal coordinates [m]"
+    xm::Array{Float64}
+    "vertical coordinates [m]"
+    ym::Array{Float64}
+    "material type"
+    tm::Array{Int8}
+    "marker temperature [K]"
+    tmk::Array{Float64}
+    "SIGMA'xx [Pa]"
+    sxxm::Array{Float64}
+    "SIGMAxy [Pa]"
+    sxym::Array{Float64}
+    "Visco-plastic viscosity [Pa]"
+    etavpm::Array{Float64}
+    "Marker porosity"
+    phim::Array{Float64}
+    "inner constructor"
+    MarkerArrays(marknum) = new(
+        zeros(1, marknum),
+        zeros(1, marknum),
+        zeros(1, marknum),
+        zeros(1, marknum),
+        zeros(1, marknum),
+        zeros(1, marknum),
+        zeros(1, marknum),
+        zeros(1, marknum)
+    )
+end
 
 # Define properties of materials: 
 #            Planet  Crust Space
