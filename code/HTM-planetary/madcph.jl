@@ -48,10 +48,12 @@ Simulation parameters: Grids, markers, switches
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct SimParams
+    # Radioactive switches
     "radioactive heating from 26Al active"
     hr_al::Bool
     "radioactive heating from 60Fe active"	
     hr_fe::Bool
+    # Model size and resolution
     "horizontal model size [m]"
     xsize::Int
     "vertical model size [m]"
@@ -66,6 +68,13 @@ Base.@kwdef struct SimParams
     dx::Float64 = xsize / (Nx-1)
     "vertical grid step [m]"
     dy::Float64 = ysize / (Ny-1)
+    # Planetary parameters
+    "planetary radius [m]"
+    rplanet::Int
+    "crust radius [m]"
+    rcrust::Int
+    "surface pressure [Pa]"
+    psurface::Float64
     # Markers
     "number of markers per cell in horizontal direction"
     Nxmc::Int
@@ -91,6 +100,9 @@ const simparams = SimParams(
     ysize = 140000,
     Nx = 141,
     Ny = 141,
+    rplanet = 50000,
+    rcrust = 48000,
+    psurface = 1e+3,
     Nxmc = 4,
     Nymc = 4
 )
@@ -577,9 +589,9 @@ phimax=1-phimin; # Max porosity
 
 
 # Define marker coordinates; temperature & material type()
-rplanet=50000; # Planetary radius
-rcrust=48000; # Crust radius
-psurface=1e+3; # Surface pressure
+# rplanet=50000; # Planetary radius
+# rcrust=48000; # Crust radius
+# psurface=1e+3; # Surface pressure
 let m=1; # Marker counter
     for jm=1:1:Nxm
         for im=1:1:Nym
