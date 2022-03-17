@@ -175,7 +175,7 @@ $(TYPEDFIELDS)
 end
 
 # Initialize parameters
-const params = Params(
+const para = Params(
     Nx = 141,
     Ny = 141,
     Nxmc = 4,
