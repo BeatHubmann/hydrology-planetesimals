@@ -1,5 +1,6 @@
 using SparseArrays
 using MAT
+using DocStringExtensions
 
 # Visco-elasto-plastic hydro-thermomechanical [HTM] planetary code
 # Solving Poisson; momentum; mass & energy conservation eqs.
@@ -23,36 +24,148 @@ using MAT
 # else # if uncommented; uncoment end in line 266
 # # clear all()
 
-#Switch for radioactive heating
-hr_al=1;  #if 1 radioactive heating from 26Al active
-hr_fe=1;  #if 1 radioactive heating from 60Fe active
+# Parameters
+# #Switch for radioactive heating
+# const hr_al = true  #if 1 radioactive heating from 26Al active
+# const hr_fe = true  #if 1 radioactive heating from 60Fe active
 
-# Define Numerical model
-xsize=140000; # Horizontal model size; m
-ysize=140000; # Vertical model size; m
-Nx=141; # Horizontal grid resolution
-Ny=141; # Vertical grid resolution
-Nx1=Nx+1
-Ny1=Ny+1
-dx=xsize/(Nx-1); # Horizontal grid step, m
-dy=ysize/(Ny-1); # Vertical grid step, m
+# # Define Numerical model
+# const xsize = 140000 # Horizontal model size; m
+# const ysize = 140000 # Vertical model size; m
+# const Nx = 141 # Horizontal grid resolution
+# const Ny = 141 # Vertical grid resolution
+# const Nx1 = Nx + 1
+# const Ny1 = Ny + 1
+# const dx = xsize / (Nx-1) # Horizontal grid step, m
+# const dy = ysize / (Ny-1) # Vertical grid step, m
 
-# Define Gravity
-G=6.672e-11; # Gravity constant; N*m^2/kg^2
+# # Define Gravity
+# const G = 6.672e-11 # Gravity constant; N*m^2/kg^2
+
+""""
+Physical simulation parameters
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct Params
+    "true if radioactive heating from 26Al active"
+    hr_al::Bool
+    "true if radioactive heating from 60Fe active"	
+    hr_fe::Bool
+    "horizontal model size [m]"
+    xsize::Int
+    "vertical model size [m]"
+    ysize::Int
+    "horizontal grid resolution"
+    Nx::Int
+    "vertical grid resolution"	
+    Ny::Int
+    Nx1::Int = Nx + 1
+    Ny1::Int = Ny + 1
+    "horizontal grid step [m]"
+    dx::Float64 = xsize / (Nx-1)
+    "vertical grid step [m]"
+    dy::Float64 = ysize / (Ny-1)
+    "gravity constant [m^3*kg^-1*s^-2]"
+    G::Float64 = 6.672e-11
+end
+
+# Initialize parameters
+const para = Params(
+    hr_al = true,
+    hr_fe = true,
+    xsize = 140000,
+    ysize = 140000,
+    Nx = 141,
+    Ny = 141
+)
 
 # Coordinates of different nodal points
-# Basic nodes
-x=0:dx:xsize; # Horizontal coordinates of basic grid points; m
-y=0:dy:ysize; # Vertical coordinates of basic grid points; m
-# Vx-Nodes
-xvx=0:dx:xsize+dy; # Horizontal coordinates of vx grid points; m
-yvx=-dy/2:dy:ysize+dy/2; # Vertical coordinates of vx grid points; m
-# Vy-nodes
-xvy=-dx/2:dx:xsize+dx/2; # Horizontal coordinates of vy grid points; m
-yvy=0:dy:ysize+dy; # Vertical coordinates of vy grid points; m
-# P-Nodes
-xp=-dx/2:dx:xsize+dx/2; # Horizontal coordinates of P grid points; m
-yp=-dy/2:dy:ysize+dy/2; # Vertical coordinates of P grid points; m
+# # Basic nodes
+# const x = 0:dx:xsize # Horizontal coordinates of basic grid points; m
+# const y = 0:dy:ysize # Vertical coordinates of basic grid points; m
+# # Vx-Nodes
+# const xvx = 0:dx:xsize+dy # Horizontal coordinates of vx grid points; m
+# const yvx =-dy/2:dy:ysize+dy/2 # Vertical coordinates of vx grid points; m
+# # Vy-nodes
+# const xvy =-dx/2:dx:xsize+dx/2 # Horizontal coordinates of vy grid points; m
+# const yvy = 0:dy:ysize+dy # Vertical coordinates of vy grid points; m
+# # P-Nodes
+# const xp =-dx/2:dx:xsize+dx/2 # Horizontal coordinates of P grid points; m
+# const yp =-dy/2:dy:ysize+dy/2 # Vertical coordinates of P grid points; m
+
+"""
+Basic node coordinates
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct BasicNodes
+    "horizontal coordinates of basic grid points [m]"
+    x::Array{Float64}
+    "vertical coordinates of basic grid points [m]"
+    y::Array{Float64}
+    "inner constructor"
+    BasicNodes(xsize, ysize, dx, dy) = new(
+        collect(0:dx:xsize),
+        collect(0:dy:ysize)
+        )
+end
+
+"""
+Vx node coordinates
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct VxNodes
+    "horizontal coordinates of vx grid points [m]"
+    xvx::Array{Float64}
+    "vertical coordinates of vx grid points [m]"
+    yvx::Array{Float64}
+    "inner constructor"
+    VxNodes(xsize, ysize, dx, dy) = new(
+        collect(0:dx:xsize+dy),
+        collect(-dy/2:dy:ysize+dy/2)
+        )
+end
+
+"""
+Vy node coordinates
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct VyNodes
+    "horizontal coordinates of vy grid points [m]"
+    xvy::Array{Float64}
+    "vertical coordinates of vy grid points [m]"
+    yvy::Array{Float64}
+    "inner constructor"
+    VyNodes(xsize, ysize, dx, dy) = new(
+        collect(-dx/2:dx:xsize+dx/2),
+        collect(0:dy:ysize+dy)
+        )
+end
+
+"""
+P node coordinates
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct PNodes
+    "horizontal coordinates of P grid points [m]"
+    xp::Array{Float64}
+    "vertical coordinates of P grid points [m]"
+    yp::Array{Float64}
+    "inner constructor"
+    PNodes(xsize, ysize, dx, dy) = new(
+        collect(-dx/2:dx:xsize+dx/2),
+        collect(-dy/2:dy:ysize+dy/2)
+        )
+end
+
+const basicnodes = BasicNodes(para.xsize, para.ysize, para.dx, para.dy)
+const vxnodes = VxNodes(para.xsize, para.ysize, para.dx, para.dy)
+const vynodes = VyNodes(para.xsize, para.ysize, para.dx, para.dy)
+const pnodes = PNodes(para.xsize, para.ysize, para.dx, para.dy)
 
 # Nodal arrays
 # Basic nodes
@@ -67,6 +180,7 @@ COH=zeros(Ny,Nx); # Compressive strength, Pa
 TEN=zeros(Ny,Nx); # Tensile strength, Pa
 FRI=zeros(Ny,Nx); # Friction
 YNY=zeros(Ny,Nx); # Plastic yielding mark, 1=yes,0=no
+
 # Vx-Nodes
 RHOX=zeros(Ny1,Nx1); # Density, kg/m^3
 RHOFX=zeros(Ny1,Nx1); # Fluid Density, kg/m^3
