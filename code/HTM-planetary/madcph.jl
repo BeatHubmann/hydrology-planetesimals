@@ -43,14 +43,14 @@ using DocStringExtensions
 # const G = 6.672e-11 # Gravity constant; N*m^2/kg^2
 
 """"
-Physical simulation parameters
+Simulation parameters: Grids, markers, switches
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Params
-    "true if radioactive heating from 26Al active"
+Base.@kwdef struct SimParams
+    "radioactive heating from 26Al active"
     hr_al::Bool
-    "true if radioactive heating from 60Fe active"	
+    "radioactive heating from 60Fe active"	
     hr_fe::Bool
     "horizontal model size [m]"
     xsize::Int
@@ -66,19 +66,45 @@ Base.@kwdef struct Params
     dx::Float64 = xsize / (Nx-1)
     "vertical grid step [m]"
     dy::Float64 = ysize / (Ny-1)
-    "gravity constant [m^3*kg^-1*s^-2]"
-    G::Float64 = 6.672e-11
+    # Markers
+    "number of markers per cell in horizontal direction"
+    Nxmc::Int
+    "number of markers per cell in vertical direction"
+    Nymc::Int
+    "marker grid resolution in horizontal direction"
+    Nxm::Int = (Nx - 1) * Nxmc
+    "marker grid resolution in vertical direction"
+    Nym::Int = (Ny - 1) * Nymc
+    "marker grid step in horizontal direction"
+    dxm::Float64 = xsize / Nxm
+    "marker grid step in vertical direction"
+    dym::Float64 = ysize / Nym
+    "number of markers"
+    marknum::Int = Nxm * Nym
 end
 
 # Initialize parameters
-const para = Params(
+const simparams = SimParams(
     hr_al = true,
     hr_fe = true,
     xsize = 140000,
     ysize = 140000,
     Nx = 141,
-    Ny = 141
+    Ny = 141,
+    Nxmc = 4,
+    Nymc = 4
 )
+
+"""
+Physical parameters
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct PhysParams
+    "gravity constant [m^3*kg^-1*s^-2]"
+    G::Float64 = 6.672e-11
+end
+
 
 # Coordinates of different nodal points
 # # Basic nodes
@@ -181,6 +207,50 @@ TEN=zeros(Ny,Nx); # Tensile strength, Pa
 FRI=zeros(Ny,Nx); # Friction
 YNY=zeros(Ny,Nx); # Plastic yielding mark, 1=yes,0=no
 
+
+"""
+Basic node properties
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef mutable struct BasicNodalArrays
+    "viscoplastic viscosity, Pa*s"
+    eta::Array{Float64}
+    "viscous viscosity, Pa*s"
+    eta0::Array{Float64}
+    "shear modulus, Pa"
+    ggg::Array{Float64}
+    "epsilonxy, 1/s"
+    exy::Array{Float64}
+    "sigma0xy, 1/s"
+    sxy0::Array{Float64}
+    "rotation rate, 1/s"
+    wyx::Array{Float64}
+    "compressive strength, Pa"
+    coh::Array{Float64}
+    "tensile strength, Pa"
+    ten::Array{Float64}
+    "friction"
+    fri::Array{Float64}
+    "plastic yielding mark, 1=yes,0=no"
+    yny::Array{Float64}
+    "inner constructor"
+    NodalArrays(Nx, Ny) = new(
+        zeros(Ny,Nx),
+        zeros(Ny,Nx),
+        zeros(Ny,Nx),
+        zeros(Ny,Nx),
+        zeros(Ny,Nx),
+        zeros(Ny,Nx),
+        zeros(Ny,Nx),
+        zeros(Ny,Nx),
+        zeros(Ny,Nx),
+        zeros(Ny,Nx),
+        zeros(Ny,Nx)
+        )
+end
+
+
 # Vx-Nodes
 RHOX=zeros(Ny1,Nx1); # Density, kg/m^3
 RHOFX=zeros(Ny1,Nx1); # Fluid Density, kg/m^3
@@ -191,6 +261,45 @@ vxf=zeros(Ny1,Nx1); # Fluid vx-velocity m/s
 RX=zeros(Ny1,Nx1); # ETAfluid/Kphi ratio , m^2
 qxD=zeros(Ny1,Nx1); # qx-Darcy flux m/s
 gx=zeros(Ny1,Nx1); # gx-gravity, m/s^2
+
+"""
+Vx node properties
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef mutable struct VxNodalArrays
+    "density [kg/m^3]"
+    rhox::Array{Float64}
+    "fluid density [kg/m^3]"
+    rhofx::Array{Float64}
+    "thermal conductivity [W/m/K]"
+    kx::Array{Float64}
+    "porosity"
+    phix::Array{Float64}
+    "solid vx-velocity [m/s]"
+    vx::Array{Float64}
+    "fluid vx-velocity [m/s]"
+    vxf::Array{Float64}
+    "etafluid/kphi ratio [m^2]"
+    rx::Array{Float64}
+    "qx-darcy flux [m/s]"
+    qxD::Array{Float64}
+    "gx-gravity [m/s^2]"
+    gx::Array{Float64}
+    "inner constructor"
+    NodalArrays(Nx1, Ny1) = new(
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1)
+        )
+end
+
 # Vy-Nodes
 RHOY=zeros(Ny1,Nx1); # Density, kg/m^3
 RHOFY=zeros(Ny1,Nx1); # Fluid Density, kg/m^3
@@ -201,6 +310,45 @@ vyf=zeros(Ny1,Nx1); # Fluid vy-velocity m/s
 RY=zeros(Ny1,Nx1); # ETAfluid/Kphi ratio , m^2
 qyD=zeros(Ny1,Nx1); # qy-Darcy flux m/s
 gy=zeros(Ny1,Nx1); # gy-gravity, m/s^2
+
+"""
+Vy node properties
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef mutable struct VyNodalArrays
+    "density [kg/m^3]"
+    rhoy::Array{Float64}
+    "fluid density [kg/m^3]"
+    rhofy::Array{Float64}
+    "thermal conductivity [W/m/K]"
+    ky::Array{Float64}
+    "porosity"
+    phiy::Array{Float64}
+    "solid vy-velocity [m/s]"
+    vy::Array{Float64}
+    "fluid vy-velocity [m/s]"
+    vyf::Array{Float64}
+    "etafluid/kphi ratio [m^2]"
+    ry::Array{Float64}
+    "qy-darcy flux [m/s]"
+    qyD::Array{Float64}
+    "gy-gravity [m/s^2]"
+    gy::Array{Float64}
+    "inner constructor"
+    NodalArrays(Nx1, Ny1) = new(
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1),
+        zeros(Ny1,Nx1)
+        )
+end
+
 # P-nodes
 RHO=zeros(Ny1,Nx1); # Density, kg/m^3
 RHOCP=zeros(Ny1,Nx1); # Volumetric heat capacity, J/m^3/K
@@ -232,14 +380,120 @@ PHI=zeros(Ny1,Nx1); # porosity
 APHI=zeros(Ny1,Nx1); # Dln[(1-PHI)/PHI]/Dt
 FI=zeros(Ny1,Nx1); # Gravity potential, J/kg
 
-# Define markers
-Nxmc=4; # Number of markers per cell in horizontal direction
-Nymc=4; # Number of markers per cell in vertical direction
-Nxm=(Nx-1)*Nxmc; # Marker grid resolution in horizontal direction
-Nym=(Ny-1)*Nymc; # Marker grid resolution in vertical direction
-dxm=xsize/Nxm; # Marker grid step in horizontal direction;m
-dym=ysize/Nym; # Marker grid step in vertical direction;m
-marknum=Nxm*Nym; # Number of markers
+"""
+P node properties
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef mutable struct PNodalArrays
+    "density [kg/m^3]"
+    rho::Array{Float64}
+    "volumetric heat capacity [J/m^3/K]"
+    rhocp::Array{Float64}
+    "thermal expansion [J/m^3/K]"
+    alpha::Array{Float64}
+    "fluid thermal expansion [J/m^3/K]"
+    alphaf::Array{Float64}
+    "radioactive heating [W/m^3]"
+    hr::Array{Float64}
+    "adiabatic heating [W/m^3]"
+    ha::Array{Float64}
+    "shear heating [W/m^3]"
+    hs::Array{Float64}
+    "viscosity [Pa*s]"
+    etap::Array{Float64}
+    "shear modulus [Pa]"
+    gggp::Array{Float64}
+    "EPSILONxx [1/s]"
+    exx::Array{Float64}
+    "SIGMA'xx [1/s]"
+    sxx::Array{Float64}
+    "SIGMA0'xx [1/s]"
+    sxx0::Array{Float64}
+    "old temperature [K]"
+    tk1::Array{Float64}
+    "new temperature [K]"
+    tk2::Array{Float64}
+    "solid Vx in pressure nodes [m/s]"
+    vxp::Array{Float64}
+    "solid Vy in pressure nodes [m/s]"
+    vyp::Array{Float64}
+    "fluid Vx in pressure nodes [m/s]"
+    vxpf::Array{Float64}
+    "fluid Vy in pressure nodes [m/s]"
+    vypf::Array{Float64}
+    "total pressure [Pa]"
+    pr::Array{Float64}
+    "fluid pressure [Pa]"
+    pf::Array{Float64}
+    "solid pressure [Pa]"
+    ps::Array{Float64}
+    "old total pressure [Pa]"
+    pr0::Array{Float64}
+    "old fluid pressure [Pa]"
+    pf0::Array{Float64}
+    "old solid pressure [Pa]"
+    ps0::Array{Float64}
+    "bulk viscosity [Pa*s]"
+    etaphi::Array{Float64}
+    "bulk compresibility [Pa*s]"
+    bettaphi::Array{Float64}
+    "porosity"
+    phi::Array{Float64}
+    "Dln[(1-PHI)/PHI]/Dt"
+    aphi::Array{Float64}
+    "gravity potential [J/kg]"
+    fi::Array{Float64}
+    "inner constructor"
+    PNodalArrays(Nx1, Ny1) = new(
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1),
+        zeros(Ny1, Nx1)
+    )
+end
+
+
+"""
+Marker properties
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef 
+
+# # Define markers
+# Nxmc=4; # Number of markers per cell in horizontal direction
+# Nymc=4; # Number of markers per cell in vertical direction
+# Nxm=(Nx-1)*Nxmc; # Marker grid resolution in horizontal direction
+# Nym=(Ny-1)*Nymc; # Marker grid resolution in vertical direction
+# dxm=xsize/Nxm; # Marker grid step in horizontal direction,m
+# dym=ysize/Nym; # Marker grid step in vertical direction,m
+# marknum=Nxm*Nym; # Number of markers
 xm=zeros(1,marknum); # Horizontal coordinates, m
 ym=zeros(1,marknum); # Vertical coordinates, m
 tm=zeros(Int8, 1,marknum); # Material type()
@@ -293,6 +547,7 @@ tmiron=1273;
 phim0=0.2; # standard iron fraction [porosity]
 phimin=1e-4; # Min porosity
 phimax=1-phimin; # Max porosity
+
 
 # Define marker coordinates; temperature & material type()
 rplanet=50000; # Planetary radius
@@ -881,7 +1136,7 @@ ETA00=ETA
 # Save initial yielding nodes
 YNY00=YNY
 
-# Start Plastic iterations on Nodes
+# Start Plastic iterations on Nodes until 'End Plastic iterations on Nodes'
 if (timestep==1)
     BETTAPHI=zeros(Ny1,Nx1); # No elastic compaction for the first timestep
 end
