@@ -1,6 +1,7 @@
 using SparseArrays
 using MAT
 using DocStringExtensions
+using Parameters
 
 # Visco-elasto-plastic hydro-thermomechanical [HTM] planetary code
 # Solving Poisson; momentum; mass & energy conservation eqs.
@@ -47,7 +48,8 @@ Parameters: Grids, markers, switches, constants
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Params
+# Base.@kwdef struct Params
+@with_kw struct Params
     # Radioactive switches
     "radioactive heating from 26Al active"
     hr_al::Bool = true
@@ -262,10 +264,10 @@ Base.@kwdef struct PNodes
         )
 end
 
-const basicnodes = BasicNodes(para.xsize, para.ysize, para.dx, para.dy)
-const vxnodes = VxNodes(para.xsize, para.ysize, para.dx, para.dy)
-const vynodes = VyNodes(para.xsize, para.ysize, para.dx, para.dy)
-const pnodes = PNodes(para.xsize, para.ysize, para.dx, para.dy)
+const basicnodes = BasicNodes(params.xsize, params.ysize, params.dx, params.dy)
+const vxnodes = VxNodes(params.xsize, params.ysize, params.dx, params.dy)
+const vynodes = VyNodes(params.xsize, params.ysize, params.dx, params.dy)
+const pnodes = PNodes(params.xsize, params.ysize, params.dx, params.dy)
 
 # Nodal arrays (mutable)
 # # Basic nodes
@@ -581,7 +583,7 @@ Base.@kwdef mutable struct MarkerArrays
     "material type"
     tm::Array{Int8}
     "marker temperature [K]"
-    tmk::Array{Float64}
+    tkm::Array{Float64}
     "SIGMA'xx [Pa]"
     sxxm::Array{Float64}
     "SIGMAxy [Pa]"
@@ -655,35 +657,76 @@ end
 # psurface=1e+3; # Surface pressure
 
 
-let m=1; # Marker counter
+# let m=1; # Marker counter
+#     for jm=1:1:Nxm
+#         for im=1:1:Nym
+#             # Define marker coordinates
+#             xm[m]=dxm/2+(jm-1)*dxm+(rand()-0.5)*dxm
+#             ym[m]=dym/2+(im-1)*dym+(rand()-0.5)*dym
+#             # Marker properties
+#             rmark=((xm[m]-xsize/2)^2+(ym[m]-ysize/2)^2)^0.5
+#             if(rmark<rplanet)
+#                 # Planet
+#                 tm[m]=1; # mantle
+#                 if(rmark>rcrust) 
+#                     tm[m]=2; # crust
+#                 end
+#                 tkm[m]=300; # Temperature
+#                 phim[m]=phim0*(1+1.0*(rand()-0.5)); # Porosity
+#                 etavpm[m]=etasolidm[tm[m]];#*exp(-28*phim[m]); # Matrix viscosity
+#             else()
+#                 # Sticky space [to have internal free surface]
+#                 tm[m]=3; # Material type()
+#                 tkm[m]=273; # Temperature
+#                 phim[m]=phimin; # Porosity
+#                 etavpm[m]=etasolidm[tm[m]]; # Matrix viscosity
+#             end
+#             # Update marker counter
+#             m=m+1
+#         end
+#     end
+# end
+
+"""
+Initialize markers according to model parameters
+"""
+function initmarkers!(markers::MarkerArrays, p::Params)
+    @unpack_Params p
+    xcenter = xsize / 2
+    ycenter = ysize / 2
+    radius(x, y) = sqrt((x - xcenter)^2 + (y - ycenter)^2)
     for jm=1:1:Nxm
         for im=1:1:Nym
+            # calculate marker counter
+            m = (jm-1) * Nym + im
             # Define marker coordinates
-            xm[m]=dxm/2+(jm-1)*dxm+(rand()-0.5)*dxm
-            ym[m]=dym/2+(im-1)*dym+(rand()-0.5)*dym
+            markers.xm[m] = dxm/2 + (jm-1) * dxm + (rand()-0.5) * dxm
+            markers.ym[m] = dym/2 + (im-1) * dym + (rand()-0.5) * dym
             # Marker properties
-            rmark=((xm[m]-xsize/2)^2+(ym[m]-ysize/2)^2)^0.5
-            if(rmark<rplanet)
+            rmark = radius(markers.xm[m], markers.ym[m])
+            if rmark < rplanet
                 # Planet
-                tm[m]=1; # mantle
-                if(rmark>rcrust) 
-                    tm[m]=2; # crust
+                if rmark > rcrust 
+                    markers.tm[m] = 2 # crust
+                else
+                    markers.tm[m] = 1 # mantle
                 end
-                tkm[m]=300; # Temperature
-                phim[m]=phim0*(1+1.0*(rand()-0.5)); # Porosity
-                etavpm[m]=etasolidm[tm[m]];#*exp(-28*phim[m]); # Matrix viscosity
+                markers.tkm[m] = 300 # Temperature
+                markers.phim[m] = phim0 * (1 + 1.0*(rand()-0.5)) # Porosity
+                markers.etavpm[m] = etasolidm[markers.tm[m]] #*exp(-28*phim[m]) # Matrix viscosity
             else()
                 # Sticky space [to have internal free surface]
-                tm[m]=3; # Material type()
-                tkm[m]=273; # Temperature
-                phim[m]=phimin; # Porosity
-                etavpm[m]=etasolidm[tm[m]]; # Matrix viscosity
+                markers.tm[m] = 3 # space
+                markers.tkm[m] = 273 # Temperature
+                markers.phim[m] = phimin # Porosity
+                markers.etavpm[m] = etasolidm[markers.tm[m]] # Matrix viscosity
             end
-            # Update marker counter
-            m=m+1
         end
     end
 end
+
+
+
 
 # Introducing scaled pressure
 # pscale=1e+23/dx
@@ -746,7 +789,10 @@ dphimax=0.01; # max porosity ratio change per time step
 nsteps=30000; # number of timesteps
 timestep=1
 # end - CLOSES else FROM LINE 23
+
 savematstep=50; #.mat storage periodicity
+
+
 for timestep=timestep:1:nsteps
 
 # Updating radioactive heating
