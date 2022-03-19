@@ -57,24 +57,24 @@ $(TYPEDFIELDS)
     hr_fe::Bool = true
     # Model size and resolution
     "horizontal model size [m]"
-    xsize::Int = 140000
+    xsize::Int64 = 140000
     "vertical model size [m]"
-    ysize::Int = 140000
+    ysize::Int64 = 140000
     "horizontal grid resolution"
     Nx::Int
     "vertical grid resolution"	
     Ny::Int
-    Nx1::Int = Nx + 1
-    Ny1::Int = Ny + 1
+    Nx1::Int64 = Nx + 1
+    Ny1::Int64 = Ny + 1
     "horizontal grid step [m]"
     dx::Float64 = xsize / (Nx-1)
     "vertical grid step [m]"
     dy::Float64 = ysize / (Ny-1)
     # Planetary parameters
     "planetary radius [m]"
-    rplanet::Int = 50000
+    rplanet::Int64 = 50000
     "crust radius [m]"
-    rcrust::Int = 48000
+    rcrust::Int64 = 48000
     "surface pressure [Pa]"
     psurface::Float64 = 1e+3
     # Markers
@@ -83,15 +83,15 @@ $(TYPEDFIELDS)
     "number of markers per cell in vertical direction"
     Nymc::Int
     "marker grid resolution in horizontal direction"
-    Nxm::Int = (Nx - 1) * Nxmc
+    Nxm::Int64 = (Nx - 1) * Nxmc
     "marker grid resolution in vertical direction"
-    Nym::Int = (Ny - 1) * Nymc
+    Nym::Int64 = (Ny - 1) * Nymc
     "marker grid step in horizontal direction"
     dxm::Float64 = xsize / Nxm
     "marker grid step in vertical direction"
     dym::Float64 = ysize / Nym
     "number of markers"
-    marknum::Int = Nxm * Nym
+    marknum::Int64 = Nxm * Nym
     # Physical constants
     "gravitational constant [m^3*kg^-1*s^-2]"
     G::Float64 = 6.672e-11
@@ -732,18 +732,69 @@ end
 # pscale=1e+23/dx
 
 # Define global matrixes 
-# Hydro-Mechanical solution: L[], R[]
-N=Nx1*Ny1*6; # Global number of unknowns
-L=spzeros(N,N); # Matrix of coefficients [left part]
-R=zeros(N,1); # Vector of right parts
-# Thermal solution: LT[], RT[]
-N=Nx1*Ny1; # Global number of unknowns
-LT=spzeros(N,N); # Matrix of coefficients [left part]
-RT=zeros(N,1); # Vector of right parts
-# Gravity solution: LP[], RP[]
-N=Nx1*Ny1; # Global number of unknowns
-LP=spzeros(N,N); # Matrix of coefficients [left part]
-RP=zeros(N,1); # Vector of right parts
+# # Hydro-Mechanical solution: L[], R[]
+# N=Nx1*Ny1*6; # Global number of unknowns
+# L=spzeros(N,N); # Matrix of coefficients [left part]
+# R=zeros(N,1); # Vector of right parts
+# # Thermal solution: LT[], RT[]
+# N=Nx1*Ny1; # Global number of unknowns
+# LT=spzeros(N,N); # Matrix of coefficients [left part]
+# RT=zeros(N,1); # Vector of right parts
+# # Gravity solution: LP[], RP[]
+# N=Nx1*Ny1; # Global number of unknowns
+# LP=spzeros(N,N); # Matrix of coefficients [left part]
+# RP=zeros(N,1); # Vector of right parts
+
+"""
+Global matrices: Hydro-mechanical solution
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef mutable struct GlobalHydroMechanical
+    "L matrix"
+    L::SparseMatrixCSC{Float64, Int64}
+    "R vector"
+    R::Vector{Float64}
+    "inner constructor"
+    GlobalHydroMechanical(Nx1, Ny1) = new(
+        spzeros(Nx1*Ny1*6, Nx1*Ny1*6),
+        zeros(Nx1*Ny1*6)
+        )
+end
+
+"""
+Global matrices: Thermal solution
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef mutable struct GlobalThermal
+    "LT matrix"
+    LT::SparseMatrixCSC{Float64, Int64}
+    "RT vector"
+    RT::Vector{Float64}
+    "inner constructor"
+    GlobalThermal(Nx1, Ny1) = new(
+        spzeros(Nx1*Ny1, Nx1*Ny1),
+        zeros(Nx1*Ny1)
+        )
+end
+
+"""
+Global matrices: Gravity solution
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef mutable struct GlobalGravity
+    "LP matrix"
+    LP::SparseMatrixCSC{Float64, Int64}
+    "RP vector"
+    RP::Vector{Float64}
+    "inner constructor"
+    GlobalGravity(Nx1, Ny1) = new(
+        spzeros(Nx1*Ny1, Nx1*Ny1),
+        zeros(Nx1*Ny1)
+        )
+end
 
 # Mechanical boundary conditions: free slip=-1; No Slip=1
 bcleft=-1
