@@ -815,7 +815,8 @@ vybottom=strainrate*ysize/2
 
 # Thermal boundary conditions: insulation at all boundaries
 
-# # Timestepping
+# Timestepping
+
 # nname="madcph_"; #mat filename
 # savematstep=50; #.mat storage periodicity
 # dtelastic=1e+11; # Maximal computational timestep; s
@@ -840,7 +841,6 @@ vybottom=strainrate*ysize/2
 # nsteps=30000; # number of timesteps
 # timestep=1
 # # end - CLOSES else FROM LINE 23
-
 
 @with_kw struct TimestepParams
     "mat filename"
