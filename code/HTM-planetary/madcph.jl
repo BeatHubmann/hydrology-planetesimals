@@ -815,33 +815,84 @@ vybottom=strainrate*ysize/2
 
 # Thermal boundary conditions: insulation at all boundaries
 
-# Timestepping
-nname="madcph_"; #mat filename
-savematstep=50; #.mat storage periodicity
-dtelastic=1e+11; # Maximal computational timestep; s
-dt=dtelastic; # Current computational timestep; s
-dtkoef=2; # Koefficient to decrese computational timestep
-dtkoefup=1.1; # Koefficient to increase computational timestep
-dtstep=200; # Number of iterations before changing computational timestep
-dxymax=0.05; # Max marker movement per time step; grid steps
-vpratio=1/3; # Weight of averaged velocity for moving markers
-DTmax=20; # Max temperature change per time step; K
-dsubgridt=0; # Subgrid temperature diffusion parameter
-dsubgrids=0; # Subgrid stress diffusion parameter
-global timesum=1e6*365.25*24*3600; # Time sum; s
-etamin=1e+12; # Lower viscosity cut-off; Pa s
-etamax=1e+23; # Upper viscosity cut-off; Pa s
-nplast=100000; # Number of plastic iterations
-visstep=1; # Periodicity of visualization
-yerrmax=1e+2; # Tolerance level for yielding error()
-YERRNOD=zeros(1,nplast); # Yielding error of nodes
-etawt=0; # Weight for old viscosity
-dphimax=0.01; # max porosity ratio change per time step
-nsteps=30000; # number of timesteps
-timestep=1
-# end - CLOSES else FROM LINE 23
+# # Timestepping
+# nname="madcph_"; #mat filename
+# savematstep=50; #.mat storage periodicity
+# dtelastic=1e+11; # Maximal computational timestep; s
+# dt=dtelastic; # Current computational timestep; s
+# dtkoef=2; # Koefficient to decrese computational timestep
+# dtkoefup=1.1; # Koefficient to increase computational timestep
+# dtstep=200; # Number of iterations before changing computational timestep
+# dxymax=0.05; # Max marker movement per time step; grid steps
+# vpratio=1/3; # Weight of averaged velocity for moving markers
+# DTmax=20; # Max temperature change per time step; K
+# dsubgridt=0; # Subgrid temperature diffusion parameter
+# dsubgrids=0; # Subgrid stress diffusion parameter
+# global timesum=1e6*365.25*24*3600; # Time sum; s
+# etamin=1e+12; # Lower viscosity cut-off; Pa s
+# etamax=1e+23; # Upper viscosity cut-off; Pa s
+# nplast=100000; # Number of plastic iterations
+# visstep=1; # Periodicity of visualization
+# yerrmax=1e+2; # Tolerance level for yielding error()
+# YERRNOD=zeros(1,nplast); # Yielding error of nodes
+# etawt=0; # Weight for old viscosity
+# dphimax=0.01; # max porosity ratio change per time step
+# nsteps=30000; # number of timesteps
+# timestep=1
+# # end - CLOSES else FROM LINE 23
 
-savematstep=50; #.mat storage periodicity
+
+@with_kw struct TimestepParams
+    "mat filename"
+    nname::String = "madcph_"
+    ".mat storage periodicity"
+    savematstep::Int64 =50
+    "Maximal computational timestep [s]"
+    dtelastic::Float64 = 1e+11 
+    "Current computational timestep [s]"
+    dt::Float64 = dtelastic 
+    "Coefficient to decrese computational timestep"
+    dtkoef::Float64 = 2 
+    "Coefficient to increase computational timestep"
+    dtkoefup::Float64 = 1.1 
+    "Number of iterations before changing computational timestep"
+    dtstep::Int64 = 200 
+    "Max marker movement per time step [grid steps]"
+    dxymax::Float64 = 0.05 
+    "Weight of averaged velocity for moving markers"
+    vpratio::Float64 = 1 / 3 
+    "Max temperature change per time step [K]"
+    DTmax::Float64 = 20 
+    "Subgrid temperature diffusion parameter"
+    dsubgridt::Float64 = 0 
+    "Subgrid stress diffusion parameter"
+    dsubgrids::Float64 = 0
+    "Time sum [s]"
+    timesum::Float64 = 1e6 * 365.25 * 24 * 3600 
+    "Lower viscosity cut-off [Pa s]"	
+    etamin::Float64 = 1e+12 
+    "Upper viscosity cut-off [Pa s]"
+    etamax::Float64 = 1e+23 
+    "Number of plastic iterations"
+    nplast::Int64 = 100000
+    "Periodicity of visualization"
+    visstep::Int64 = 1 
+    "Tolerance level for yielding error()"
+    yerrmax::Float64 = 1e+2 
+    "Yielding error of nodes"
+    YERRNOD::Array{Float64} = zeros(1, nplast) 
+    "Weight for old viscosity"
+    etawt::Float64 = 0 
+    "max porosity ratio change per time step"
+    dphimax::Float64 = 0.01 
+    "number of timesteps"
+    nsteps::Int64 = 30000 
+    timestep::Int64 = 1
+    ".mat storage periodicity"
+    savematstep::Int64 = 50
+end
+
+# savematstep=50; #.mat storage periodicity
 
 
 for timestep=timestep:1:nsteps
