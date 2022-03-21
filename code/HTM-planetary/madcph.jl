@@ -689,6 +689,12 @@ end
 
 """
 Initialize markers according to model parameters
+
+$(SIGNATURES)
+
+# Details
+
+TBD
 """
 function initmarkers!(markers::MarkerArrays, p::Params)
     @unpack_Params p
@@ -894,12 +900,67 @@ end
 
 # savematstep=50; #.mat storage periodicity
 
-
-for timestep=timestep:1:nsteps
+# for timestep=timestep:1:nsteps # ends at EOF
 
 # Updating radioactive heating
+# #26Al
+# if hr_al==1
+#     Q_al=f_al*ratio_al*E_al*exp(-timesum/tau_al)/tau_al; # [W/kg]
+#     hrsolidm=Q_al*rhosolidm;    #radiogenic heat production [W/m^3]
+#     hrsolidm[1,3]=0; #no radioactive heating from space
+# end
+
+# #60Fe
+# if hr_fe==1
+#     Q_fe=f_fe*ratio_fe*E_fe*exp(-timesum/tau_fe)/tau_fe; #[W/kg]
+#     hrfluidm[1,1]=Q_fe*rhofluidm[1,1]; #[w/m^3]radioactive heatproduction only in planet
+# end
+
+
+function calculate_radioactive_heating(
+    hr_al::Bool,
+    f_al::Float64,
+    ratio_al::Float64,
+    E_al::Float64,
+    tau_al::Float64,
+    hr_fe::Bool,
+    f_fe::Float64,
+    ratio_fe::Float64,
+    E_fe::Float64,
+    tau_fe::Float64,
+    timesum::Float64,
+    rhosolidm::Array{Float64},
+    rhofluidm::Array{Float64},
+    )
+    #26Al
+    if hr_al
+        # 26Al radiogenic heat production [W/kg]
+        Q_al = f_al * ratio_al *E_al * exp(-timesum/tau_al) / tau_al
+        # Solid phase 26Al radiogenic heat production [W/m^3]
+        hrsolidm = Q_al * rhosolidm
+        # remove radioactive heating for marker type 3 (space)
+        hrsolidm[3] = 0
+    end
+    #60Fe
+    if hr_fe
+        # 60Fe radiogenic heat production [W/kg]
+        Q_fe = f_fe * ratio_fe * E_fe * exp(-timesum/tau_fe) / tau_fe
+        # Fluid phase 60Fe radiogenic heat production [W/m^3]
+        hrfluidm = Q_fe * rhofluidm
+        # remove radioactive heating for marker types 2 and 3 (crust and space)
+        hrfluidm[2:3] .= 0
+    end
+    return hrsolidm, hrfluidm
+end
+
+
+function timestepping(p::Params, tsp::TimestepParams)
+
+for timestep = tsp.timestep:1:tsp.nsteps
+
+    # Updating radioactive heating
 #26Al
-if hr_al==1
+if hr_al
     Q_al=f_al*ratio_al*E_al*exp(-timesum/tau_al)/tau_al; # [W/kg]
     hrsolidm=Q_al*rhosolidm;    #radiogenic heat production [W/m^3]
     hrsolidm[1,3]=0; #no radioactive heating from space
@@ -910,6 +971,18 @@ if hr_fe==1
     Q_fe=f_fe*ratio_fe*E_fe*exp(-timesum/tau_fe)/tau_fe; #[W/kg]
     hrfluidm[1,1]=Q_fe*rhofluidm[1,1]; #[w/m^3]radioactive heatproduction only in planet
 end
+
+
+
+
+if timesum > 15*3600*24*365.25*1000000
+    break
+end
+
+end # for timestep = tsp.timestep:1:tsp.nsteps
+end # function timestepping(p::Params, tsp::TimestepParams)
+
+
 
 # Save old stresses
 sxxm00=sxxm; 
@@ -3209,8 +3282,8 @@ if(trunc(timestep/savematstep)*savematstep==timestep)
     fclose(fdata)
 end
 
-if timesum .> 15*3600*24*365.25*1000000
-    break
-end
-end
+# if timesum > 15*3600*24*365.25*1000000
+#     break
+# end
+# end
 
