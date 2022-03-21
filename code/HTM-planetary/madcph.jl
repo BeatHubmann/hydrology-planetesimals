@@ -172,6 +172,98 @@ $(TYPEDFIELDS)
     phimin::Float64 = 1e-4
     "max porosity"
     phimax::Float64 = 1 - phimin            
+    # Mechanical boundary conditions: free slip=-1 / no slip=1
+    "mechanical boundary condition left"
+    bcleft::Float64 = -1
+    "mechanical boundary condition right"
+    bcright::Float64 = -1
+    "mechanical boundary condition top"
+    bctop::Float64 = -1
+    "mechanical boundary condition bottom"
+    bcbottom::Float64 = -1
+    # Hydraulic boundary conditions: free slip=-1 / no slip=1
+    "hydraulic boundary condition left"
+    bcfleft::Float64 = -1
+    "hydraulic boundary condition right"
+    bcfright::Float64 = -1
+    "hydraulic boundary condition top"
+    bcftop::Float64 = -1
+    "hydraulic boundary condition bottom"
+    bcfbottom::Float64 = -1
+    # Extension/shortening velocities
+    "shortening strain rate"
+    strainrate::Float64 = 0e-13
+    "x extension/shortening velocity left"
+    vxleft::Float64 = strainrate * xsize / 2
+    "x extension/shortening velocity right"
+    vxright::Float64= -strainrate * xsize / 2
+    "y extension/shortening velocity top"
+    vytop::Float64 = - strainrate * ysize / 2
+    "y extension/shortening velocity bottom"
+    vybottom::Float64 = strainrate * ysize / 2
+    # timestepping parameters
+    "mat filename"
+    nname::String = "madcph_"
+    ".mat storage periodicity"
+    savematstep::Int64 = 50
+    "Maximal computational timestep [s]"
+    dtelastic::Float64 = 1e+11 
+    "Coefficient to decrese computational timestep"
+    dtkoef::Float64 = 2 
+    "Coefficient to increase computational timestep"
+    dtkoefup::Float64 = 1.1 
+    "Number of iterations before changing computational timestep"
+    dtstep::Int64 = 200 
+    "Max marker movement per time step [grid steps]"
+    dxymax::Float64 = 0.05 
+    "Weight of averaged velocity for moving markers"
+    vpratio::Float64 = 1 / 3 
+    "Max temperature change per time step [K]"
+    DTmax::Float64 = 20 
+    "Subgrid temperature diffusion parameter"
+    dsubgridt::Float64 = 0 
+    "Subgrid stress diffusion parameter"
+    dsubgrids::Float64 = 0
+    "length of year [s]"
+    yearlength::Float64 = 365.25 * 24 * 3600
+    "Time sum (start) [s]"
+    starttimesum::Float64 = 1e6 * yearlength 
+    "Time sum (end) [s]"
+    endtimesum::Float64 = 15 * 1000000 * yearlength
+    "Lower viscosity cut-off [Pa s]"	
+    etamin::Float64 = 1e+12 
+    "Upper viscosity cut-off [Pa s]"
+    etamax::Float64 = 1e+23 
+    "Number of plastic iterations"
+    nplast::Int64 = 100000
+    "Periodicity of visualization"
+    visstep::Int64 = 1 
+    "Tolerance level for yielding error()"
+    yerrmax::Float64 = 1e+2 
+    "Yielding error of nodes"
+    YERRNOD::Array{Float64} = zeros(1, nplast) 
+    "Weight for old viscosity"
+    etawt::Float64 = 0 
+    "max porosity ratio change per time step"
+    dphimax::Float64 = 0.01
+    "starting timestep"
+    startstep::Int64 = 1
+    "number of timesteps"
+    nsteps::Int64 = 30000 
+end
+
+ """
+Mutable simulation parameters, counters
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef mutable struct MutableParams
+    "timestep counter (current)"
+    timestep::Int64
+    "computational timestep (current) [s]"
+    dt::Float64
+    "time sum (current) [s]"
+    timesum::Float64
 end
 
 # Initialize parameters
@@ -181,6 +273,13 @@ const para = Params(
     Nxmc = 4,
     Nymc = 4
 )
+
+mutablepara = MutableParams(
+    timestep = para.startstep,
+    dt = para.dtelastic,
+    timesum = para.starttimesum
+)
+
 
 # Coordinates of different nodal points (constant)
 # # Basic nodes
@@ -802,22 +901,22 @@ Base.@kwdef mutable struct GlobalGravity
         )
 end
 
-# Mechanical boundary conditions: free slip=-1; No Slip=1
-bcleft=-1
-bcright=-1
-bctop=-1
-bcbottom=-1
-# Hydraulic boundary conditions: free slip=-1; No Slip=1
-bcfleft=-1
-bcfright=-1
-bcftop=-1
-bcfbottom=-1
-# Extension/shortening velocities
-strainrate=0e-13; # Shortening strain rate
-vxleft=strainrate*xsize/2
-vxright=-strainrate*xsize/2
-vytop=-strainrate*ysize/2
-vybottom=strainrate*ysize/2
+# # Mechanical boundary conditions: free slip=-1; No Slip=1
+# bcleft=-1
+# bcright=-1
+# bctop=-1
+# bcbottom=-1
+# # Hydraulic boundary conditions: free slip=-1; No Slip=1
+# bcfleft=-1
+# bcfright=-1
+# bcftop=-1
+# bcfbottom=-1
+# # Extension/shortening velocities
+# strainrate=0e-13; # Shortening strain rate
+# vxleft=strainrate*xsize/2
+# vxright=-strainrate*xsize/2
+# vytop=-strainrate*ysize/2
+# vybottom=strainrate*ysize/2
 
 # Thermal boundary conditions: insulation at all boundaries
 
@@ -848,55 +947,55 @@ vybottom=strainrate*ysize/2
 # timestep=1
 # # end - CLOSES else FROM LINE 23
 
-@with_kw struct TimestepParams
-    "mat filename"
-    nname::String = "madcph_"
-    ".mat storage periodicity"
-    savematstep::Int64 =50
-    "Maximal computational timestep [s]"
-    dtelastic::Float64 = 1e+11 
-    "Current computational timestep [s]"
-    dt::Float64 = dtelastic 
-    "Coefficient to decrese computational timestep"
-    dtkoef::Float64 = 2 
-    "Coefficient to increase computational timestep"
-    dtkoefup::Float64 = 1.1 
-    "Number of iterations before changing computational timestep"
-    dtstep::Int64 = 200 
-    "Max marker movement per time step [grid steps]"
-    dxymax::Float64 = 0.05 
-    "Weight of averaged velocity for moving markers"
-    vpratio::Float64 = 1 / 3 
-    "Max temperature change per time step [K]"
-    DTmax::Float64 = 20 
-    "Subgrid temperature diffusion parameter"
-    dsubgridt::Float64 = 0 
-    "Subgrid stress diffusion parameter"
-    dsubgrids::Float64 = 0
-    "Time sum [s]"
-    timesum::Float64 = 1e6 * 365.25 * 24 * 3600 
-    "Lower viscosity cut-off [Pa s]"	
-    etamin::Float64 = 1e+12 
-    "Upper viscosity cut-off [Pa s]"
-    etamax::Float64 = 1e+23 
-    "Number of plastic iterations"
-    nplast::Int64 = 100000
-    "Periodicity of visualization"
-    visstep::Int64 = 1 
-    "Tolerance level for yielding error()"
-    yerrmax::Float64 = 1e+2 
-    "Yielding error of nodes"
-    YERRNOD::Array{Float64} = zeros(1, nplast) 
-    "Weight for old viscosity"
-    etawt::Float64 = 0 
-    "max porosity ratio change per time step"
-    dphimax::Float64 = 0.01 
-    "number of timesteps"
-    nsteps::Int64 = 30000 
-    timestep::Int64 = 1
-    ".mat storage periodicity"
-    savematstep::Int64 = 50
-end
+# @with_kw struct TimestepParams
+#     "mat filename"
+#     nname::String = "madcph_"
+#     ".mat storage periodicity"
+#     savematstep::Int64 =50
+#     "Maximal computational timestep [s]"
+#     dtelastic::Float64 = 1e+11 
+#     "Current computational timestep [s]"
+#     dt::Float64 = dtelastic 
+#     "Coefficient to decrese computational timestep"
+#     dtkoef::Float64 = 2 
+#     "Coefficient to increase computational timestep"
+#     dtkoefup::Float64 = 1.1 
+#     "Number of iterations before changing computational timestep"
+#     dtstep::Int64 = 200 
+#     "Max marker movement per time step [grid steps]"
+#     dxymax::Float64 = 0.05 
+#     "Weight of averaged velocity for moving markers"
+#     vpratio::Float64 = 1 / 3 
+#     "Max temperature change per time step [K]"
+#     DTmax::Float64 = 20 
+#     "Subgrid temperature diffusion parameter"
+#     dsubgridt::Float64 = 0 
+#     "Subgrid stress diffusion parameter"
+#     dsubgrids::Float64 = 0
+#     "Time sum [s]"
+#     timesum::Float64 = 1e6 * 365.25 * 24 * 3600 
+#     "Lower viscosity cut-off [Pa s]"	
+#     etamin::Float64 = 1e+12 
+#     "Upper viscosity cut-off [Pa s]"
+#     etamax::Float64 = 1e+23 
+#     "Number of plastic iterations"
+#     nplast::Int64 = 100000
+#     "Periodicity of visualization"
+#     visstep::Int64 = 1 
+#     "Tolerance level for yielding error()"
+#     yerrmax::Float64 = 1e+2 
+#     "Yielding error of nodes"
+#     YERRNOD::Array{Float64} = zeros(1, nplast) 
+#     "Weight for old viscosity"
+#     etawt::Float64 = 0 
+#     "max porosity ratio change per time step"
+#     dphimax::Float64 = 0.01 
+#     "number of timesteps"
+#     nsteps::Int64 = 30000 
+#     timestep::Int64 = 1
+#     ".mat storage periodicity"
+#     savematstep::Int64 = 50
+# end
 
 # savematstep=50; #.mat storage periodicity
 
@@ -933,6 +1032,7 @@ function calculate_radioactive_heating(
     rhofluidm::Array{Float64},
     )
     #26Al
+    hrsolidm = zeros(1, 3)
     if hr_al
         # 26Al radiogenic heat production [W/kg]
         Q_al = f_al * ratio_al *E_al * exp(-timesum/tau_al) / tau_al
@@ -954,30 +1054,37 @@ function calculate_radioactive_heating(
 end
 
 
-function timestepping(p::Params, tsp::TimestepParams)
+function timestepping(
+    p::Params,
+    mp::MutableParams)
+    # Unpack constant parameters
+    @unpack_Params p
 
-for timestep = tsp.timestep:1:tsp.nsteps
+    for timestep = tsp.timestep:1:tsp.nsteps
 
-    # Updating radioactive heating
-#26Al
-if hr_al
-    Q_al=f_al*ratio_al*E_al*exp(-timesum/tau_al)/tau_al; # [W/kg]
-    hrsolidm=Q_al*rhosolidm;    #radiogenic heat production [W/m^3]
-    hrsolidm[1,3]=0; #no radioactive heating from space
-end
+        # Updating radioactive heating
+        hrsolidm, hrfluidm = calculate_radioactive_heating(
+            p.hr_al,
+            p.f_al,
+            p.ratio_al,
+            p.E_al,
+            p.tau_al,
+            p.hr_fe,
+            p.f_fe,
+            p.ratio_fe,
+            p.E_fe,
+            p.tau_fe,
+            tsp.timesum,
+            p.rhosolidm,
+            p.rhofluidm,
+            )
 
-#60Fe
-if hr_fe==1
-    Q_fe=f_fe*ratio_fe*E_fe*exp(-timesum/tau_fe)/tau_fe; #[W/kg]
-    hrfluidm[1,1]=Q_fe*rhofluidm[1,1]; #[w/m^3]radioactive heatproduction only in planet
-end
 
 
 
-
-if timesum > 15*3600*24*365.25*1000000
-    break
-end
+    if mp.timesum > endtimesum
+        break
+    end
 
 end # for timestep = tsp.timestep:1:tsp.nsteps
 end # function timestepping(p::Params, tsp::TimestepParams)
@@ -1025,8 +1132,6 @@ PHISUM=zeros(Ny1,Nx1)
 WTPSUM=zeros(Ny1,Nx1)
 
 for m=1:1:marknum
-
-
         # Compute marker parameters
     if(tm[m]<3)
         # Rocks
