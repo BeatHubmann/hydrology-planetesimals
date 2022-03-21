@@ -855,7 +855,7 @@ Global matrices: Hydro-mechanical solution
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct GlobalHydroMechanical
+Base.@kwdef mutable struct GlobalHydroMechanicalSolution
     "L matrix"
     L::SparseMatrixCSC{Float64, Int64}
     "R vector"
@@ -872,7 +872,7 @@ Global matrices: Thermal solution
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct GlobalThermal
+Base.@kwdef mutable struct GlobalThermalSolution
     "LT matrix"
     LT::SparseMatrixCSC{Float64, Int64}
     "RT vector"
@@ -889,7 +889,7 @@ Global matrices: Gravity solution
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct GlobalGravity
+Base.@kwdef mutable struct GlobalGravitySolution
     "LP matrix"
     LP::SparseMatrixCSC{Float64, Int64}
     "RP vector"
