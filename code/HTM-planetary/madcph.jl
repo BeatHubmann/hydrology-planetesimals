@@ -252,19 +252,19 @@ $(TYPEDFIELDS)
     nsteps::Int64 = 30000 
 end
 
- """
-Mutable simulation parameters, counters
+#  """
+# Mutable simulation parameters, counters
 
-$(TYPEDFIELDS)
-"""
-Base.@kwdef mutable struct MutableParams
-    "timestep counter (current)"
-    timestep::Int64
-    "computational timestep (current) [s]"
-    dt::Float64
-    "time sum (current) [s]"
-    timesum::Float64
-end
+# $(TYPEDFIELDS)
+# """
+# Base.@kwdef mutable struct MutableParams
+#     "timestep counter (current)"
+#     timestep::Int64
+#     "computational timestep (current) [s]"
+#     dt::Float64
+#     "time sum (current) [s]"
+#     timesum::Float64
+# end
 
 # Initialize parameters
 const para = Params(
@@ -274,11 +274,11 @@ const para = Params(
     Nymc = 4
 )
 
-mutablepara = MutableParams(
-    timestep = para.startstep,
-    dt = para.dtelastic,
-    timesum = para.starttimesum
-)
+# mutablepara = MutableParams(
+#     timestep = para.startstep,
+#     dt = para.dtelastic,
+#     timesum = para.starttimesum
+# )
 
 
 # Coordinates of different nodal points (constant)
@@ -1056,33 +1056,43 @@ end
 
 function timestepping(
     p::Params,
-    mp::MutableParams)
-    # Unpack constant parameters
+    )
+    # mp::MutableParams)
+
+    # unpack parameters
     @unpack_Params p
 
-    for timestep = tsp.timestep:1:tsp.nsteps
+    # initialize counters and timestepping loop variables
+    "timestep counter (current)"
+    timestep::Int64 = startstep
+    "computational timestep (current) [s]"
+    dt::Float64 = dtelastic
+    "time sum (current) [s]"
+    timesum::Float64 = starttimesum 
+
+    for timestep = timestep:1:nsteps
 
         # Updating radioactive heating
         hrsolidm, hrfluidm = calculate_radioactive_heating(
-            p.hr_al,
-            p.f_al,
-            p.ratio_al,
-            p.E_al,
-            p.tau_al,
-            p.hr_fe,
-            p.f_fe,
-            p.ratio_fe,
-            p.E_fe,
-            p.tau_fe,
-            tsp.timesum,
-            p.rhosolidm,
-            p.rhofluidm,
+            hr_al,
+            f_al,
+            ratio_al,
+            E_al,
+            tau_al,
+            hr_fe,
+            f_fe,
+            ratio_fe,
+            E_fe,
+            tau_fe,
+            timesum,
+            rhosolidm,
+            rhofluidm,
             )
 
 
 
 
-    if mp.timesum > endtimesum
+    if timesum > endtimesum
         break
     end
 
