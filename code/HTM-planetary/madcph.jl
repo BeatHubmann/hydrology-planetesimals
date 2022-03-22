@@ -1,3 +1,4 @@
+using Base.Threads
 using SparseArrays
 using MAT
 using DocStringExtensions
@@ -1068,7 +1069,44 @@ function timestepping(
     "computational timestep (current) [s]"
     dt::Float64 = dtelastic
     "time sum (current) [s]"
-    timesum::Float64 = starttimesum 
+    timesum::Float64 = starttimesum
+
+
+    # setup data structures to interpolate properties from markers to nodes
+    # basic nodes
+    ETA0SUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+    ETASUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+    GGGSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+    SXYSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+    COHSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+    TENSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+    FRISUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+    WTSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+    # Vx-nodes
+    RHOXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    RHOFXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    KXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    PHIXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    RXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    WTXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    # Vy-nodes
+    RHOYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    RHOFYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    KYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    PHIYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    RYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    WTYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    # P-Nodes
+    GGGPSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    SXXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    RHOSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    RHOCPSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    ALPHASUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    ALPHAFSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    HRSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    TKSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    PHISUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+    WTPSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
 
     for timestep = timestep:1:nsteps
 
@@ -1089,57 +1127,174 @@ function timestepping(
             rhofluidm,
             )
 
+        # setup data structures to interpolate properties from markers to nodes
+        # # basic nodes
+        # ETA0SUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
+        # ETASUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
+        # GGGSUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
+        # SXYSUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
+        # COHSUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
+        # TENSUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
+        # FRISUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
+        # WTSUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
+        # # Vx-nodes
+        # RHOXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # RHOFXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # KXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # PHIXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # RXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # WTXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # # Vy-nodes
+        # RHOYSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # RHOFYSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # KYSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # PHIYSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # RYSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # WTYSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # # P-Nodes
+        # GGGPSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # SXXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # RHOSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # RHOCPSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # ALPHASUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # ALPHAFSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # HRSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # TKSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # PHISUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # WTPSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+
+        # # reset datastructures for this timestep
+        @threads for _ = 1:1:nthreads()
+            # basic nodes
+            ETA0SUM[threadid()] .= zero(0.0)
+            ETASUM[threadid()] .= zero(0.0)
+            GGGSUM[threadid()] .= zero(0.0)
+            SXYSUM[threadid()] .= zero(0.0)
+            COHSUM[threadid()] .= zero(0.0)
+            TENSUM[threadid()] .= zero(0.0)
+            FRISUM[threadid()] .= zero(0.0)
+            WTSUM[threadid()] .= zero(0.0)
+            # Vx-nodes
+            RHOXSUM[threadid()] .= zero(0.0)
+            RHOFXSUM[threadid()] .= zero(0.0)
+            KXSUM[threadid()] .= zero(0.0)
+            PHIXSUM[threadid()] .= zero(0.0)
+            RXSUM[threadid()] .= zero(0.0)
+            WTXSUM[threadid()] .= zero(0.0)
+            # Vy-nodes
+            RHOYSUM[threadid()] .= zero(0.0)
+            RHOFYSUM[threadid()] .= zero(0.0)
+            KYSUM[threadid()] .= zero(0.0)
+            PHIYSUM[threadid()] .= zero(0.0)
+            RYSUM[threadid()] .= zero(0.0)
+            WTYSUM[threadid()] .= zero(0.0)
+            # P-Nodes
+            GGGPSUM[threadid()] .= zero(0.0)
+            SXXSUM[threadid()] .= zero(0.0)
+            RHOSUM[threadid()] .= zero(0.0)
+            RHOCPSUM[threadid()] .= zero(0.0)
+            ALPHASUM[threadid()] .= zero(0.0)
+            ALPHAFSUM[threadid()] .= zero(0.0)
+            HRSUM[threadid()] .= zero(0.0)
+            TKSUM[threadid()] .= zero(0.0)
+            PHISUM[threadid()] .= zero(0.0)
+            WTPSUM[threadid()] .= zero(0.0)
+        end
+
+        # RMK: sequential version, 20% slower than threaded version above
+        # when nthreads() = 24
+        # reset datastructures for this timestep
+        # for threadid = 1:1:nthreads()
+        #     # basic nodes
+        #     ETA0SUM[threadid] .= zero(0.0)
+        #     ETASUM[threadid] .= zero(0.0)
+        #     GGGSUM[threadid] .= zero(0.0)
+        #     SXYSUM[threadid] .= zero(0.0)
+        #     COHSUM[threadid] .= zero(0.0)
+        #     TENSUM[threadid] .= zero(0.0)
+        #     FRISUM[threadid] .= zero(0.0)
+        #     WTSUM[threadid] .= zero(0.0)
+        #     # Vx-nodes
+        #     RHOXSUM[threadid] .= zero(0.0)
+        #     RHOFXSUM[threadid] .= zero(0.0)
+        #     KXSUM[threadid] .= zero(0.0)
+        #     PHIXSUM[threadid] .= zero(0.0)
+        #     RXSUM[threadid] .= zero(0.0)
+        #     WTXSUM[threadid] .= zero(0.0)
+        #     # Vy-nodes
+        #     RHOYSUM[threadid] .= zero(0.0)
+        #     RHOFYSUM[threadid] .= zero(0.0)
+        #     KYSUM[threadid] .= zero(0.0)
+        #     PHIYSUM[threadid] .= zero(0.0)
+        #     RYSUM[threadid] .= zero(0.0)
+        #     WTYSUM[threadid] .= zero(0.0)
+        #     # P-Nodes
+        #     GGGPSUM[threadid] .= zero(0.0)
+        #     SXXSUM[threadid] .= zero(0.0)
+        #     RHOSUM[threadid] .= zero(0.0)
+        #     RHOCPSUM[threadid] .= zero(0.0)
+        #     ALPHASUM[threadid] .= zero(0.0)
+        #     ALPHAFSUM[threadid] .= zero(0.0)
+        #     HRSUM[threadid] .= zero(0.0)
+        #     TKSUM[threadid] .= zero(0.0)
+        #     PHISUM[threadid] .= zero(0.0)
+        #     WTPSUM[threadid] .= zero(0.0)
+        # end
 
 
 
-    if timesum > endtimesum
-        break
-    end
+        @threads for m=1:1:marknum
 
-end # for timestep = tsp.timestep:1:tsp.nsteps
+        end
+
+        if timesum > endtimesum
+            break
+        end
+
+    end # for timestep = tsp.timestep:1:tsp.nsteps
 end # function timestepping(p::Params, tsp::TimestepParams)
 
 
 
-# Save old stresses
-sxxm00=sxxm; 
-sxym00=sxym;    
+# Save old stresses - RMK: not used anywhere in code
+# sxxm00=sxxm; 
+# sxym00=sxym;    
     
-# Interpolate properties from markers to nodes
-# Basic nodes
-ETA0SUM=zeros(Ny,Nx)
-ETASUM=zeros(Ny,Nx)
-GGGSUM=zeros(Ny,Nx)
-SXYSUM=zeros(Ny,Nx)
-COHSUM=zeros(Ny,Nx)
-TENSUM=zeros(Ny,Nx)
-FRISUM=zeros(Ny,Nx)
-WTSUM=zeros(Ny,Nx)
-# Vx-nodes
-RHOXSUM=zeros(Ny1,Nx1)
-RHOFXSUM=zeros(Ny1,Nx1)
-KXSUM=zeros(Ny1,Nx1)
-PHIXSUM=zeros(Ny1,Nx1)
-RXSUM=zeros(Ny1,Nx1)
-WTXSUM=zeros(Ny1,Nx1)
-# Vy-nodes
-RHOYSUM=zeros(Ny1,Nx1)
-RHOFYSUM=zeros(Ny1,Nx1)
-KYSUM=zeros(Ny1,Nx1)
-PHIYSUM=zeros(Ny1,Nx1)
-RYSUM=zeros(Ny1,Nx1)
-WTYSUM=zeros(Ny1,Nx1)
-# P-Nodes
-GGGPSUM=zeros(Ny1,Nx1)
-SXXSUM=zeros(Ny1,Nx1)
-RHOSUM=zeros(Ny1,Nx1)
-RHOCPSUM=zeros(Ny1,Nx1)
-ALPHASUM=zeros(Ny1,Nx1)
-ALPHAFSUM=zeros(Ny1,Nx1)
-HRSUM=zeros(Ny1,Nx1)
-TKSUM=zeros(Ny1,Nx1)
-PHISUM=zeros(Ny1,Nx1)
-WTPSUM=zeros(Ny1,Nx1)
+# # Interpolate properties from markers to nodes
+# # Basic nodes
+# ETA0SUM=zeros(Ny,Nx)
+# ETASUM=zeros(Ny,Nx)
+# GGGSUM=zeros(Ny,Nx)
+# SXYSUM=zeros(Ny,Nx)
+# COHSUM=zeros(Ny,Nx)
+# TENSUM=zeros(Ny,Nx)
+# FRISUM=zeros(Ny,Nx)
+# WTSUM=zeros(Ny,Nx)
+# # Vx-nodes
+# RHOXSUM=zeros(Ny1,Nx1)
+# RHOFXSUM=zeros(Ny1,Nx1)
+# KXSUM=zeros(Ny1,Nx1)
+# PHIXSUM=zeros(Ny1,Nx1)
+# RXSUM=zeros(Ny1,Nx1)
+# WTXSUM=zeros(Ny1,Nx1)
+# # Vy-nodes
+# RHOYSUM=zeros(Ny1,Nx1)
+# RHOFYSUM=zeros(Ny1,Nx1)
+# KYSUM=zeros(Ny1,Nx1)
+# PHIYSUM=zeros(Ny1,Nx1)
+# RYSUM=zeros(Ny1,Nx1)
+# WTYSUM=zeros(Ny1,Nx1)
+# # P-Nodes
+# GGGPSUM=zeros(Ny1,Nx1)
+# SXXSUM=zeros(Ny1,Nx1)
+# RHOSUM=zeros(Ny1,Nx1)
+# RHOCPSUM=zeros(Ny1,Nx1)
+# ALPHASUM=zeros(Ny1,Nx1)
+# ALPHAFSUM=zeros(Ny1,Nx1)
+# HRSUM=zeros(Ny1,Nx1)
+# TKSUM=zeros(Ny1,Nx1)
+# PHISUM=zeros(Ny1,Nx1)
+# WTPSUM=zeros(Ny1,Nx1)
 
 for m=1:1:marknum
         # Compute marker parameters
