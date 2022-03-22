@@ -820,7 +820,7 @@ function initmarkers!(markers::MarkerArrays, p::Params)
                 markers.tkm[m] = 300 # Temperature
                 markers.phim[m] = phim0 * (1 + 1.0*(rand()-0.5)) # Porosity
                 markers.etavpm[m] = etasolidm[markers.tm[m]] #*exp(-28*phim[m]) # Matrix viscosity
-            else()
+            else
                 # Sticky space [to have internal free surface]
                 markers.tm[m] = 3 # space
                 markers.tkm[m] = 273 # Temperature
