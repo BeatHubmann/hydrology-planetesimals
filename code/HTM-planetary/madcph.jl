@@ -1242,10 +1242,17 @@ function reset_interpolation_arrays!(
     # end
 end
 
+function compute_marker_parameters(m::Int64, p::Params)
+
+
+end
+
+
+
 
 function timestepping(p::Params)
 
-    # unpack parameters
+    # unpack simulation parameters
     @unpack_Params p
 
     # initialize counters and timestepping loop variables
