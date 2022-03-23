@@ -1017,6 +1017,7 @@ end
 # end
 
 
+
 function calculate_radioactive_heating(
     hr_al::Bool,
     f_al::Float64,
@@ -1030,8 +1031,8 @@ function calculate_radioactive_heating(
     tau_fe::Float64,
     timesum::Float64,
     rhosolidm::Array{Float64},
-    rhofluidm::Array{Float64},
-    )
+    rhofluidm::Array{Float64}
+)
     #26Al
     hrsolidm = zeros(1, 3)
     if hr_al
@@ -1055,23 +1056,10 @@ function calculate_radioactive_heating(
 end
 
 
-function timestepping(
-    p::Params,
-    )
-    # mp::MutableParams)
 
+function setup_interpolation_arrays(p::Params)
     # unpack parameters
     @unpack_Params p
-
-    # initialize counters and timestepping loop variables
-    "timestep counter (current)"
-    timestep::Int64 = startstep
-    "computational timestep (current) [s]"
-    dt::Float64 = dtelastic
-    "time sum (current) [s]"
-    timesum::Float64 = starttimesum
-
-
     # setup data structures to interpolate properties from markers to nodes
     # basic nodes
     ETA0SUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
@@ -1108,7 +1096,202 @@ function timestepping(
     PHISUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
     WTPSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
 
-    for timestep = timestep:1:nsteps
+    return ETA0SUM,
+        ETASUM,
+        GGGSUM,
+        SXYSUM,
+        COHSUM,
+        TENSUM,
+        FRISUM,
+        WTSUM,
+        RHOXSUM,
+        RHOFXSUM,
+        KXSUM,
+        PHIXSUM,
+        RXSUM,
+        WTXSUM,
+        RHOYSUM,
+        RHOFYSUM,
+        KYSUM,
+        PHIYSUM,
+        RYSUM,
+        WTYSUM,
+        GGGPSUM,
+        SXXSUM,
+        RHOSUM,
+        RHOCPSUM,
+        ALPHASUM,
+        ALPHAFSUM,
+        HRSUM,
+        TKSUM,
+        PHISUM,
+        WTPSUM
+end
+
+
+
+function reset_interpolation_arrays!(
+    ETA0SUM,
+    ETASUM,
+    GGGSUM,
+    SXYSUM,
+    COHSUM,
+    TENSUM,
+    FRISUM,
+    WTSUM,
+    RHOXSUM,
+    RHOFXSUM,
+    KXSUM,
+    PHIXSUM,
+    RXSUM,
+    WTXSUM,
+    RHOYSUM,
+    RHOFYSUM,
+    KYSUM,
+    PHIYSUM,
+    RYSUM,
+    WTYSUM,
+    GGGPSUM,
+    SXXSUM,
+    RHOSUM,
+    RHOCPSUM,
+    ALPHASUM,
+    ALPHAFSUM,
+    HRSUM,
+    TKSUM,
+    PHISUM,
+    WTPSUM,
+)
+
+    # set arrays to zero 
+    @threads for _ = 1:1:nthreads()
+        # basic nodes
+        ETA0SUM[threadid()] .= zero(0.0)
+        ETASUM[threadid()] .= zero(0.0)
+        GGGSUM[threadid()] .= zero(0.0)
+        SXYSUM[threadid()] .= zero(0.0)
+        COHSUM[threadid()] .= zero(0.0)
+        TENSUM[threadid()] .= zero(0.0)
+        FRISUM[threadid()] .= zero(0.0)
+        WTSUM[threadid()] .= zero(0.0)
+        # Vx-nodes
+        RHOXSUM[threadid()] .= zero(0.0)
+        RHOFXSUM[threadid()] .= zero(0.0)
+        KXSUM[threadid()] .= zero(0.0)
+        PHIXSUM[threadid()] .= zero(0.0)
+        RXSUM[threadid()] .= zero(0.0)
+        WTXSUM[threadid()] .= zero(0.0)
+        # Vy-nodes
+        RHOYSUM[threadid()] .= zero(0.0)
+        RHOFYSUM[threadid()] .= zero(0.0)
+        KYSUM[threadid()] .= zero(0.0)
+        PHIYSUM[threadid()] .= zero(0.0)
+        RYSUM[threadid()] .= zero(0.0)
+        WTYSUM[threadid()] .= zero(0.0)
+        # P-Nodes
+        GGGPSUM[threadid()] .= zero(0.0)
+        SXXSUM[threadid()] .= zero(0.0)
+        RHOSUM[threadid()] .= zero(0.0)
+        RHOCPSUM[threadid()] .= zero(0.0)
+        ALPHASUM[threadid()] .= zero(0.0)
+        ALPHAFSUM[threadid()] .= zero(0.0)
+        HRSUM[threadid()] .= zero(0.0)
+        TKSUM[threadid()] .= zero(0.0)
+        PHISUM[threadid()] .= zero(0.0)
+        WTPSUM[threadid()] .= zero(0.0)
+    end
+
+    # RMK: sequential version, 20% slower than threaded version above
+    # when nthreads() = 24
+    # reset datastructures for this timestep
+    # for threadid = 1:1:nthreads()
+    #     # basic nodes
+    #     ETA0SUM[threadid] .= zero(0.0)
+    #     ETASUM[threadid] .= zero(0.0)
+    #     GGGSUM[threadid] .= zero(0.0)
+    #     SXYSUM[threadid] .= zero(0.0)
+    #     COHSUM[threadid] .= zero(0.0)
+    #     TENSUM[threadid] .= zero(0.0)
+    #     FRISUM[threadid] .= zero(0.0)
+    #     WTSUM[threadid] .= zero(0.0)
+    #     # Vx-nodes
+    #     RHOXSUM[threadid] .= zero(0.0)
+    #     RHOFXSUM[threadid] .= zero(0.0)
+    #     KXSUM[threadid] .= zero(0.0)
+    #     PHIXSUM[threadid] .= zero(0.0)
+    #     RXSUM[threadid] .= zero(0.0)
+    #     WTXSUM[threadid] .= zero(0.0)
+    #     # Vy-nodes
+    #     RHOYSUM[threadid] .= zero(0.0)
+    #     RHOFYSUM[threadid] .= zero(0.0)
+    #     KYSUM[threadid] .= zero(0.0)
+    #     PHIYSUM[threadid] .= zero(0.0)
+    #     RYSUM[threadid] .= zero(0.0)
+    #     WTYSUM[threadid] .= zero(0.0)
+    #     # P-Nodes
+    #     GGGPSUM[threadid] .= zero(0.0)
+    #     SXXSUM[threadid] .= zero(0.0)
+    #     RHOSUM[threadid] .= zero(0.0)
+    #     RHOCPSUM[threadid] .= zero(0.0)
+    #     ALPHASUM[threadid] .= zero(0.0)
+    #     ALPHAFSUM[threadid] .= zero(0.0)
+    #     HRSUM[threadid] .= zero(0.0)
+    #     TKSUM[threadid] .= zero(0.0)
+    #     PHISUM[threadid] .= zero(0.0)
+    #     WTPSUM[threadid] .= zero(0.0)
+    # end
+end
+
+
+function timestepping(p::Params)
+
+    # unpack parameters
+    @unpack_Params p
+
+    # initialize counters and timestepping loop variables
+    "timestep counter (current)"
+    timestep::Int64 = startstep
+    "computational timestep (current) [s]"
+    dt::Float64 = dtelastic
+    "time sum (current) [s]"
+    timesum::Float64 = starttimesum
+
+    # set up marker interpolation arrays
+    (
+        ETA0SUM,
+        ETASUM,
+        GGGSUM,
+        SXYSUM,
+        COHSUM,
+        TENSUM,
+        FRISUM,
+        WTSUM,
+        RHOXSUM,
+        RHOFXSUM,
+        KXSUM,
+        PHIXSUM,
+        RXSUM,
+        WTXSUM,
+        RHOYSUM,
+        RHOFYSUM,
+        KYSUM,
+        PHIYSUM,
+        RYSUM,
+        WTYSUM,
+        GGGPSUM,
+        SXXSUM,
+        RHOSUM,
+        RHOCPSUM,
+        ALPHASUM,
+        ALPHAFSUM,
+        HRSUM,
+        TKSUM,
+        PHISUM,
+        WTPSUM
+    ) = setup_interpolation_arrays(p)
+
+    # iterate timesteps   
+    for timestep = timestep:1:100#nsteps
 
         # Updating radioactive heating
         hrsolidm, hrfluidm = calculate_radioactive_heating(
@@ -1125,124 +1308,43 @@ function timestepping(
             timesum,
             rhosolidm,
             rhofluidm,
-            )
+        )
 
-        # setup data structures to interpolate properties from markers to nodes
-        # # basic nodes
-        # ETA0SUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
-        # ETASUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
-        # GGGSUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
-        # SXYSUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
-        # COHSUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
-        # TENSUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
-        # FRISUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
-        # WTSUM = Tuple([zeros(Ny, Nx) for _ in 1:nthreads()])
-        # # Vx-nodes
-        # RHOXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # RHOFXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # KXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # PHIXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # RXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # WTXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # # Vy-nodes
-        # RHOYSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # RHOFYSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # KYSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # PHIYSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # RYSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # WTYSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # # P-Nodes
-        # GGGPSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # SXXSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # RHOSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # RHOCPSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # ALPHASUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # ALPHAFSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # HRSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # TKSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # PHISUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
-        # WTPSUM = Tuple([zeros(Ny1, Nx1) for _ in 1:nthreads()])
+        # set interpolation arrays to zero for this timestep
+        reset_interpolation_arrays!(
+            ETA0SUM,
+            ETASUM,
+            GGGSUM,
+            SXYSUM,
+            COHSUM,
+            TENSUM,
+            FRISUM,
+            WTSUM,
+            RHOXSUM,
+            RHOFXSUM,
+            KXSUM,
+            PHIXSUM,
+            RXSUM,
+            WTXSUM,
+            RHOYSUM,
+            RHOFYSUM,
+            KYSUM,
+            PHIYSUM,
+            RYSUM,
+            WTYSUM,
+            GGGPSUM,
+            SXXSUM,
+            RHOSUM,
+            RHOCPSUM,
+            ALPHASUM,
+            ALPHAFSUM,
+            HRSUM,
+            TKSUM,
+            PHISUM,
+            WTPSUM
+        )
 
-        # # reset datastructures for this timestep
-        @threads for _ = 1:1:nthreads()
-            # basic nodes
-            ETA0SUM[threadid()] .= zero(0.0)
-            ETASUM[threadid()] .= zero(0.0)
-            GGGSUM[threadid()] .= zero(0.0)
-            SXYSUM[threadid()] .= zero(0.0)
-            COHSUM[threadid()] .= zero(0.0)
-            TENSUM[threadid()] .= zero(0.0)
-            FRISUM[threadid()] .= zero(0.0)
-            WTSUM[threadid()] .= zero(0.0)
-            # Vx-nodes
-            RHOXSUM[threadid()] .= zero(0.0)
-            RHOFXSUM[threadid()] .= zero(0.0)
-            KXSUM[threadid()] .= zero(0.0)
-            PHIXSUM[threadid()] .= zero(0.0)
-            RXSUM[threadid()] .= zero(0.0)
-            WTXSUM[threadid()] .= zero(0.0)
-            # Vy-nodes
-            RHOYSUM[threadid()] .= zero(0.0)
-            RHOFYSUM[threadid()] .= zero(0.0)
-            KYSUM[threadid()] .= zero(0.0)
-            PHIYSUM[threadid()] .= zero(0.0)
-            RYSUM[threadid()] .= zero(0.0)
-            WTYSUM[threadid()] .= zero(0.0)
-            # P-Nodes
-            GGGPSUM[threadid()] .= zero(0.0)
-            SXXSUM[threadid()] .= zero(0.0)
-            RHOSUM[threadid()] .= zero(0.0)
-            RHOCPSUM[threadid()] .= zero(0.0)
-            ALPHASUM[threadid()] .= zero(0.0)
-            ALPHAFSUM[threadid()] .= zero(0.0)
-            HRSUM[threadid()] .= zero(0.0)
-            TKSUM[threadid()] .= zero(0.0)
-            PHISUM[threadid()] .= zero(0.0)
-            WTPSUM[threadid()] .= zero(0.0)
-        end
-
-        # RMK: sequential version, 20% slower than threaded version above
-        # when nthreads() = 24
-        # reset datastructures for this timestep
-        # for threadid = 1:1:nthreads()
-        #     # basic nodes
-        #     ETA0SUM[threadid] .= zero(0.0)
-        #     ETASUM[threadid] .= zero(0.0)
-        #     GGGSUM[threadid] .= zero(0.0)
-        #     SXYSUM[threadid] .= zero(0.0)
-        #     COHSUM[threadid] .= zero(0.0)
-        #     TENSUM[threadid] .= zero(0.0)
-        #     FRISUM[threadid] .= zero(0.0)
-        #     WTSUM[threadid] .= zero(0.0)
-        #     # Vx-nodes
-        #     RHOXSUM[threadid] .= zero(0.0)
-        #     RHOFXSUM[threadid] .= zero(0.0)
-        #     KXSUM[threadid] .= zero(0.0)
-        #     PHIXSUM[threadid] .= zero(0.0)
-        #     RXSUM[threadid] .= zero(0.0)
-        #     WTXSUM[threadid] .= zero(0.0)
-        #     # Vy-nodes
-        #     RHOYSUM[threadid] .= zero(0.0)
-        #     RHOFYSUM[threadid] .= zero(0.0)
-        #     KYSUM[threadid] .= zero(0.0)
-        #     PHIYSUM[threadid] .= zero(0.0)
-        #     RYSUM[threadid] .= zero(0.0)
-        #     WTYSUM[threadid] .= zero(0.0)
-        #     # P-Nodes
-        #     GGGPSUM[threadid] .= zero(0.0)
-        #     SXXSUM[threadid] .= zero(0.0)
-        #     RHOSUM[threadid] .= zero(0.0)
-        #     RHOCPSUM[threadid] .= zero(0.0)
-        #     ALPHASUM[threadid] .= zero(0.0)
-        #     ALPHAFSUM[threadid] .= zero(0.0)
-        #     HRSUM[threadid] .= zero(0.0)
-        #     TKSUM[threadid] .= zero(0.0)
-        #     PHISUM[threadid] .= zero(0.0)
-        #     WTPSUM[threadid] .= zero(0.0)
-        # end
-
-
-
+        # compute marker parameters 
         @threads for m=1:1:marknum
 
         end
@@ -1251,8 +1353,8 @@ function timestepping(
             break
         end
 
-    end # for timestep = tsp.timestep:1:tsp.nsteps
-end # function timestepping(p::Params, tsp::TimestepParams)
+    end # for timestep = timestep:1:nsteps
+end # function timestepping(p::Params)
 
 
 
