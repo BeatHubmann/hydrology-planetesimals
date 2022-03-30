@@ -3,6 +3,7 @@ using SparseArrays
 using MAT
 using DocStringExtensions
 using Parameters
+using StaticArrays
 
 # Visco-elasto-plastic hydro-thermomechanical [HTM] planetary code
 # Solving Poisson; momentum; mass & energy conservation eqs.
