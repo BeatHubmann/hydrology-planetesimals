@@ -49,8 +49,8 @@ Parameters: Grids, markers, switches, constants
 
 $(TYPEDFIELDS)
 """
-# Base.@kwdef struct Params
 @with_kw struct Params
+# Base.@kwdef struct Params
     # Radioactive switches
     "radioactive heating from 26Al active"
     hr_al::Bool = true
@@ -267,13 +267,6 @@ end
 #     timesum::Float64
 # end
 
-# Initialize parameters
-const para = Params(
-    Nx = 141,
-    Ny = 141,
-    Nxmc = 4,
-    Nymc = 4
-)
 
 # mutablepara = MutableParams(
 #     timestep = para.startstep,
@@ -301,7 +294,8 @@ Basic node coordinates
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct BasicNodes
+@with_kw struct BasicNodes
+# Base.@kwdef struct BasicNodes
     "horizontal coordinates of basic grid points [m]"
     x::Array{Float64}
     "vertical coordinates of basic grid points [m]"
@@ -318,7 +312,8 @@ Vx node coordinates
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct VxNodes
+@with_kw struct VxNodes
+# Base.@kwdef struct VxNodes
     "horizontal coordinates of vx grid points [m]"
     xvx::Array{Float64}
     "vertical coordinates of vx grid points [m]"
@@ -335,7 +330,8 @@ Vy node coordinates
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct VyNodes
+@with_kw struct VyNodes
+# Base.@kwdef struct VyNodes
     "horizontal coordinates of vy grid points [m]"
     xvy::Array{Float64}
     "vertical coordinates of vy grid points [m]"
@@ -352,7 +348,8 @@ P node coordinates
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct PNodes
+@with_kw struct PNodes
+# Base.@kwdef struct PNodes
     "horizontal coordinates of P grid points [m]"
     xp::Array{Float64}
     "vertical coordinates of P grid points [m]"
@@ -364,10 +361,6 @@ Base.@kwdef struct PNodes
         )
 end
 
-const basicnodes = BasicNodes(params.xsize, params.ysize, params.dx, params.dy)
-const vxnodes = VxNodes(params.xsize, params.ysize, params.dx, params.dy)
-const vynodes = VyNodes(params.xsize, params.ysize, params.dx, params.dy)
-const pnodes = PNodes(params.xsize, params.ysize, params.dx, params.dy)
 
 # Nodal arrays (mutable)
 # # Basic nodes
@@ -388,7 +381,8 @@ Basic node properties
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct BasicNodalArrays
+@with_kw mutable struct BasicNodalArrays
+# Base.@kwdef mutable struct BasicNodalArrays
     "viscoplastic viscosity, Pa*s"
     eta::Array{Float64}
     "viscous viscosity, Pa*s"
@@ -442,7 +436,8 @@ Vx node properties
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct VxNodalArrays
+@with_kw mutable struct VxNodalArrays
+# Base.@kwdef mutable struct VxNodalArrays
     "density [kg/m^3]"
     rhox::Array{Float64}
     "fluid density [kg/m^3]"
@@ -491,7 +486,8 @@ Vy node properties
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct VyNodalArrays
+@with_kw mutable struct VyNodalArrays
+# Base.@kwdef mutable struct VyNodalArrays
     "density [kg/m^3]"
     rhoy::Array{Float64}
     "fluid density [kg/m^3]"
@@ -560,7 +556,8 @@ P node properties
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct PNodalArrays
+@with_kw mutable struct PNodalArrays
+# Base.@kwdef mutable struct PNodalArrays
     "density [kg/m^3]"
     rho::Array{Float64}
     "volumetric heat capacity [J/m^3/K]"
@@ -675,7 +672,8 @@ Marker properties
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct MarkerArrays
+@with_kw mutable struct MarkerArrays
+# Base.@kwdef mutable struct MarkerArrays
     "horizontal coordinates [m]"
     xm::Array{Float64}
     "vertical coordinates [m]"
@@ -787,52 +785,6 @@ end
 #     end
 # end
 
-"""
-Initialize markers according to model parameters
-
-$(SIGNATURES)
-
-# Details
-
-TBD
-"""
-function initmarkers!(markers::MarkerArrays, p::Params)
-    @unpack_Params p
-    xcenter = xsize / 2
-    ycenter = ysize / 2
-    radius(x, y) = sqrt((x - xcenter)^2 + (y - ycenter)^2)
-    for jm=1:1:Nxm
-        for im=1:1:Nym
-            # calculate marker counter
-            m = (jm-1) * Nym + im
-            # Define marker coordinates
-            markers.xm[m] = dxm/2 + (jm-1) * dxm + (rand()-0.5) * dxm
-            markers.ym[m] = dym/2 + (im-1) * dym + (rand()-0.5) * dym
-            # Marker properties
-            rmark = radius(markers.xm[m], markers.ym[m])
-            if rmark < rplanet
-                # Planet
-                if rmark > rcrust 
-                    markers.tm[m] = 2 # crust
-                else
-                    markers.tm[m] = 1 # mantle
-                end
-                markers.tkm[m] = 300 # Temperature
-                markers.phim[m] = phim0 * (1 + 1.0*(rand()-0.5)) # Porosity
-                markers.etavpm[m] = etasolidm[markers.tm[m]] #*exp(-28*phim[m]) # Matrix viscosity
-            else
-                # Sticky space [to have internal free surface]
-                markers.tm[m] = 3 # space
-                markers.tkm[m] = 273 # Temperature
-                markers.phim[m] = phimin # Porosity
-                markers.etavpm[m] = etasolidm[markers.tm[m]] # Matrix viscosity
-            end
-        end
-    end
-end
-
-
-
 
 # Introducing scaled pressure
 # pscale=1e+23/dx
@@ -856,7 +808,8 @@ Global matrices: Hydro-mechanical solution
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct GlobalHydroMechanicalSolution
+@with_kw mutable struct GlobalHydroMechanicalSolution
+# Base.@kwdef mutable struct GlobalHydroMechanicalSolution
     "L matrix"
     L::SparseMatrixCSC{Float64, Int64}
     "R vector"
@@ -873,7 +826,8 @@ Global matrices: Thermal solution
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct GlobalThermalSolution
+@with_kw mutable struct GlobalThermalSolution
+# Base.@kwdef mutable struct GlobalThermalSolution
     "LT matrix"
     LT::SparseMatrixCSC{Float64, Int64}
     "RT vector"
@@ -890,7 +844,8 @@ Global matrices: Gravity solution
 
 $(TYPEDFIELDS)
 """
-Base.@kwdef mutable struct GlobalGravitySolution
+@with_kw mutable struct GlobalGravitySolution
+# Base.@kwdef mutable struct GlobalGravitySolution
     "LP matrix"
     LP::SparseMatrixCSC{Float64, Int64}
     "RP vector"
@@ -1000,7 +955,85 @@ end
 
 # savematstep=50; #.mat storage periodicity
 
-# for timestep=timestep:1:nsteps # ends at EOF
+"""
+Initialize markers according to model parameters
+
+$(SIGNATURES)
+
+# Details
+
+TBD
+"""
+# function initmarkers!(markers::MarkerArrays, p::Params)
+#     @unpack_Params p
+#     xcenter = xsize / 2
+#     ycenter = ysize / 2
+#     radius(x, y) = sqrt((x - xcenter)^2 + (y - ycenter)^2)
+#     for jm=1:1:Nxm
+#         for im=1:1:Nym
+#             # calculate marker counter
+#             m = (jm-1) * Nym + im
+#             # Define marker coordinates
+#             markers.xm[m] = dxm/2 + (jm-1) * dxm + (rand()-0.5) * dxm
+#             markers.ym[m] = dym/2 + (im-1) * dym + (rand()-0.5) * dym
+#             # Marker properties
+#             rmark = radius(markers.xm[m], markers.ym[m])
+#             if rmark < rplanet
+#                 # Planet
+#                 if rmark > rcrust 
+#                     markers.tm[m] = 2 # crust
+#                 else
+#                     markers.tm[m] = 1 # mantle
+#                 end
+#                 markers.tkm[m] = 300 # Temperature
+#                 markers.phim[m] = phim0 * (1 + 1.0*(rand()-0.5)) # Porosity
+#                 markers.etavpm[m] = etasolidm[markers.tm[m]] #*exp(-28*phim[m]) # Matrix viscosity
+#             else
+#                 # Sticky space [to have internal free surface]
+#                 markers.tm[m] = 3 # space
+#                 markers.tkm[m] = 273 # Temperature
+#                 markers.phim[m] = phimin # Porosity
+#                 markers.etavpm[m] = etasolidm[markers.tm[m]] # Matrix viscosity
+#             end
+#         end
+#     end
+# end
+
+
+function initmarkers!(m::MarkerArrays, p::Params)
+    @unpack_MarkerArrays m
+    @unpack_Params p
+    xcenter = xsize / 2
+    ycenter = ysize / 2
+    radius(x, y) = sqrt((x - xcenter)^2 + (y - ycenter)^2)
+    for jm=1:1:Nxm, im=1:1:Nym
+        # calculate marker counter
+        m = (jm-1) * Nym + im
+        # Define marker coordinates
+        xm[m] = dxm/2 + (jm-1) * dxm + (rand()-0.5) * dxm
+        ym[m] = dym/2 + (im-1) * dym + (rand()-0.5) * dym
+        # Marker properties
+        rmark = radius(markers.xm[m], markers.ym[m])
+        if rmark < rplanet
+            # Planet
+            if rmark > rcrust 
+                tm[m] = 2 # crust
+            else
+                tm[m] = 1 # mantle
+            end
+            tkm[m] = 300 # Temperature
+            phim[m] = phim0 * (1 + 1.0*(rand()-0.5)) # Porosity
+            etavpm[m] = etasolidm[tm[m]] #*exp(-28*phim[m]) # Matrix viscosity
+        else
+            # Sticky space [to have internal free surface]
+            tm[m] = 3 # space
+            tkm[m] = 273 # Temperature
+            phim[m] = phimin # Porosity
+            etavpm[m] = etasolidm[tm[m]] # Matrix viscosity
+        end
+    end
+end
+
 
 # Updating radioactive heating
 # #26Al
@@ -1242,13 +1275,64 @@ function reset_interpolation_arrays!(
     # end
 end
 
-function compute_marker_parameters(m::Int64, p::Params)
+function compute_marker_parameters(m::Int64, ma::MarkerArrays, p::Params)
+    
+    if(tm[m]<3)
+        # Rocks
+        kphim=kphim0[tm[m]]*(phim[m]/phim0)^3/((1-phim[m])/(1-phim0))^2; #Permeability
+        rhototalm=rhosolidm[tm[m]]*(1-phim[m])+rhofluidm[tm[m]]*phim[m]
+        rhocptotalm=rhocpsolidm[tm[m]]*(1-phim[m])+rhocpfluidm[tm[m]]*phim[m]
+        etasolidcur=etasolidm[tm[m]]
+        if(tkm[m]>tmsilicate)
+            etasolidcur=etasolidmm[tm[m]]
+        end
+        hrtotalm=hrsolidm[tm[m]]*(1-phim[m])+hrfluidm[tm[m]]*phim[m]
+        ktotalm=(ksolidm[tm[m]]*kfluidm[tm[m]]/2+((ksolidm[tm[m]]*(3*phim[m]-2)+kfluidm[tm[m]]*(1-3*phim[m]))^2)/16)^0.5-(ksolidm[tm[m]]*(3*phim[m]-2)+ kfluidm[tm[m]]*(1-3*phim[m]))/4
+        gggtotalm=gggsolidm[tm[m]]
+        fricttotalm=frictsolidm[tm[m]]
+        cohestotalm=cohessolidm[tm[m]]
+        tenstotalm=tenssolidm[tm[m]]
+        etafluidcur=etafluidm[tm[m]]
+        rhofluidcur=rhofluidm[tm[m]]
+        if(tkm[m]>tmiron)
+            etafluidcur=etafluidmm[tm[m]]
+        end
+        etatotalm=max(etamin,maximum(etafluidcur,etasolidcur));#*exp(-28*phim[m])))
+    else()
+        # Sticky air
+        kphim=kphim0[tm[m]]*(phim[m]/phim0)^3/((1-phim[m])/(1-phim0))^2; #Permeability
+        rhototalm=rhosolidm[tm[m]]
+        rhocptotalm=rhocpsolidm[tm[m]]
+        etatotalm=etasolidm[tm[m]]
+        hrtotalm=hrsolidm[tm[m]]
+        ktotalm=ksolidm[tm[m]]
+        gggtotalm=gggsolidm[tm[m]]
+        fricttotalm=frictsolidm[tm[m]]
+        cohestotalm=cohessolidm[tm[m]]
+        tenstotalm=tenssolidm[tm[m]]
+        rhofluidcur=rhofluidm[tm[m]]
+        etafluidcur=etafluidm[tm[m]]
+    end
 
 
 end
 
 
+# Initialize parameters
+const para = Params(
+    Nx = 141,
+    Ny = 141,
+    Nxmc = 4,
+    Nymc = 4
+)
+const basicnodes = BasicNodes(para.xsize, para.ysize, para.dx, para.dy)
+const vxnodes = VxNodes(para.xsize, para.ysize, para.dx, para.dy)
+const vynodes = VyNodes(para.xsize, para.ysize, para.dx, para.dy)
+const pnodes = PNodes(para.xsize, para.ysize, para.dx, para.dy)
 
+const markerarrays = MarkerArrays(para.marknum)
+
+# for timestep=timestep:1:nsteps # ends at EOF
 
 function timestepping(p::Params)
 
