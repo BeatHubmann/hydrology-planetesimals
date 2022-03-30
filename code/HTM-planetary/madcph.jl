@@ -1000,8 +1000,8 @@ TBD
 # end
 
 
-function initmarkers!(m::MarkerArrays, p::Params)
-    @unpack_MarkerArrays m
+function initmarkers!(markers::MarkerArrays, p::Params)
+    @unpack_MarkerArrays markers
     @unpack_Params p
     xcenter = xsize / 2
     ycenter = ysize / 2
@@ -1275,46 +1275,59 @@ function reset_interpolation_arrays!(
     # end
 end
 
-function compute_marker_parameters(m::Int64, ma::MarkerArrays, p::Params)
-    
-    if(tm[m]<3)
-        # Rocks
-        kphim=kphim0[tm[m]]*(phim[m]/phim0)^3/((1-phim[m])/(1-phim0))^2; #Permeability
-        rhototalm=rhosolidm[tm[m]]*(1-phim[m])+rhofluidm[tm[m]]*phim[m]
-        rhocptotalm=rhocpsolidm[tm[m]]*(1-phim[m])+rhocpfluidm[tm[m]]*phim[m]
-        etasolidcur=etasolidm[tm[m]]
-        if(tkm[m]>tmsilicate)
-            etasolidcur=etasolidmm[tm[m]]
+function compute_marker_parameters(m::Int64, markers::MarkerArrays, p::Params)
+    @unpack_MarkerArrays markers
+    @unpack_Params p
+
+    if tm[m] < 3 
+        # rocks
+        kphim = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2; #Permeability
+        rhototalm = rhosolidm[tm[m]] * (1-phim[m]) + rhofluidm[tm[m]] * phim[m]
+        rhocptotalm = rhocpsolidm[tm[m]] * (1-phim[m]) + rhocpfluidm[tm[m]] * phim[m]
+        etasolidcur = etasolidm[tm[m]]
+        if tkm[m] > tmsilicate
+            etasolidcur = etasolidmm[tm[m]]
         end
-        hrtotalm=hrsolidm[tm[m]]*(1-phim[m])+hrfluidm[tm[m]]*phim[m]
-        ktotalm=(ksolidm[tm[m]]*kfluidm[tm[m]]/2+((ksolidm[tm[m]]*(3*phim[m]-2)+kfluidm[tm[m]]*(1-3*phim[m]))^2)/16)^0.5-(ksolidm[tm[m]]*(3*phim[m]-2)+ kfluidm[tm[m]]*(1-3*phim[m]))/4
-        gggtotalm=gggsolidm[tm[m]]
-        fricttotalm=frictsolidm[tm[m]]
-        cohestotalm=cohessolidm[tm[m]]
-        tenstotalm=tenssolidm[tm[m]]
-        etafluidcur=etafluidm[tm[m]]
-        rhofluidcur=rhofluidm[tm[m]]
-        if(tkm[m]>tmiron)
-            etafluidcur=etafluidmm[tm[m]]
+        hrtotalm = hrsolidm[tm[m]] * (1-phim[m]) + hrfluidm[tm[m]] * phim[m]
+        ktotalm = (ksolidm[tm[m]] * kfluidm[tm[m]]/2 + ((ksolidm[tm[m]] * (3*phim[m]-2) + kfluidm[tm[m]] * (1-3*phim[m]))^2)/16)^0.5 - (ksolidm[tm[m]]*(3*phim[m]-2) + kfluidm[tm[m]]*(1-3*phim[m]))/4
+        gggtotalm = gggsolidm[tm[m]]
+        fricttotalm = frictsolidm[tm[m]]
+        cohestotalm = cohessolidm[tm[m]]
+        tenstotalm = tenssolidm[tm[m]]
+        etafluidcur = etafluidm[tm[m]]
+        rhofluidcur = rhofluidm[tm[m]]
+        if tkm[m] > tmiron
+            etafluidcur = etafluidmm[tm[m]]
         end
-        etatotalm=max(etamin,maximum(etafluidcur,etasolidcur));#*exp(-28*phim[m])))
-    else()
-        # Sticky air
-        kphim=kphim0[tm[m]]*(phim[m]/phim0)^3/((1-phim[m])/(1-phim0))^2; #Permeability
-        rhototalm=rhosolidm[tm[m]]
-        rhocptotalm=rhocpsolidm[tm[m]]
-        etatotalm=etasolidm[tm[m]]
-        hrtotalm=hrsolidm[tm[m]]
-        ktotalm=ksolidm[tm[m]]
-        gggtotalm=gggsolidm[tm[m]]
-        fricttotalm=frictsolidm[tm[m]]
-        cohestotalm=cohessolidm[tm[m]]
-        tenstotalm=tenssolidm[tm[m]]
-        rhofluidcur=rhofluidm[tm[m]]
-        etafluidcur=etafluidm[tm[m]]
+        etatotalm = max(etamin, etafluidcur, etasolidcur) # *exp(-28*phim[m])))
+    else
+        # air
+        kphim = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2 #Permeability
+        rhototalm = rhosolidm[tm[m]]
+        rhocptotalm = rhocpsolidm[tm[m]]
+        etatotalm = etasolidm[tm[m]]
+        hrtotalm = hrsolidm[tm[m]]
+        ktotalm = ksolidm[tm[m]]
+        gggtotalm = gggsolidm[tm[m]]
+        fricttotalm = frictsolidm[tm[m]]
+        cohestotalm = cohessolidm[tm[m]]
+        tenstotalm = tenssolidm[tm[m]]
+        etafluidcur = etafluidm[tm[m]]
+        rhofluidcur = rhofluidm[tm[m]]
     end
 
-
+    return kphim,
+        rhototalm,
+        rhocptotalm,
+        etatotalm,
+        hrtotalm,
+        ktotalm,
+        gggtotalm,
+        fricttotalm,
+        cohestotalm,
+        tenstotalm,
+        etafluidcur,
+        rhofluidcur
 end
 
 
@@ -1330,11 +1343,12 @@ const vxnodes = VxNodes(para.xsize, para.ysize, para.dx, para.dy)
 const vynodes = VyNodes(para.xsize, para.ysize, para.dx, para.dy)
 const pnodes = PNodes(para.xsize, para.ysize, para.dx, para.dy)
 
-const markerarrays = MarkerArrays(para.marknum)
+const markers = MarkerArrays(para.marknum)
+initmarkers!(markers, para)
 
 # for timestep=timestep:1:nsteps # ends at EOF
 
-function timestepping(p::Params)
+function timestepping(markers::MarkerArrays, p::Params)
 
     # unpack simulation parameters
     @unpack_Params p
@@ -1436,8 +1450,20 @@ function timestepping(p::Params)
         )
 
         # compute marker parameters 
+        # for m=1:1:marknum
         @threads for m=1:1:marknum
-
+            kphim,
+            rhototalm,
+            rhocptotalm,
+            etatotalm,
+            hrtotalm,
+            ktotalm,
+            gggtotalm,
+            fricttotalm,
+            cohestotalm,
+            tenstotalm,
+            etafluidcur,
+            rhofluidcur = compute_marker_parameters(m, markers, p)
         end
 
         if timesum > endtimesum
