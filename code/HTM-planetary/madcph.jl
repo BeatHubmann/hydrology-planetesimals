@@ -382,7 +382,7 @@ Basic node properties
 
 $(TYPEDFIELDS)
 """
-@with_kw mutable struct BasicNodalArrays
+@with_kw struct BasicNodalArrays
 # Base.@kwdef mutable struct BasicNodalArrays
     "viscoplastic viscosity, Pa*s"
     eta::Array{Float64}
@@ -437,7 +437,7 @@ Vx node properties
 
 $(TYPEDFIELDS)
 """
-@with_kw mutable struct VxNodalArrays
+@with_kw struct VxNodalArrays
 # Base.@kwdef mutable struct VxNodalArrays
     "density [kg/m^3]"
     rhox::Array{Float64}
@@ -487,7 +487,7 @@ Vy node properties
 
 $(TYPEDFIELDS)
 """
-@with_kw mutable struct VyNodalArrays
+@with_kw struct VyNodalArrays
 # Base.@kwdef mutable struct VyNodalArrays
     "density [kg/m^3]"
     rhoy::Array{Float64}
@@ -557,7 +557,7 @@ P node properties
 
 $(TYPEDFIELDS)
 """
-@with_kw mutable struct PNodalArrays
+@with_kw struct PNodalArrays
 # Base.@kwdef mutable struct PNodalArrays
     "density [kg/m^3]"
     rho::Array{Float64}
@@ -673,7 +673,7 @@ Marker properties
 
 $(TYPEDFIELDS)
 """
-@with_kw mutable struct MarkerArrays
+@with_kw struct MarkerArrays
 # Base.@kwdef mutable struct MarkerArrays
     "horizontal coordinates [m]"
     xm::Array{Float64}
@@ -709,7 +709,7 @@ Marker parameters: Calculated during timestepping
 
 $(TYPEDFIELDS)
 """
-@with_kw mutable struct MarkerParams
+@with_kw struct MarkerParams
     kphim::Float64 = 0.0
     rhototalm::Float64 = 0.0
     rhocptotalm::Float64 = 0.0
@@ -731,7 +731,7 @@ to interpolate properties from markers to nodes
 
 $(TYPEDFIELDS)
 """
-@with_kw mutable struct InterpArrays
+@with_kw struct InterpArrays
     # basic nodes
     "basic nodes: ETA0SUM"
     ETA0SUM::Tuple
@@ -938,7 +938,7 @@ Global matrices: Hydro-mechanical solution
 
 $(TYPEDFIELDS)
 """
-@with_kw mutable struct GlobalHydroMechanicalSolution
+@with_kw struct GlobalHydroMechanicalSolution
 # Base.@kwdef mutable struct GlobalHydroMechanicalSolution
     "L matrix"
     L::SparseMatrixCSC{Float64, Int64}
@@ -956,7 +956,7 @@ Global matrices: Thermal solution
 
 $(TYPEDFIELDS)
 """
-@with_kw mutable struct GlobalThermalSolution
+@with_kw struct GlobalThermalSolution
 # Base.@kwdef mutable struct GlobalThermalSolution
     "LT matrix"
     LT::SparseMatrixCSC{Float64, Int64}
@@ -974,7 +974,7 @@ Global matrices: Gravity solution
 
 $(TYPEDFIELDS)
 """
-@with_kw mutable struct GlobalGravitySolution
+@with_kw struct GlobalGravitySolution
 # Base.@kwdef mutable struct GlobalGravitySolution
     "LP matrix"
     LP::SparseMatrixCSC{Float64, Int64}
