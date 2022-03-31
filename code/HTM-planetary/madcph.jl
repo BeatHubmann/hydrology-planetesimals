@@ -101,43 +101,43 @@ $(TYPEDFIELDS)
     pscale::Float64 = 1e+23 / dx
     # Materials properties:         Planet      Crust       Space
     "solid Density [kg/m^3]"
-    rhosolidm::SVector{Float64}   = [ 3300.0    , 3300.0    ,    1.0    ]
+    rhosolidm::Array{Float64}   = [ 3300.0    , 3300.0    ,    1.0    ]
     "fluid density [kg/m^3]"	
-    rhofluidm::SVector{Float64}   = [ 7000.0    , 7000.0    , 1000.0    ]
+    rhofluidm::Array{Float64}   = [ 7000.0    , 7000.0    , 1000.0    ]
     "solid viscosity [Pa*s]"
-    etasolidm::SVector{Float64}   = [    1.0e+16,    1.0e+16,    1.0e+14]
+    etasolidm::Array{Float64}   = [    1.0e+16,    1.0e+16,    1.0e+14]
     "molten solid viscosity [Pa*s]"
-    etasolidmm::SVector{Float64}  = [    1.0e+14,    1.0e+14,    1.0e+14]
+    etasolidmm::Array{Float64}  = [    1.0e+14,    1.0e+14,    1.0e+14]
     "fluid viscosity [Pa*s]"
-    etafluidm::SVector{Float64}   = [    1.0e-02,    1.0e-02,    1.0e+12]
+    etafluidm::Array{Float64}   = [    1.0e-02,    1.0e-02,    1.0e+12]
     "molten fluid viscosity [Pa*s]"
-    etafluidmm::SVector{Float64}  = [    1.0e-02,    1.0e-02,    1.0e+12]
+    etafluidmm::Array{Float64}  = [    1.0e-02,    1.0e-02,    1.0e+12]
     "solid volumetric heat capacity [kg/m^3]"
-    rhocpsolidm::SVector{Float64} = [    3.3e+06,    3.3e+06,    3.0e+06]
+    rhocpsolidm::Array{Float64} = [    3.3e+06,    3.3e+06,    3.0e+06]
     "fluid volumetric heat capacity [kg/m^3]"
-    rhocpfluidm::SVector{Float64} = [    7.0e+06,    7.0e+06,    3.0e+06]
+    rhocpfluidm::Array{Float64} = [    7.0e+06,    7.0e+06,    3.0e+06]
     "solid thermal expansion [1/K]"
-    alphasolidm::SVector{Float64} = [    3.0e-05,    3.0e-05,    0.0    ]
+    alphasolidm::Array{Float64} = [    3.0e-05,    3.0e-05,    0.0    ]
     "fluid thermal expansion [1/K]"
-    alphafluidm::SVector{Float64} = [    5.0e-05,    5.0e-05,    0.0    ]
+    alphafluidm::Array{Float64} = [    5.0e-05,    5.0e-05,    0.0    ]
     "solid thermal conductivity [W/m/K]"
-    ksolidm::SVector{Float64}     = [    3.0    ,    3.0    , 3000.0    ]
+    ksolidm::Array{Float64}     = [    3.0    ,    3.0    , 3000.0    ]
     "fluid thermal conductivity [W/m/K]"
-    kfluidm::SVector{Float64}     = [   50.0    ,   50.0    , 3000.0    ]
+    kfluidm::Array{Float64}     = [   50.0    ,   50.0    , 3000.0    ]
     "solid radiogenic heat production [W/m^3]"
-    hrsolidm::SVector{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
+    hrsolidm::Array{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
     "fluid radiogenic heat production [W/m^3]"
-    hrfluidm::SVector{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
+    hrfluidm::Array{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
     "solid shear modulus [Pa]"
-    gggsolidm::SVector{Float64}   = [    1.0e+10,    1.0e+10,    1.0e+10]
+    gggsolidm::Array{Float64}   = [    1.0e+10,    1.0e+10,    1.0e+10]
     "solid friction coefficient"
-    frictsolidm::SVector{Float64} = [    0.6    ,    0.6    ,    0.0    ]
+    frictsolidm::Array{Float64} = [    0.6    ,    0.6    ,    0.0    ]
     "solid compressive strength [Pa]"
-    cohessolidm::SVector{Float64} = [    1.0e+08,    1.0e+08,    1.0e+08]
+    cohessolidm::Array{Float64} = [    1.0e+08,    1.0e+08,    1.0e+08]
     "solid tensile strength [Pa]"
-    tenssolidm ::SVector{Float64} = [    6.0e+07,    6.0e+07,    6.0e+07]
+    tenssolidm ::Array{Float64} = [    6.0e+07,    6.0e+07,    6.0e+07]
     "standard permeability [m^2]"
-    kphim0::SVector{Float64}      = [    1.0e-13,    1.0e-13,    1.0e-17]
+    kphim0::Array{Float64}      = [    1.0e-13,    1.0e-13,    1.0e-17]
     "Coefficient to compute compaction viscosity from shear viscosity"
     etaphikoef::Float64 = 1e-4
     # 26Al decay
@@ -705,7 +705,7 @@ $(TYPEDFIELDS)
 end
 
 """
-Marker parameters: Calculated during Timestepping
+Marker parameters: Calculated during timestepping
 
 $(TYPEDFIELDS)
 """
@@ -724,6 +724,114 @@ $(TYPEDFIELDS)
     etasolidcur::Float64 = 0.0
     rhofluidcur::Float64 = 0.0
 end
+
+"""
+Interpolation arrays: Calculated during timestepping
+to interpolate properties from markers to nodes
+
+$(TYPEDFIELDS)
+"""
+@with_kw mutable struct InterpArrays
+    # basic nodes
+    "basic nodes: ETA0SUM"
+    ETA0SUM::Tuple
+    "basic nodes: ETASUM"
+    ETASUM::Tuple
+    "basic nodes: GGGSUM"
+    GGGSUM::Tuple
+    "basic nodes: SXYSUM"
+    SXYSUM::Tuple
+    "basic nodes: COHSUM"
+    COHSUM::Tuple
+    "basic nodes: TENSUM"
+    TENSUM::Tuple
+    "basic nodes: FRISUM"	
+    FRISUM::Tuple
+    "basic nodes: WTSUM"
+    WTSUM::Tuple
+    # Vx-nodes
+    "Vx-nodes: RHOXSUM"	
+    RHOXSUM::Tuple
+    "Vx-nodes: RHOFXSUM"
+    RHOFXSUM::Tuple
+    "Vx-nodes: KXSUM"
+    KXSUM::Tuple
+    "Vx-nodes: PHIXSUM"
+    PHIXSUM::Tuple
+    "Vx-nodes: RXSUM"	
+    RXSUM::Tuple
+    "Vx-nodes: WTXSUM"	
+    WTXSUM::Tuple
+    # Vy-nodes
+    "Vy-nodes: RHOYSUM"	
+    RHOYSUM::Tuple
+    "Vy-nodes: RHOFYSUM"
+    RHOFYSUM::Tuple
+    "Vy-nodes: KYSUM"	
+    KYSUM::Tuple
+    "Vy-nodes: PHIYSUM"
+    PHIYSUM::Tuple
+    "Vy-nodes: RYSUM"
+    RYSUM::Tuple
+    "Vy-nodes: WTYSUM"
+    WTYSUM::Tuple
+    # P-Nodes
+    "P-nodes: GGGPSUM"
+    GGGPSUM::Tuple
+    "P-nodes: SXXSUM"
+    SXXSUM::Tuple
+    "P-nodes: RHOSUM"
+    RHOSUM::Tuple
+    "P-nodes: RHOCPSUM"
+    RHOCPSUM::Tuple
+    "P-nodes: ALPHASUM"	
+    ALPHASUM::Tuple
+    "P-nodes: ALFAFSUM"
+    ALPHAFSUM::Tuple
+    "P-nodes: HRSUM"	
+    HRSUM::Tuple
+    "P-nodes: TKSUM"
+    TKSUM::Tuple
+    "P-nodes: PHISUM"
+    PHISUM::Tuple
+    "P-nodes: WTPSUM"
+    WTPSUM::Tuple
+    "inner constructor"
+    InterpArrays(Nx, Ny, Nx1, Ny1) = new(
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+    )
+end
+
+
 
 # # Define properties of materials: 
 # #            Planet  Crust Space
