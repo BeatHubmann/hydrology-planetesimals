@@ -710,19 +710,19 @@ Marker parameters: Calculated during timestepping
 $(TYPEDFIELDS)
 """
 @with_kw struct MarkerParams
-    kphim::Float64 = 0.0
-    rhototalm::Float64 = 0.0
-    rhocptotalm::Float64 = 0.0
-    etatotalm::Float64 = 0.0
-    hrtotalm::Float64 = 0.0
-    ktotalm::Float64 = 0.0
-    gggtotalm::Float64 = 0.0
-    fricttotalm::Float64 = 0.0
-    cohestotalm::Float64 = 0.0
-    tenstotalm::Float64 = 0.0
-    etafluidcur::Float64 = 0.0
-    etasolidcur::Float64 = 0.0
-    rhofluidcur::Float64 = 0.0
+    kphim::MVector{nthreads(), Float64} = zeros(nthreads())
+    rhototalm::MVector{nthreads(), Float64} = zeros(nthreads())
+    rhocptotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+    etatotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+    hrtotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+    ktotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+    gggtotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+    fricttotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+    cohestotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+    tenstotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+    etafluidcur::MVector{nthreads(), Float64} = zeros(nthreads())
+    etasolidcur::MVector{nthreads(), Float64} = zeros(nthreads())
+    rhofluidcur::MVector{nthreads(), Float64} = zeros(nthreads())
 end
 
 """
