@@ -101,43 +101,43 @@ $(TYPEDFIELDS)
     pscale::Float64 = 1e+23 / dx
     # Materials properties:         Planet      Crust       Space
     "solid Density [kg/m^3]"
-    rhosolidm::Array{Float64}   = [ 3300.0    , 3300.0    ,    1.0    ]
+    rhosolidm::SVector{Float64}   = [ 3300.0    , 3300.0    ,    1.0    ]
     "fluid density [kg/m^3]"	
-    rhofluidm::Array{Float64}   = [ 7000.0    , 7000.0    , 1000.0    ]
+    rhofluidm::SVector{Float64}   = [ 7000.0    , 7000.0    , 1000.0    ]
     "solid viscosity [Pa*s]"
-    etasolidm::Array{Float64}   = [    1.0e+16,    1.0e+16,    1.0e+14]
+    etasolidm::SVector{Float64}   = [    1.0e+16,    1.0e+16,    1.0e+14]
     "molten solid viscosity [Pa*s]"
-    etasolidmm::Array{Float64}  = [    1.0e+14,    1.0e+14,    1.0e+14]
+    etasolidmm::SVector{Float64}  = [    1.0e+14,    1.0e+14,    1.0e+14]
     "fluid viscosity [Pa*s]"
-    etafluidm::Array{Float64}   = [    1.0e-02,    1.0e-02,    1.0e+12]
+    etafluidm::SVector{Float64}   = [    1.0e-02,    1.0e-02,    1.0e+12]
     "molten fluid viscosity [Pa*s]"
-    etafluidmm::Array{Float64}  = [    1.0e-02,    1.0e-02,    1.0e+12]
+    etafluidmm::SVector{Float64}  = [    1.0e-02,    1.0e-02,    1.0e+12]
     "solid volumetric heat capacity [kg/m^3]"
-    rhocpsolidm::Array{Float64} = [    3.3e+06,    3.3e+06,    3.0e+06]
+    rhocpsolidm::SVector{Float64} = [    3.3e+06,    3.3e+06,    3.0e+06]
     "fluid volumetric heat capacity [kg/m^3]"
-    rhocpfluidm::Array{Float64} = [    7.0e+06,    7.0e+06,    3.0e+06]
+    rhocpfluidm::SVector{Float64} = [    7.0e+06,    7.0e+06,    3.0e+06]
     "solid thermal expansion [1/K]"
-    alphasolidm::Array{Float64} = [    3.0e-05,    3.0e-05,    0.0    ]
+    alphasolidm::SVector{Float64} = [    3.0e-05,    3.0e-05,    0.0    ]
     "fluid thermal expansion [1/K]"
-    alphafluidm::Array{Float64} = [    5.0e-05,    5.0e-05,    0.0    ]
+    alphafluidm::SVector{Float64} = [    5.0e-05,    5.0e-05,    0.0    ]
     "solid thermal conductivity [W/m/K]"
-    ksolidm::Array{Float64}     = [    3.0    ,    3.0    , 3000.0    ]
+    ksolidm::SVector{Float64}     = [    3.0    ,    3.0    , 3000.0    ]
     "fluid thermal conductivity [W/m/K]"
-    kfluidm::Array{Float64}     = [   50.0    ,   50.0    , 3000.0    ]
+    kfluidm::SVector{Float64}     = [   50.0    ,   50.0    , 3000.0    ]
     "solid radiogenic heat production [W/m^3]"
-    hrsolidm::Array{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
+    hrsolidm::SVector{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
     "fluid radiogenic heat production [W/m^3]"
-    hrfluidm::Array{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
+    hrfluidm::SVector{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
     "solid shear modulus [Pa]"
-    gggsolidm::Array{Float64}   = [    1.0e+10,    1.0e+10,    1.0e+10]
+    gggsolidm::SVector{Float64}   = [    1.0e+10,    1.0e+10,    1.0e+10]
     "solid friction coefficient"
-    frictsolidm::Array{Float64} = [    0.6    ,    0.6    ,    0.0    ]
+    frictsolidm::SVector{Float64} = [    0.6    ,    0.6    ,    0.0    ]
     "solid compressive strength [Pa]"
-    cohessolidm::Array{Float64} = [    1.0e+08,    1.0e+08,    1.0e+08]
+    cohessolidm::SVector{Float64} = [    1.0e+08,    1.0e+08,    1.0e+08]
     "solid tensile strength [Pa]"
-    tenssolidm ::Array{Float64} = [    6.0e+07,    6.0e+07,    6.0e+07]
+    tenssolidm ::SVector{Float64} = [    6.0e+07,    6.0e+07,    6.0e+07]
     "standard permeability [m^2]"
-    kphim0::Array{Float64}      = [    1.0e-13,    1.0e-13,    1.0e-17]
+    kphim0::SVector{Float64}      = [    1.0e-13,    1.0e-13,    1.0e-17]
     "Coefficient to compute compaction viscosity from shear viscosity"
     etaphikoef::Float64 = 1e-4
     # 26Al decay
@@ -702,6 +702,27 @@ $(TYPEDFIELDS)
         zeros(1, marknum),
         zeros(1, marknum)
     )
+end
+
+"""
+Marker parameters: Calculated during Timestepping
+
+$(TYPEDFIELDS)
+"""
+@with_kw mutable struct MarkerParams
+    kphim::Float64 = 0.0
+    rhototalm::Float64 = 0.0
+    rhocptotalm::Float64 = 0.0
+    etatotalm::Float64 = 0.0
+    hrtotalm::Float64 = 0.0
+    ktotalm::Float64 = 0.0
+    gggtotalm::Float64 = 0.0
+    fricttotalm::Float64 = 0.0
+    cohestotalm::Float64 = 0.0
+    tenstotalm::Float64 = 0.0
+    etafluidcur::Float64 = 0.0
+    etasolidcur::Float64 = 0.0
+    rhofluidcur::Float64 = 0.0
 end
 
 # # Define properties of materials: 
@@ -1350,7 +1371,6 @@ initmarkers!(markers, para)
 # for timestep=timestep:1:nsteps # ends at EOF
 
 function timestepping(markers::MarkerArrays, p::Params)
-
     # unpack simulation parameters
     @unpack_Params p
 
@@ -1397,7 +1417,7 @@ function timestepping(markers::MarkerArrays, p::Params)
     ) = setup_interpolation_arrays(p)
 
     # iterate timesteps   
-    for timestep = timestep:1:100#nsteps
+    for timestep = timestep:1:1000#nsteps
 
         # Updating radioactive heating
         hrsolidm, hrfluidm = calculate_radioactive_heating(
@@ -1465,6 +1485,10 @@ function timestepping(markers::MarkerArrays, p::Params)
             tenstotalm,
             etafluidcur,
             rhofluidcur = compute_marker_parameters(m, markers, p)
+        end
+
+        if timestep % 100 == 0
+            println("timestep: ", timestep)
         end
 
         if timesum > endtimesum
