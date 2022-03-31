@@ -1292,40 +1292,8 @@ function setup_interpolation_arrays(p::Params)
 end
 
 
-
-function reset_interpolation_arrays!(
-    ETA0SUM,
-    ETASUM,
-    GGGSUM,
-    SXYSUM,
-    COHSUM,
-    TENSUM,
-    FRISUM,
-    WTSUM,
-    RHOXSUM,
-    RHOFXSUM,
-    KXSUM,
-    PHIXSUM,
-    RXSUM,
-    WTXSUM,
-    RHOYSUM,
-    RHOFYSUM,
-    KYSUM,
-    PHIYSUM,
-    RYSUM,
-    WTYSUM,
-    GGGPSUM,
-    SXXSUM,
-    RHOSUM,
-    RHOCPSUM,
-    ALPHASUM,
-    ALPHAFSUM,
-    HRSUM,
-    TKSUM,
-    PHISUM,
-    WTPSUM,
-)
-
+function reset_interpolation_arrays!(interp_arrays::InterpArrays)
+    @unpack_InterpArrays interp_arrays
     # set arrays to zero 
     @threads for _ = 1:1:nthreads()
         # basic nodes
@@ -1404,6 +1372,117 @@ function reset_interpolation_arrays!(
     #     WTPSUM[threadid] .= zero(0.0)
     # end
 end
+# function reset_interpolation_arrays!(
+#     ETA0SUM,
+#     ETASUM,
+#     GGGSUM,
+#     SXYSUM,
+#     COHSUM,
+#     TENSUM,
+#     FRISUM,
+#     WTSUM,
+#     RHOXSUM,
+#     RHOFXSUM,
+#     KXSUM,
+#     PHIXSUM,
+#     RXSUM,
+#     WTXSUM,
+#     RHOYSUM,
+#     RHOFYSUM,
+#     KYSUM,
+#     PHIYSUM,
+#     RYSUM,
+#     WTYSUM,
+#     GGGPSUM,
+#     SXXSUM,
+#     RHOSUM,
+#     RHOCPSUM,
+#     ALPHASUM,
+#     ALPHAFSUM,
+#     HRSUM,
+#     TKSUM,
+#     PHISUM,
+#     WTPSUM,
+# )
+
+#     # set arrays to zero 
+#     @threads for _ = 1:1:nthreads()
+#         # basic nodes
+#         ETA0SUM[threadid()] .= zero(0.0)
+#         ETASUM[threadid()] .= zero(0.0)
+#         GGGSUM[threadid()] .= zero(0.0)
+#         SXYSUM[threadid()] .= zero(0.0)
+#         COHSUM[threadid()] .= zero(0.0)
+#         TENSUM[threadid()] .= zero(0.0)
+#         FRISUM[threadid()] .= zero(0.0)
+#         WTSUM[threadid()] .= zero(0.0)
+#         # Vx-nodes
+#         RHOXSUM[threadid()] .= zero(0.0)
+#         RHOFXSUM[threadid()] .= zero(0.0)
+#         KXSUM[threadid()] .= zero(0.0)
+#         PHIXSUM[threadid()] .= zero(0.0)
+#         RXSUM[threadid()] .= zero(0.0)
+#         WTXSUM[threadid()] .= zero(0.0)
+#         # Vy-nodes
+#         RHOYSUM[threadid()] .= zero(0.0)
+#         RHOFYSUM[threadid()] .= zero(0.0)
+#         KYSUM[threadid()] .= zero(0.0)
+#         PHIYSUM[threadid()] .= zero(0.0)
+#         RYSUM[threadid()] .= zero(0.0)
+#         WTYSUM[threadid()] .= zero(0.0)
+#         # P-Nodes
+#         GGGPSUM[threadid()] .= zero(0.0)
+#         SXXSUM[threadid()] .= zero(0.0)
+#         RHOSUM[threadid()] .= zero(0.0)
+#         RHOCPSUM[threadid()] .= zero(0.0)
+#         ALPHASUM[threadid()] .= zero(0.0)
+#         ALPHAFSUM[threadid()] .= zero(0.0)
+#         HRSUM[threadid()] .= zero(0.0)
+#         TKSUM[threadid()] .= zero(0.0)
+#         PHISUM[threadid()] .= zero(0.0)
+#         WTPSUM[threadid()] .= zero(0.0)
+#     end
+
+#     # RMK: sequential version, 20% slower than threaded version above
+#     # when nthreads() = 24
+#     # reset datastructures for this timestep
+#     # for threadid = 1:1:nthreads()
+#     #     # basic nodes
+#     #     ETA0SUM[threadid] .= zero(0.0)
+#     #     ETASUM[threadid] .= zero(0.0)
+#     #     GGGSUM[threadid] .= zero(0.0)
+#     #     SXYSUM[threadid] .= zero(0.0)
+#     #     COHSUM[threadid] .= zero(0.0)
+#     #     TENSUM[threadid] .= zero(0.0)
+#     #     FRISUM[threadid] .= zero(0.0)
+#     #     WTSUM[threadid] .= zero(0.0)
+#     #     # Vx-nodes
+#     #     RHOXSUM[threadid] .= zero(0.0)
+#     #     RHOFXSUM[threadid] .= zero(0.0)
+#     #     KXSUM[threadid] .= zero(0.0)
+#     #     PHIXSUM[threadid] .= zero(0.0)
+#     #     RXSUM[threadid] .= zero(0.0)
+#     #     WTXSUM[threadid] .= zero(0.0)
+#     #     # Vy-nodes
+#     #     RHOYSUM[threadid] .= zero(0.0)
+#     #     RHOFYSUM[threadid] .= zero(0.0)
+#     #     KYSUM[threadid] .= zero(0.0)
+#     #     PHIYSUM[threadid] .= zero(0.0)
+#     #     RYSUM[threadid] .= zero(0.0)
+#     #     WTYSUM[threadid] .= zero(0.0)
+#     #     # P-Nodes
+#     #     GGGPSUM[threadid] .= zero(0.0)
+#     #     SXXSUM[threadid] .= zero(0.0)
+#     #     RHOSUM[threadid] .= zero(0.0)
+#     #     RHOCPSUM[threadid] .= zero(0.0)
+#     #     ALPHASUM[threadid] .= zero(0.0)
+#     #     ALPHAFSUM[threadid] .= zero(0.0)
+#     #     HRSUM[threadid] .= zero(0.0)
+#     #     TKSUM[threadid] .= zero(0.0)
+#     #     PHISUM[threadid] .= zero(0.0)
+#     #     WTPSUM[threadid] .= zero(0.0)
+#     # end
+# end
 
 function compute_marker_parameters(m::Int64, markers::MarkerArrays, p::Params)
     @unpack_MarkerArrays markers
@@ -1491,38 +1570,40 @@ function timestepping(markers::MarkerArrays, p::Params)
     timesum::Float64 = starttimesum
 
     # set up marker interpolation arrays
-    (
-        ETA0SUM,
-        ETASUM,
-        GGGSUM,
-        SXYSUM,
-        COHSUM,
-        TENSUM,
-        FRISUM,
-        WTSUM,
-        RHOXSUM,
-        RHOFXSUM,
-        KXSUM,
-        PHIXSUM,
-        RXSUM,
-        WTXSUM,
-        RHOYSUM,
-        RHOFYSUM,
-        KYSUM,
-        PHIYSUM,
-        RYSUM,
-        WTYSUM,
-        GGGPSUM,
-        SXXSUM,
-        RHOSUM,
-        RHOCPSUM,
-        ALPHASUM,
-        ALPHAFSUM,
-        HRSUM,
-        TKSUM,
-        PHISUM,
-        WTPSUM
-    ) = setup_interpolation_arrays(p)
+    interp_arrays = InterpArrays(Nx, Ny, Nx1, Ny1)
+
+    # (
+    #     ETA0SUM,
+    #     ETASUM,
+    #     GGGSUM,
+    #     SXYSUM,
+    #     COHSUM,
+    #     TENSUM,
+    #     FRISUM,
+    #     WTSUM,
+    #     RHOXSUM,
+    #     RHOFXSUM,
+    #     KXSUM,
+    #     PHIXSUM,
+    #     RXSUM,
+    #     WTXSUM,
+    #     RHOYSUM,
+    #     RHOFYSUM,
+    #     KYSUM,
+    #     PHIYSUM,
+    #     RYSUM,
+    #     WTYSUM,
+    #     GGGPSUM,
+    #     SXXSUM,
+    #     RHOSUM,
+    #     RHOCPSUM,
+    #     ALPHASUM,
+    #     ALPHAFSUM,
+    #     HRSUM,
+    #     TKSUM,
+    #     PHISUM,
+    #     WTPSUM
+    # ) = setup_interpolation_arrays(p)
 
     # iterate timesteps   
     for timestep = timestep:1:1000#nsteps
@@ -1545,38 +1626,39 @@ function timestepping(markers::MarkerArrays, p::Params)
         )
 
         # set interpolation arrays to zero for this timestep
-        reset_interpolation_arrays!(
-            ETA0SUM,
-            ETASUM,
-            GGGSUM,
-            SXYSUM,
-            COHSUM,
-            TENSUM,
-            FRISUM,
-            WTSUM,
-            RHOXSUM,
-            RHOFXSUM,
-            KXSUM,
-            PHIXSUM,
-            RXSUM,
-            WTXSUM,
-            RHOYSUM,
-            RHOFYSUM,
-            KYSUM,
-            PHIYSUM,
-            RYSUM,
-            WTYSUM,
-            GGGPSUM,
-            SXXSUM,
-            RHOSUM,
-            RHOCPSUM,
-            ALPHASUM,
-            ALPHAFSUM,
-            HRSUM,
-            TKSUM,
-            PHISUM,
-            WTPSUM
-        )
+        reset_interpolation_arrays!(interp_arrays)
+        # reset_interpolation_arrays!(
+        #     ETA0SUM,
+        #     ETASUM,
+        #     GGGSUM,
+        #     SXYSUM,
+        #     COHSUM,
+        #     TENSUM,
+        #     FRISUM,
+        #     WTSUM,
+        #     RHOXSUM,
+        #     RHOFXSUM,
+        #     KXSUM,
+        #     PHIXSUM,
+        #     RXSUM,
+        #     WTXSUM,
+        #     RHOYSUM,
+        #     RHOFYSUM,
+        #     KYSUM,
+        #     PHIYSUM,
+        #     RYSUM,
+        #     WTYSUM,
+        #     GGGPSUM,
+        #     SXXSUM,
+        #     RHOSUM,
+        #     RHOCPSUM,
+        #     ALPHASUM,
+        #     ALPHAFSUM,
+        #     HRSUM,
+        #     TKSUM,
+        #     PHISUM,
+        #     WTPSUM
+        # )
 
         # compute marker parameters 
         # for m=1:1:marknum
