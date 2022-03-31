@@ -4,7 +4,10 @@ using MAT
 using DocStringExtensions
 using Parameters
 using StaticArrays
+using BenchmarkTools
+using TimerOutputs
 
+const to = TimerOutput()
 # Visco-elasto-plastic hydro-thermomechanical [HTM] planetary code
 # Solving Poisson; momentum; mass & energy conservation eqs.
 # for self-gravitating coupled fluid-solid system()
@@ -1085,15 +1088,7 @@ end
 
 # savematstep=50; #.mat storage periodicity
 
-"""
-Initialize markers according to model parameters
 
-$(SIGNATURES)
-
-# Details
-
-TBD
-"""
 # function initmarkers!(markers::MarkerArrays, p::Params)
 #     @unpack_Params p
 #     xcenter = xsize / 2
@@ -1129,7 +1124,15 @@ TBD
 #     end
 # end
 
+"""
+Initialize markers according to model parameters
 
+$(SIGNATURES)
+
+# Details
+
+TBD
+"""
 function initmarkers!(markers::MarkerArrays, p::Params)
     @unpack_MarkerArrays markers
     @unpack_Params p
@@ -1295,82 +1298,82 @@ end
 function reset_interpolation_arrays!(interp_arrays::InterpArrays)
     @unpack_InterpArrays interp_arrays
     # set arrays to zero 
-    @threads for _ = 1:1:nthreads()
-        # basic nodes
-        ETA0SUM[threadid()] .= zero(0.0)
-        ETASUM[threadid()] .= zero(0.0)
-        GGGSUM[threadid()] .= zero(0.0)
-        SXYSUM[threadid()] .= zero(0.0)
-        COHSUM[threadid()] .= zero(0.0)
-        TENSUM[threadid()] .= zero(0.0)
-        FRISUM[threadid()] .= zero(0.0)
-        WTSUM[threadid()] .= zero(0.0)
-        # Vx-nodes
-        RHOXSUM[threadid()] .= zero(0.0)
-        RHOFXSUM[threadid()] .= zero(0.0)
-        KXSUM[threadid()] .= zero(0.0)
-        PHIXSUM[threadid()] .= zero(0.0)
-        RXSUM[threadid()] .= zero(0.0)
-        WTXSUM[threadid()] .= zero(0.0)
-        # Vy-nodes
-        RHOYSUM[threadid()] .= zero(0.0)
-        RHOFYSUM[threadid()] .= zero(0.0)
-        KYSUM[threadid()] .= zero(0.0)
-        PHIYSUM[threadid()] .= zero(0.0)
-        RYSUM[threadid()] .= zero(0.0)
-        WTYSUM[threadid()] .= zero(0.0)
-        # P-Nodes
-        GGGPSUM[threadid()] .= zero(0.0)
-        SXXSUM[threadid()] .= zero(0.0)
-        RHOSUM[threadid()] .= zero(0.0)
-        RHOCPSUM[threadid()] .= zero(0.0)
-        ALPHASUM[threadid()] .= zero(0.0)
-        ALPHAFSUM[threadid()] .= zero(0.0)
-        HRSUM[threadid()] .= zero(0.0)
-        TKSUM[threadid()] .= zero(0.0)
-        PHISUM[threadid()] .= zero(0.0)
-        WTPSUM[threadid()] .= zero(0.0)
-    end
+    # @threads for _ = 1:1:nthreads()
+    #     # basic nodes
+    #     ETA0SUM[threadid()] .= zero(0.0)
+    #     ETASUM[threadid()] .= zero(0.0)
+    #     GGGSUM[threadid()] .= zero(0.0)
+    #     SXYSUM[threadid()] .= zero(0.0)
+    #     COHSUM[threadid()] .= zero(0.0)
+    #     TENSUM[threadid()] .= zero(0.0)
+    #     FRISUM[threadid()] .= zero(0.0)
+    #     WTSUM[threadid()] .= zero(0.0)
+    #     # Vx-nodes
+    #     RHOXSUM[threadid()] .= zero(0.0)
+    #     RHOFXSUM[threadid()] .= zero(0.0)
+    #     KXSUM[threadid()] .= zero(0.0)
+    #     PHIXSUM[threadid()] .= zero(0.0)
+    #     RXSUM[threadid()] .= zero(0.0)
+    #     WTXSUM[threadid()] .= zero(0.0)
+    #     # Vy-nodes
+    #     RHOYSUM[threadid()] .= zero(0.0)
+    #     RHOFYSUM[threadid()] .= zero(0.0)
+    #     KYSUM[threadid()] .= zero(0.0)
+    #     PHIYSUM[threadid()] .= zero(0.0)
+    #     RYSUM[threadid()] .= zero(0.0)
+    #     WTYSUM[threadid()] .= zero(0.0)
+    #     # P-Nodes
+    #     GGGPSUM[threadid()] .= zero(0.0)
+    #     SXXSUM[threadid()] .= zero(0.0)
+    #     RHOSUM[threadid()] .= zero(0.0)
+    #     RHOCPSUM[threadid()] .= zero(0.0)
+    #     ALPHASUM[threadid()] .= zero(0.0)
+    #     ALPHAFSUM[threadid()] .= zero(0.0)
+    #     HRSUM[threadid()] .= zero(0.0)
+    #     TKSUM[threadid()] .= zero(0.0)
+    #     PHISUM[threadid()] .= zero(0.0)
+    #     WTPSUM[threadid()] .= zero(0.0)
+    # end
 
     # RMK: sequential version, 20% slower than threaded version above
     # when nthreads() = 24
     # reset datastructures for this timestep
-    # for threadid = 1:1:nthreads()
-    #     # basic nodes
-    #     ETA0SUM[threadid] .= zero(0.0)
-    #     ETASUM[threadid] .= zero(0.0)
-    #     GGGSUM[threadid] .= zero(0.0)
-    #     SXYSUM[threadid] .= zero(0.0)
-    #     COHSUM[threadid] .= zero(0.0)
-    #     TENSUM[threadid] .= zero(0.0)
-    #     FRISUM[threadid] .= zero(0.0)
-    #     WTSUM[threadid] .= zero(0.0)
-    #     # Vx-nodes
-    #     RHOXSUM[threadid] .= zero(0.0)
-    #     RHOFXSUM[threadid] .= zero(0.0)
-    #     KXSUM[threadid] .= zero(0.0)
-    #     PHIXSUM[threadid] .= zero(0.0)
-    #     RXSUM[threadid] .= zero(0.0)
-    #     WTXSUM[threadid] .= zero(0.0)
-    #     # Vy-nodes
-    #     RHOYSUM[threadid] .= zero(0.0)
-    #     RHOFYSUM[threadid] .= zero(0.0)
-    #     KYSUM[threadid] .= zero(0.0)
-    #     PHIYSUM[threadid] .= zero(0.0)
-    #     RYSUM[threadid] .= zero(0.0)
-    #     WTYSUM[threadid] .= zero(0.0)
-    #     # P-Nodes
-    #     GGGPSUM[threadid] .= zero(0.0)
-    #     SXXSUM[threadid] .= zero(0.0)
-    #     RHOSUM[threadid] .= zero(0.0)
-    #     RHOCPSUM[threadid] .= zero(0.0)
-    #     ALPHASUM[threadid] .= zero(0.0)
-    #     ALPHAFSUM[threadid] .= zero(0.0)
-    #     HRSUM[threadid] .= zero(0.0)
-    #     TKSUM[threadid] .= zero(0.0)
-    #     PHISUM[threadid] .= zero(0.0)
-    #     WTPSUM[threadid] .= zero(0.0)
-    # end
+    for threadid = 1:1:nthreads()
+        # basic nodes
+        ETA0SUM[threadid] .= zero(0.0)
+        ETASUM[threadid] .= zero(0.0)
+        GGGSUM[threadid] .= zero(0.0)
+        SXYSUM[threadid] .= zero(0.0)
+        COHSUM[threadid] .= zero(0.0)
+        TENSUM[threadid] .= zero(0.0)
+        FRISUM[threadid] .= zero(0.0)
+        WTSUM[threadid] .= zero(0.0)
+        # Vx-nodes
+        RHOXSUM[threadid] .= zero(0.0)
+        RHOFXSUM[threadid] .= zero(0.0)
+        KXSUM[threadid] .= zero(0.0)
+        PHIXSUM[threadid] .= zero(0.0)
+        RXSUM[threadid] .= zero(0.0)
+        WTXSUM[threadid] .= zero(0.0)
+        # Vy-nodes
+        RHOYSUM[threadid] .= zero(0.0)
+        RHOFYSUM[threadid] .= zero(0.0)
+        KYSUM[threadid] .= zero(0.0)
+        PHIYSUM[threadid] .= zero(0.0)
+        RYSUM[threadid] .= zero(0.0)
+        WTYSUM[threadid] .= zero(0.0)
+        # P-Nodes
+        GGGPSUM[threadid] .= zero(0.0)
+        SXXSUM[threadid] .= zero(0.0)
+        RHOSUM[threadid] .= zero(0.0)
+        RHOCPSUM[threadid] .= zero(0.0)
+        ALPHASUM[threadid] .= zero(0.0)
+        ALPHAFSUM[threadid] .= zero(0.0)
+        HRSUM[threadid] .= zero(0.0)
+        TKSUM[threadid] .= zero(0.0)
+        PHISUM[threadid] .= zero(0.0)
+        WTPSUM[threadid] .= zero(0.0)
+    end
 end
 # function reset_interpolation_arrays!(
 #     ETA0SUM,
@@ -1540,6 +1543,58 @@ function compute_marker_parameters(m::Int64, markers::MarkerArrays, p::Params)
 end
 
 
+function compute_marker_parameters!(
+    m::Int64,
+    markers::MarkerArrays,
+    marker_para::MarkerParams,
+    p::Params)
+    @unpack_MarkerArrays markers
+    @unpack_MarkerParams marker_para
+    @unpack_Params p
+
+    if tm[m] < 3 
+        # rocks
+        kphim[threadid()] = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2; #Permeability
+        rhototalm[threadid()] = rhosolidm[tm[m]] * (1-phim[m]) + rhofluidm[tm[m]] * phim[m]
+        rhocptotalm[threadid()] = rhocpsolidm[tm[m]] * (1-phim[m]) + rhocpfluidm[tm[m]] * phim[m]
+        etasolidcur[threadid()] = etasolidm[tm[m]]
+        if tkm[m] > tmsilicate
+            etasolidcur[threadid()] = etasolidmm[tm[m]]
+        end
+        hrtotalm[threadid()] = hrsolidm[tm[m]] * (1-phim[m]) + hrfluidm[tm[m]] * phim[m]
+        ktotalm[threadid()] = (ksolidm[tm[m]] * kfluidm[tm[m]]/2 + ((ksolidm[tm[m]] * (3*phim[m]-2) + kfluidm[tm[m]] * (1-3*phim[m]))^2)/16)^0.5 - (ksolidm[tm[m]]*(3*phim[m]-2) + kfluidm[tm[m]]*(1-3*phim[m]))/4
+        gggtotalm[threadid()] = gggsolidm[tm[m]]
+        fricttotalm[threadid()] = frictsolidm[tm[m]]
+        cohestotalm[threadid()] = cohessolidm[tm[m]]
+        tenstotalm[threadid()] = tenssolidm[tm[m]]
+        etafluidcur[threadid()] = etafluidm[tm[m]]
+        rhofluidcur[threadid()] = rhofluidm[tm[m]]
+        if tkm[m] > tmiron
+            etafluidcur[threadid()] = etafluidmm[tm[m]]
+        end
+        etatotalm[threadid()] = max(
+            etamin,
+            etafluidcur[threadid()],
+            etasolidcur[threadid()]
+            ) # *exp(-28*phim[m])))
+    else
+        # air
+        kphim[threadid()] = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2 #Permeability
+        rhototalm[threadid()] = rhosolidm[tm[m]]
+        rhocptotalm[threadid()] = rhocpsolidm[tm[m]]
+        etatotalm[threadid()] = etasolidm[tm[m]]
+        hrtotalm[threadid()] = hrsolidm[tm[m]]
+        ktotalm[threadid()] = ksolidm[tm[m]]
+        gggtotalm[threadid()] = gggsolidm[tm[m]]
+        fricttotalm[threadid()] = frictsolidm[tm[m]]
+        cohestotalm[threadid()] = cohessolidm[tm[m]]
+        tenstotalm[threadid()] = tenssolidm[tm[m]]
+        etafluidcur[threadid()] = etafluidm[tm[m]]
+        rhofluidcur[threadid()] = rhofluidm[tm[m]]
+    end
+end
+
+
 # Initialize parameters
 const para = Params(
     Nx = 141,
@@ -1571,6 +1626,9 @@ function timestepping(markers::MarkerArrays, p::Params)
 
     # set up marker interpolation arrays
     interp_arrays = InterpArrays(Nx, Ny, Nx1, Ny1)
+
+    # set up marker parameter struct
+    marker_para = MarkerParams()
 
     # (
     #     ETA0SUM,
@@ -1663,18 +1721,19 @@ function timestepping(markers::MarkerArrays, p::Params)
         # compute marker parameters 
         # for m=1:1:marknum
         @threads for m=1:1:marknum
-            kphim,
-            rhototalm,
-            rhocptotalm,
-            etatotalm,
-            hrtotalm,
-            ktotalm,
-            gggtotalm,
-            fricttotalm,
-            cohestotalm,
-            tenstotalm,
-            etafluidcur,
-            rhofluidcur = compute_marker_parameters(m, markers, p)
+            # kphim,
+            # rhototalm,
+            # rhocptotalm,
+            # etatotalm,
+            # hrtotalm,
+            # ktotalm,
+            # gggtotalm,
+            # fricttotalm,
+            # cohestotalm,
+            # tenstotalm,
+            # etafluidcur,
+            # rhofluidcur = compute_marker_parameters(m, markers, p)
+            compute_marker_parameters!(m, markers, marker_para, p)
         end
 
         if timestep % 100 == 0
