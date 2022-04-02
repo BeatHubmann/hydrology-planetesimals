@@ -672,61 +672,101 @@ end
 # phim=zeros(1,marknum); # Marker porosity
 
 """
-Marker properties
+Marker properties: Fixed and calculated during timestepping
 
 $(TYPEDFIELDS)
 """
 @with_kw struct MarkerArrays
 # Base.@kwdef mutable struct MarkerArrays
+    # original marker properties 
     "horizontal coordinates [m]"
-    xm::Array{Float64}
+    xm::Vector{Float64}
     "vertical coordinates [m]"
-    ym::Array{Float64}
+    ym::Vector{Float64}
     "material type"
-    tm::Array{Int8}
+    tm::Vector{Int8}
     "marker temperature [K]"
-    tkm::Array{Float64}
+    tkm::Vector{Float64}
     "SIGMA'xx [Pa]"
-    sxxm::Array{Float64}
+    sxxm::Vector{Float64}
     "SIGMAxy [Pa]"
-    sxym::Array{Float64}
+    sxym::Vector{Float64}
     "Visco-plastic viscosity [Pa]"
-    etavpm::Array{Float64}
+    etavpm::Vector{Float64}
     "Marker porosity"
-    phim::Array{Float64}
+    phim::Vector{Float64}
+    # fixed marker properties used during timestepping calculations
+    # N/A: omitted - reconsider?
+    # marker properties calculated during timestepping
+    "kphim"
+    kphim::Vector{Float64}
+    "rhototalm"
+    rhototalm::Vector{Float64}
+    "rhocptotalm"
+    rhocptotalm::Vector{Float64}
+    "etatotalm"
+    etatotalm::Vector{Float64}
+    "hrtotalm"
+    hrtotalm::Vector{Float64}
+    "ktotalm"
+    ktotalm::Vector{Float64}
+    "gggtotalm"
+    gggtotalm::Vector{Float64}
+    "fricttotalm"
+    fricttotalm::Vector{Float64}
+    "cohestotalm"
+    cohestotalm::Vector{Float64}
+    "tenstotalm"
+    tenstotalm::Vector{Float64}
+    "etafluidcur"
+    etafluidcur::Vector{Float64}
+    "rhofluidcur"
+    rhofluidcur::Vector{Float64}
     "inner constructor"
     MarkerArrays(marknum) = new(
-        zeros(1, marknum),
-        zeros(1, marknum),
-        zeros(1, marknum),
-        zeros(1, marknum),
-        zeros(1, marknum),
-        zeros(1, marknum),
-        zeros(1, marknum),
-        zeros(1, marknum)
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum),
+        zeros(marknum)
     )
 end
 
-"""
-Marker parameters: Calculated during timestepping
+# """
+# Marker parameters: Calculated during timestepping
 
-$(TYPEDFIELDS)
-"""
-@with_kw struct MarkerParams
-    kphim::MVector{nthreads(), Float64} = zeros(nthreads())
-    rhototalm::MVector{nthreads(), Float64} = zeros(nthreads())
-    rhocptotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-    etatotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-    hrtotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-    ktotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-    gggtotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-    fricttotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-    cohestotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-    tenstotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-    etafluidcur::MVector{nthreads(), Float64} = zeros(nthreads())
-    etasolidcur::MVector{nthreads(), Float64} = zeros(nthreads())
-    rhofluidcur::MVector{nthreads(), Float64} = zeros(nthreads())
-end
+# $(TYPEDFIELDS)
+# """
+# @with_kw struct MarkerParams
+#     kphim::MVector{nthreads(), Float64} = zeros(nthreads())
+#     rhototalm::MVector{nthreads(), Float64} = zeros(nthreads())
+#     rhocptotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+#     etatotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+#     hrtotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+#     ktotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+#     gggtotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+#     fricttotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+#     cohestotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+#     tenstotalm::MVector{nthreads(), Float64} = zeros(nthreads())
+#     etafluidcur::MVector{nthreads(), Float64} = zeros(nthreads())
+#     etasolidcur::MVector{nthreads(), Float64} = zeros(nthreads())
+#     rhofluidcur::MVector{nthreads(), Float64} = zeros(nthreads())
+# end
 
 """
 Interpolation arrays: Calculated during timestepping
@@ -1133,20 +1173,22 @@ $(SIGNATURES)
 
 TBD
 """
-function initmarkers!(markers::MarkerArrays, p::Params)
-    @unpack_MarkerArrays markers
-    @unpack_Params p
+function initmarkers!(ma::MarkerArrays, p::Params)
+    @unpack_MarkerArrays ma
+    # @unpack_Params p
+    @unpack xsize, ysize, Nxm, Nym, dxm, dym, rplanet, rcrust, phimin, etasolidm, phim0 = p
+
     xcenter = xsize / 2
     ycenter = ysize / 2
     radius(x, y) = sqrt((x - xcenter)^2 + (y - ycenter)^2)
     for jm=1:1:Nxm, im=1:1:Nym
         # calculate marker counter
         m = (jm-1) * Nym + im
-        # Define marker coordinates
+        # define marker coordinates
         xm[m] = dxm/2 + (jm-1) * dxm + (rand()-0.5) * dxm
         ym[m] = dym/2 + (im-1) * dym + (rand()-0.5) * dym
-        # Marker properties
-        rmark = radius(markers.xm[m], markers.ym[m])
+        # primary marker properties 
+        rmark = radius(xm[m], ym[m])
         if rmark < rplanet
             # Planet
             if rmark > rcrust 
@@ -1164,7 +1206,114 @@ function initmarkers!(markers::MarkerArrays, p::Params)
             phim[m] = phimin # Porosity
             etavpm[m] = etasolidm[tm[m]] # Matrix viscosity
         end
+        # secondary marker properties
+        compute_static_marker_params!(m, ma, p)
+        compute_dynamic_marker_params!(m, ma, p)
     end
+end
+
+function compute_static_marker_params!(m::Int64, ma::MarkerArrays, p::Params)
+    # @unpack_MarkerArrays ma
+    @unpack tm, rhototalm, rhocptotalm, etatotalm, hrtotalm, ktotalm, gggtotalm,
+        fricttotalm, cohestotalm, tenstotalm, etafluidcur, rhofluidcur = ma
+    # @unpack_Params p
+    @unpack rhosolidm, rhocpsolidm, etasolidm, hrsolidm, ksolidm, gggsolidm,
+        frictsolidm, cohessolidm, tenssolidm, etafluidm, rhofluidm = p
+
+    # static secondary marker properties
+    if tm[m] < 3
+        # rocks
+        
+    else
+        # air
+        rhototalm[m] = rhosolidm[tm[m]]
+        rhocptotalm[m] = rhocpsolidm[tm[m]]
+        etatotalm[m] = etasolidm[tm[m]]
+        hrtotalm[m] = hrsolidm[tm[m]]
+        ktotalm[m] = ksolidm[tm[m]]
+    end
+    # common for rocks and air
+    gggtotalm[m] = gggsolidm[tm[m]]
+    fricttotalm[m] = frictsolidm[tm[m]]
+    cohestotalm[m] = cohessolidm[tm[m]]
+    tenstotalm[m] = tenssolidm[tm[m]]
+    etafluidcur[m] = etafluidm[tm[m]]
+    rhofluidcur[m] = rhofluidm[tm[m]]
+end
+
+# function rhototal(rhosolid, rhofluid, phi)
+#     return rhosolid * (1.0-phi) + rhofluid * phi
+# end
+
+# function rhocptotal(rhocpsolid, rhocpfluid, phi)
+#     return rhocpsolid * (1.0-phi) + rhocpfluid * phi
+# end
+
+
+function total(solid, fluid, phi)
+    return solid * (1.0-phi) + fluid * phi
+end
+
+function etatotal_rock(
+    tk,
+    tmsilicate,
+    tmiron,
+    etamin,
+    etasolidm,
+    etasolidmm,
+    etafluidm,
+    etafluidmm
+    )
+    return max(
+        etamin,
+        tk > tmsilicate ? etasolidmm : etasolidm,
+        tk > tmiron ? etafluidmm : etafluidm
+        )
+end
+
+function ktotal(ksolid, kfluid, phi)
+    return (ksolid * kfluid/2 + ((ksolid * (3*phi-2)
+                                 + kfluid * (1.0-3.0*phi))^2)/16)^0.5
+            - (ksolid*(3.0*phi-2.0) + kfluid*(1.0-3.0*phi))/4
+end
+
+
+function kphi(kphim0, phim0, phi)
+    return kphim0 * (phi/phim0)^3 / ((1.0-phi)/(1.0-phim0))^2
+end
+
+function compute_dynamic_marker_params!(m::Int64, ma::MarkerArrays, p::Params)
+    # @unpack_MarkerArrays ma
+    @unpack tm, tkm, phim, rhototalm, rhocptotalm, etatotalm, hrtotalm, ktotalm,
+         kphim = ma
+    # @unpack_Params p
+    @unpack rhosolidm, rhofluidm, rhocpsolidm, rhocpfluidm, tmiron, tmsilicate,
+        etamin, etasolidmm, etasolidm, etafluidmm, etafluidm, kphim0, phim0,
+        hrsolidm, hrfluidm, ksolidm, kfluidm  = p
+
+    if tm[m] < 3
+        # rocks
+        rhototalm[m] = total(rhosolidm[tm[m]], rhofluidm[tm[m]], phim[m])
+        rhocptotalm[m] = total(rhocpsolidm[tm[m]], rhocpfluidm[tm[m]], phim[m])
+        etatotalm[m] = etatotal_rock(
+            tkm[m],
+            tmsilicate,
+            tmiron,
+            etamin,
+            etasolidm[tm[m]],
+            etasolidmm[tm[m]],
+            etafluidm[tm[m]],
+            etafluidmm[tm[m]]
+            )
+        hrtotalm[m] = total(hrsolidm[tm[m]], hrfluidm[tm[m]], phim[m])
+        ktotalm[m] = ktotal(ksolidm[tm[m]], kfluidm[tm[m]], phim[m])
+        
+    else
+        # air
+    
+    end
+    # common for rocks and air
+    kphim[m] = kphi(kphim0[tm[m]], phim0, phim[m])
 end
 
 
@@ -1223,76 +1372,76 @@ end
 
 
 
-function setup_interpolation_arrays(p::Params)
-    # unpack parameters
-    @unpack_Params p
-    # setup data structures to interpolate properties from markers to nodes
-    # basic nodes
-    ETA0SUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-    ETASUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-    GGGSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-    SXYSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-    COHSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-    TENSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-    FRISUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-    WTSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-    # Vx-nodes
-    RHOXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    RHOFXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    KXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    PHIXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    RXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    WTXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    # Vy-nodes
-    RHOYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    RHOFYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    KYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    PHIYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    RYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    WTYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    # P-Nodes
-    GGGPSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    SXXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    RHOSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    RHOCPSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    ALPHASUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    ALPHAFSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    HRSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    TKSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    PHISUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-    WTPSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+# function setup_interpolation_arrays(p::Params)
+#     # unpack parameters
+#     @unpack_Params p
+#     # setup data structures to interpolate properties from markers to nodes
+#     # basic nodes
+#     ETA0SUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+#     ETASUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+#     GGGSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+#     SXYSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+#     COHSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+#     TENSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+#     FRISUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+#     WTSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
+#     # Vx-nodes
+#     RHOXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     RHOFXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     KXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     PHIXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     RXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     WTXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     # Vy-nodes
+#     RHOYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     RHOFYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     KYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     PHIYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     RYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     WTYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     # P-Nodes
+#     GGGPSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     SXXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     RHOSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     RHOCPSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     ALPHASUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     ALPHAFSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     HRSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     TKSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     PHISUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+#     WTPSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
 
-    return ETA0SUM,
-        ETASUM,
-        GGGSUM,
-        SXYSUM,
-        COHSUM,
-        TENSUM,
-        FRISUM,
-        WTSUM,
-        RHOXSUM,
-        RHOFXSUM,
-        KXSUM,
-        PHIXSUM,
-        RXSUM,
-        WTXSUM,
-        RHOYSUM,
-        RHOFYSUM,
-        KYSUM,
-        PHIYSUM,
-        RYSUM,
-        WTYSUM,
-        GGGPSUM,
-        SXXSUM,
-        RHOSUM,
-        RHOCPSUM,
-        ALPHASUM,
-        ALPHAFSUM,
-        HRSUM,
-        TKSUM,
-        PHISUM,
-        WTPSUM
-end
+#     return ETA0SUM,
+#         ETASUM,
+#         GGGSUM,
+#         SXYSUM,
+#         COHSUM,
+#         TENSUM,
+#         FRISUM,
+#         WTSUM,
+#         RHOXSUM,
+#         RHOFXSUM,
+#         KXSUM,
+#         PHIXSUM,
+#         RXSUM,
+#         WTXSUM,
+#         RHOYSUM,
+#         RHOFYSUM,
+#         KYSUM,
+#         PHIYSUM,
+#         RYSUM,
+#         WTYSUM,
+#         GGGPSUM,
+#         SXXSUM,
+#         RHOSUM,
+#         RHOCPSUM,
+#         ALPHASUM,
+#         ALPHAFSUM,
+#         HRSUM,
+#         TKSUM,
+#         PHISUM,
+#         WTPSUM
+# end
 
 
 function reset_interpolation_arrays!(interp_arrays::InterpArrays)
@@ -1487,112 +1636,112 @@ end
 #     # end
 # end
 
-function compute_marker_parameters(m::Int64, markers::MarkerArrays, p::Params)
-    @unpack_MarkerArrays markers
-    @unpack_Params p
+# function compute_marker_parameters(m::Int64, markers::MarkerArrays, p::Params)
+#     @unpack_MarkerArrays markers
+#     @unpack_Params p
 
-    if tm[m] < 3 
-        # rocks
-        kphim = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2; #Permeability
-        rhototalm = rhosolidm[tm[m]] * (1-phim[m]) + rhofluidm[tm[m]] * phim[m]
-        rhocptotalm = rhocpsolidm[tm[m]] * (1-phim[m]) + rhocpfluidm[tm[m]] * phim[m]
-        etasolidcur = etasolidm[tm[m]]
-        if tkm[m] > tmsilicate
-            etasolidcur = etasolidmm[tm[m]]
-        end
-        hrtotalm = hrsolidm[tm[m]] * (1-phim[m]) + hrfluidm[tm[m]] * phim[m]
-        ktotalm = (ksolidm[tm[m]] * kfluidm[tm[m]]/2 + ((ksolidm[tm[m]] * (3*phim[m]-2) + kfluidm[tm[m]] * (1-3*phim[m]))^2)/16)^0.5 - (ksolidm[tm[m]]*(3*phim[m]-2) + kfluidm[tm[m]]*(1-3*phim[m]))/4
-        gggtotalm = gggsolidm[tm[m]]
-        fricttotalm = frictsolidm[tm[m]]
-        cohestotalm = cohessolidm[tm[m]]
-        tenstotalm = tenssolidm[tm[m]]
-        etafluidcur = etafluidm[tm[m]]
-        rhofluidcur = rhofluidm[tm[m]]
-        if tkm[m] > tmiron
-            etafluidcur = etafluidmm[tm[m]]
-        end
-        etatotalm = max(etamin, etafluidcur, etasolidcur) # *exp(-28*phim[m])))
-    else
-        # air
-        kphim = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2 #Permeability
-        rhototalm = rhosolidm[tm[m]]
-        rhocptotalm = rhocpsolidm[tm[m]]
-        etatotalm = etasolidm[tm[m]]
-        hrtotalm = hrsolidm[tm[m]]
-        ktotalm = ksolidm[tm[m]]
-        gggtotalm = gggsolidm[tm[m]]
-        fricttotalm = frictsolidm[tm[m]]
-        cohestotalm = cohessolidm[tm[m]]
-        tenstotalm = tenssolidm[tm[m]]
-        etafluidcur = etafluidm[tm[m]]
-        rhofluidcur = rhofluidm[tm[m]]
-    end
+#     if tm[m] < 3 
+#         # rocks
+#         kphim = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2; #Permeability
+#         rhototalm = rhosolidm[tm[m]] * (1-phim[m]) + rhofluidm[tm[m]] * phim[m]
+#         rhocptotalm = rhocpsolidm[tm[m]] * (1-phim[m]) + rhocpfluidm[tm[m]] * phim[m]
+#         etasolidcur = etasolidm[tm[m]]
+#         if tkm[m] > tmsilicate
+#             etasolidcur = etasolidmm[tm[m]]
+#         end
+#         hrtotalm = hrsolidm[tm[m]] * (1-phim[m]) + hrfluidm[tm[m]] * phim[m]
+#         ktotalm = (ksolidm[tm[m]] * kfluidm[tm[m]]/2 + ((ksolidm[tm[m]] * (3*phim[m]-2) + kfluidm[tm[m]] * (1-3*phim[m]))^2)/16)^0.5 - (ksolidm[tm[m]]*(3*phim[m]-2) + kfluidm[tm[m]]*(1-3*phim[m]))/4
+#         gggtotalm = gggsolidm[tm[m]]
+#         fricttotalm = frictsolidm[tm[m]]
+#         cohestotalm = cohessolidm[tm[m]]
+#         tenstotalm = tenssolidm[tm[m]]
+#         etafluidcur = etafluidm[tm[m]]
+#         rhofluidcur = rhofluidm[tm[m]]
+#         if tkm[m] > tmiron
+#             etafluidcur = etafluidmm[tm[m]]
+#         end
+#         etatotalm = max(etamin, etafluidcur, etasolidcur) # *exp(-28*phim[m])))
+#     else
+#         # air
+#         kphim = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2 #Permeability
+#         rhototalm = rhosolidm[tm[m]]
+#         rhocptotalm = rhocpsolidm[tm[m]]
+#         etatotalm = etasolidm[tm[m]]
+#         hrtotalm = hrsolidm[tm[m]]
+#         ktotalm = ksolidm[tm[m]]
+#         gggtotalm = gggsolidm[tm[m]]
+#         fricttotalm = frictsolidm[tm[m]]
+#         cohestotalm = cohessolidm[tm[m]]
+#         tenstotalm = tenssolidm[tm[m]]
+#         etafluidcur = etafluidm[tm[m]]
+#         rhofluidcur = rhofluidm[tm[m]]
+#     end
 
-    return kphim,
-        rhototalm,
-        rhocptotalm,
-        etatotalm,
-        hrtotalm,
-        ktotalm,
-        gggtotalm,
-        fricttotalm,
-        cohestotalm,
-        tenstotalm,
-        etafluidcur,
-        rhofluidcur
-end
+#     return kphim,
+#         rhototalm,
+#         rhocptotalm,
+#         etatotalm,
+#         hrtotalm,
+#         ktotalm,
+#         gggtotalm,
+#         fricttotalm,
+#         cohestotalm,
+#         tenstotalm,
+#         etafluidcur,
+#         rhofluidcur
+# end
 
 
-function compute_marker_parameters!(
-    m::Int64,
-    markers::MarkerArrays,
-    marker_para::MarkerParams,
-    p::Params)
-    @unpack_MarkerArrays markers
-    @unpack_MarkerParams marker_para
-    @unpack_Params p
+# function compute_marker_parameters!(
+#     m::Int64,
+#     markers::MarkerArrays,
+#     marker_para::MarkerParams,
+#     p::Params)
+#     @unpack_MarkerArrays markers
+#     @unpack_MarkerParams marker_para
+#     @unpack_Params p
 
-    if tm[m] < 3 
-        # rocks
-        kphim[threadid()] = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2; #Permeability
-        rhototalm[threadid()] = rhosolidm[tm[m]] * (1-phim[m]) + rhofluidm[tm[m]] * phim[m]
-        rhocptotalm[threadid()] = rhocpsolidm[tm[m]] * (1-phim[m]) + rhocpfluidm[tm[m]] * phim[m]
-        etasolidcur[threadid()] = etasolidm[tm[m]]
-        if tkm[m] > tmsilicate
-            etasolidcur[threadid()] = etasolidmm[tm[m]]
-        end
-        hrtotalm[threadid()] = hrsolidm[tm[m]] * (1-phim[m]) + hrfluidm[tm[m]] * phim[m]
-        ktotalm[threadid()] = (ksolidm[tm[m]] * kfluidm[tm[m]]/2 + ((ksolidm[tm[m]] * (3*phim[m]-2) + kfluidm[tm[m]] * (1-3*phim[m]))^2)/16)^0.5 - (ksolidm[tm[m]]*(3*phim[m]-2) + kfluidm[tm[m]]*(1-3*phim[m]))/4
-        gggtotalm[threadid()] = gggsolidm[tm[m]]
-        fricttotalm[threadid()] = frictsolidm[tm[m]]
-        cohestotalm[threadid()] = cohessolidm[tm[m]]
-        tenstotalm[threadid()] = tenssolidm[tm[m]]
-        etafluidcur[threadid()] = etafluidm[tm[m]]
-        rhofluidcur[threadid()] = rhofluidm[tm[m]]
-        if tkm[m] > tmiron
-            etafluidcur[threadid()] = etafluidmm[tm[m]]
-        end
-        etatotalm[threadid()] = max(
-            etamin,
-            etafluidcur[threadid()],
-            etasolidcur[threadid()]
-            ) # *exp(-28*phim[m])))
-    else
-        # air
-        kphim[threadid()] = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2 #Permeability
-        rhototalm[threadid()] = rhosolidm[tm[m]]
-        rhocptotalm[threadid()] = rhocpsolidm[tm[m]]
-        etatotalm[threadid()] = etasolidm[tm[m]]
-        hrtotalm[threadid()] = hrsolidm[tm[m]]
-        ktotalm[threadid()] = ksolidm[tm[m]]
-        gggtotalm[threadid()] = gggsolidm[tm[m]]
-        fricttotalm[threadid()] = frictsolidm[tm[m]]
-        cohestotalm[threadid()] = cohessolidm[tm[m]]
-        tenstotalm[threadid()] = tenssolidm[tm[m]]
-        etafluidcur[threadid()] = etafluidm[tm[m]]
-        rhofluidcur[threadid()] = rhofluidm[tm[m]]
-    end
-end
+#     if tm[m] < 3 
+#         # rocks
+#         kphim[threadid()] = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2; #Permeability
+#         rhototalm[threadid()] = rhosolidm[tm[m]] * (1-phim[m]) + rhofluidm[tm[m]] * phim[m]
+#         rhocptotalm[threadid()] = rhocpsolidm[tm[m]] * (1-phim[m]) + rhocpfluidm[tm[m]] * phim[m]
+#         etasolidcur[threadid()] = etasolidm[tm[m]]
+#         if tkm[m] > tmsilicate
+#             etasolidcur[threadid()] = etasolidmm[tm[m]]
+#         end
+#         hrtotalm[threadid()] = hrsolidm[tm[m]] * (1-phim[m]) + hrfluidm[tm[m]] * phim[m]
+#         ktotalm[threadid()] = (ksolidm[tm[m]] * kfluidm[tm[m]]/2 + ((ksolidm[tm[m]] * (3*phim[m]-2) + kfluidm[tm[m]] * (1-3*phim[m]))^2)/16)^0.5 - (ksolidm[tm[m]]*(3*phim[m]-2) + kfluidm[tm[m]]*(1-3*phim[m]))/4
+#         gggtotalm[threadid()] = gggsolidm[tm[m]]
+#         fricttotalm[threadid()] = frictsolidm[tm[m]]
+#         cohestotalm[threadid()] = cohessolidm[tm[m]]
+#         tenstotalm[threadid()] = tenssolidm[tm[m]]
+#         etafluidcur[threadid()] = etafluidm[tm[m]]
+#         rhofluidcur[threadid()] = rhofluidm[tm[m]]
+#         if tkm[m] > tmiron
+#             etafluidcur[threadid()] = etafluidmm[tm[m]]
+#         end
+#         etatotalm[threadid()] = max(
+#             etamin,
+#             etafluidcur[threadid()],
+#             etasolidcur[threadid()]
+#             ) # *exp(-28*phim[m])))
+#     else
+#         # air
+#         kphim[threadid()] = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2 #Permeability
+#         rhototalm[threadid()] = rhosolidm[tm[m]]
+#         rhocptotalm[threadid()] = rhocpsolidm[tm[m]]
+#         etatotalm[threadid()] = etasolidm[tm[m]]
+#         hrtotalm[threadid()] = hrsolidm[tm[m]]
+#         ktotalm[threadid()] = ksolidm[tm[m]]
+#         gggtotalm[threadid()] = gggsolidm[tm[m]]
+#         fricttotalm[threadid()] = frictsolidm[tm[m]]
+#         cohestotalm[threadid()] = cohessolidm[tm[m]]
+#         tenstotalm[threadid()] = tenssolidm[tm[m]]
+#         etafluidcur[threadid()] = etafluidm[tm[m]]
+#         rhofluidcur[threadid()] = rhofluidm[tm[m]]
+#     end
+# end
 
 
 # Initialize parameters
@@ -1627,8 +1776,8 @@ function timestepping(markers::MarkerArrays, p::Params)
     # set up marker interpolation arrays
     interp_arrays = InterpArrays(Nx, Ny, Nx1, Ny1)
 
-    # set up marker parameter struct
-    marker_para = MarkerParams()
+    # # set up marker parameter struct
+    # marker_para = MarkerParams()
 
     # (
     #     ETA0SUM,
@@ -1733,7 +1882,8 @@ function timestepping(markers::MarkerArrays, p::Params)
             # tenstotalm,
             # etafluidcur,
             # rhofluidcur = compute_marker_parameters(m, markers, p)
-            compute_marker_parameters!(m, markers, marker_para, p)
+            # compute_marker_parameters!(m, markers, marker_para, p)
+            compute_dynamic_marker_params!(m, markers, p)
         end
 
         if timestep % 100 == 0
