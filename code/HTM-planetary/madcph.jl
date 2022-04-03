@@ -104,43 +104,43 @@ $(TYPEDFIELDS)
     pscale::Float64 = 1e+23 / dx
     # Materials properties:         Planet      Crust       Space
     "solid Density [kg/m^3]"
-    rhosolidm::Array{Float64}   = [ 3300.0    , 3300.0    ,    1.0    ]
+    rhosolidm::SVector{3, Float64}   = [ 3300.0    , 3300.0    ,    1.0    ]
     "fluid density [kg/m^3]"	
-    rhofluidm::Array{Float64}   = [ 7000.0    , 7000.0    , 1000.0    ]
+    rhofluidm::SVector{3, Float64}   = [ 7000.0    , 7000.0    , 1000.0    ]
     "solid viscosity [Pa*s]"
-    etasolidm::Array{Float64}   = [    1.0e+16,    1.0e+16,    1.0e+14]
+    etasolidm::SVector{3, Float64}   = [    1.0e+16,    1.0e+16,    1.0e+14]
     "molten solid viscosity [Pa*s]"
-    etasolidmm::Array{Float64}  = [    1.0e+14,    1.0e+14,    1.0e+14]
+    etasolidmm::SVector{3, Float64}  = [    1.0e+14,    1.0e+14,    1.0e+14]
     "fluid viscosity [Pa*s]"
-    etafluidm::Array{Float64}   = [    1.0e-02,    1.0e-02,    1.0e+12]
+    etafluidm::SVector{3, Float64}   = [    1.0e-02,    1.0e-02,    1.0e+12]
     "molten fluid viscosity [Pa*s]"
-    etafluidmm::Array{Float64}  = [    1.0e-02,    1.0e-02,    1.0e+12]
+    etafluidmm::SVector{3, Float64}  = [    1.0e-02,    1.0e-02,    1.0e+12]
     "solid volumetric heat capacity [kg/m^3]"
-    rhocpsolidm::Array{Float64} = [    3.3e+06,    3.3e+06,    3.0e+06]
+    rhocpsolidm::SVector{3, Float64} = [    3.3e+06,    3.3e+06,    3.0e+06]
     "fluid volumetric heat capacity [kg/m^3]"
-    rhocpfluidm::Array{Float64} = [    7.0e+06,    7.0e+06,    3.0e+06]
+    rhocpfluidm::SVector{3, Float64} = [    7.0e+06,    7.0e+06,    3.0e+06]
     "solid thermal expansion [1/K]"
-    alphasolidm::Array{Float64} = [    3.0e-05,    3.0e-05,    0.0    ]
+    alphasolidm::SVector{3, Float64} = [    3.0e-05,    3.0e-05,    0.0    ]
     "fluid thermal expansion [1/K]"
-    alphafluidm::Array{Float64} = [    5.0e-05,    5.0e-05,    0.0    ]
+    alphafluidm::SVector{3, Float64} = [    5.0e-05,    5.0e-05,    0.0    ]
     "solid thermal conductivity [W/m/K]"
-    ksolidm::Array{Float64}     = [    3.0    ,    3.0    , 3000.0    ]
+    ksolidm::SVector{3, Float64}     = [    3.0    ,    3.0    , 3000.0    ]
     "fluid thermal conductivity [W/m/K]"
-    kfluidm::Array{Float64}     = [   50.0    ,   50.0    , 3000.0    ]
+    kfluidm::SVector{3, Float64}     = [   50.0    ,   50.0    , 3000.0    ]
     "solid radiogenic heat production [W/m^3]"
     hrsolidm::Array{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
     "fluid radiogenic heat production [W/m^3]"
     hrfluidm::Array{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
     "solid shear modulus [Pa]"
-    gggsolidm::Array{Float64}   = [    1.0e+10,    1.0e+10,    1.0e+10]
+    gggsolidm::SVector{3, Float64}   = [    1.0e+10,    1.0e+10,    1.0e+10]
     "solid friction coefficient"
-    frictsolidm::Array{Float64} = [    0.6    ,    0.6    ,    0.0    ]
+    frictsolidm::SVector{3, Float64} = [    0.6    ,    0.6    ,    0.0    ]
     "solid compressive strength [Pa]"
-    cohessolidm::Array{Float64} = [    1.0e+08,    1.0e+08,    1.0e+08]
+    cohessolidm::SVector{3, Float64} = [    1.0e+08,    1.0e+08,    1.0e+08]
     "solid tensile strength [Pa]"
-    tenssolidm ::Array{Float64} = [    6.0e+07,    6.0e+07,    6.0e+07]
+    tenssolidm ::SVector{3, Float64} = [    6.0e+07,    6.0e+07,    6.0e+07]
     "standard permeability [m^2]"
-    kphim0::Array{Float64}      = [    1.0e-13,    1.0e-13,    1.0e-17]
+    kphim0::SVector{3, Float64}      = [    1.0e-13,    1.0e-13,    1.0e-17]
     "Coefficient to compute compaction viscosity from shear viscosity"
     etaphikoef::Float64 = 1e-4
     # 26Al decay
@@ -1331,6 +1331,9 @@ end
 #     hrfluidm[1,1]=Q_fe*rhofluidm[1,1]; #[w/m^3]radioactive heatproduction only in planet
 # end
 
+function radiogenic_heating(f, ratio, E, tau, time)
+    return f * ratio * E * exp(-time/tau) / tau
+end
 
 
 function calculate_radioactive_heating(
@@ -1345,27 +1348,22 @@ function calculate_radioactive_heating(
     E_fe::Float64,
     tau_fe::Float64,
     timesum::Float64,
-    rhosolidm::Array{Float64},
-    rhofluidm::Array{Float64}
+    rhosolidm::SVector{3, Float64},
+    rhofluidm::SVector{3, Float64}
 )
     #26Al
-    hrsolidm = zeros(1, 3)
     if hr_al
         # 26Al radiogenic heat production [W/kg]
-        Q_al = f_al * ratio_al *E_al * exp(-timesum/tau_al) / tau_al
+        Q_al = radiogenic_heating(f_al, ratio_al, E_al, tau_al, timesum)
         # Solid phase 26Al radiogenic heat production [W/m^3]
-        hrsolidm = Q_al * rhosolidm
-        # remove radioactive heating for marker type 3 (space)
-        hrsolidm[3] = 0
+        hrsolidm = @SVector [Q_al*rhosolidm[1], Q_al*rhosolidm[2], 0.0]
     end
     #60Fe
     if hr_fe
         # 60Fe radiogenic heat production [W/kg]
-        Q_fe = f_fe * ratio_fe * E_fe * exp(-timesum/tau_fe) / tau_fe
+        Q_fe = radiogenic_heating(f_fe, ratio_fe, E_fe, tau_fe, timesum)
         # Fluid phase 60Fe radiogenic heat production [W/m^3]
-        hrfluidm = Q_fe * rhofluidm
-        # remove radioactive heating for marker types 2 and 3 (crust and space)
-        hrfluidm[2:3] .= 0
+        hrfluidm = @SVector [Q_fe*rhofluidm[1], 0.0, 0.0]
     end
     return hrsolidm, hrfluidm
 end
