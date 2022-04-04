@@ -891,12 +891,13 @@ $(SIGNATURES)
     - tmsilicate: melting temperature of silicate in [K]
     - tmiron: melting temperature of iron in K [K]
     - etamin: minimum viscosity [Pa s]
-    - etasolidm: solid viscosity of solid [Pa s]
+    - etasolidm: solid viscosity [Pa s]
     - etasolidmm: molten solid viscosity [Pa s]
     - etafluidm: fluid viscosity [Pa s]
     - etafluidmm: molten fluid viscosity [Pa s]
 
 # Returns
+
     - etatotal: temperature-dependent total viscosity [Pa s]
 """	
 function etatotal_rock(
@@ -916,7 +917,21 @@ function etatotal_rock(
         )
 end
 
+"""
+Compute total thermal conductivity of two-phase material.
 
+$(SIGNATURES)
+
+# Details
+
+    - ksolid: solid thermal conductivity [W/m/K]
+    - kfluid: fluid thermal conductivity [W/m/K]
+    - phi: fraction of solid
+
+# Returns
+
+    - ktotal: total thermal conductivity of mixed phase [W/m/K]
+"""
 function ktotal(ksolid, kfluid, phi)
     return (ksolid * kfluid/2 + ((ksolid * (3*phi-2)
                                  + kfluid * (1.0-3.0*phi))^2)/16)^0.5
@@ -924,10 +939,41 @@ function ktotal(ksolid, kfluid, phi)
 end
 
 
-function kphi(kphim0, phim0, phi)
-    return kphim0 * (phi/phim0)^3 / ((1.0-phi)/(1.0-phim0))^2
+"""
+Compute iron porosity-dependent permeability.
+
+$(SIGNATURES)
+
+# Details
+
+    - kphim0: standard permeability [m^2]
+    - phim0: standard iron fraction (porosity)
+
+# Returns
+
+    - kphim: iron porosity-dependent permeability [m^2]
+"""
+function kphi(kphim0, phim0)
+    return kphim0 * (phi/phim0)^3 / ((1.0-phim)/(1.0-phim0))^2
 end
 
+
+"""
+Compute dynamic marker properties.
+Runs every time step.
+
+$(SIGNATURES)
+
+# Detail
+
+    - m: marker index of marker whose parameters are to be computed
+    - ma: marker arrays containing marker properties to be updated
+    - sp: static simulation parameters
+    - dp: dynamic simulation parameters
+
+# Returns
+    - nothing
+"""
 function compute_dynamic_marker_params!(m::Int64, ma::MarkerArrays, p::Params)
     # @unpack_MarkerArrays ma
     @unpack tm, tkm, phim, rhototalm, rhocptotalm, etatotalm, hrtotalm, ktotalm,
@@ -962,20 +1008,6 @@ function compute_dynamic_marker_params!(m::Int64, ma::MarkerArrays, p::Params)
     kphim[m] = kphi(kphim0[tm[m]], phim0, phim[m])
 end
 
-
-# Updating radioactive heating
-# #26Al
-# if hr_al==1
-#     Q_al=f_al*ratio_al*E_al*exp(-timesum/tau_al)/tau_al; # [W/kg]
-#     hrsolidm=Q_al*rhosolidm;    #radiogenic heat production [W/m^3]
-#     hrsolidm[1,3]=0; #no radioactive heating from space
-# end
-
-# #60Fe
-# if hr_fe==1
-#     Q_fe=f_fe*ratio_fe*E_fe*exp(-timesum/tau_fe)/tau_fe; #[W/kg]
-#     hrfluidm[1,1]=Q_fe*rhofluidm[1,1]; #[w/m^3]radioactive heatproduction only in planet
-# end
 
 function radiogenic_heating(f, ratio, E, tau, time)
     return f * ratio * E * exp(-time/tau) / tau
