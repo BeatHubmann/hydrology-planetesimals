@@ -88,10 +88,10 @@ $(TYPEDFIELDS)
     ksolidm::SVector{3, Float64}     = [    3.0    ,    3.0    , 3000.0    ]
     "fluid thermal conductivity [W/m/K]"
     kfluidm::SVector{3, Float64}     = [   50.0    ,   50.0    , 3000.0    ]
-    "solid radiogenic heat production [W/m^3]"
-    hrsolidm::Array{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
-    "fluid radiogenic heat production [W/m^3]"
-    hrfluidm::Array{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
+    # "solid radiogenic heat production [W/m^3]"
+    # hrsolidm::Array{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
+    # "fluid radiogenic heat production [W/m^3]"
+    # hrfluidm::Array{Float64}    = [    0.0    ,    0.0    ,    0.0    ]
     "solid shear modulus [Pa]"
     gggsolidm::SVector{3, Float64}   = [    1.0e+10,    1.0e+10,    1.0e+10]
     "solid friction coefficient"
@@ -234,11 +234,23 @@ Base.@kwdef mutable struct DynamicParameters
     timesum::Float64
     "current number of markers"
     marknum::Int64
+    "radiogenic heat production solid phase"
+    hrsolidm::SVector{3, Float64} = zeros(3)
+    "radiogenic heat production fluid phase"
+    hrfluidm::SVector{3, Float64} = zeros(3)
     "inner constructor"
     DynamicParameters(startstep, dt, timesum, marknum) = new(
-        startstep, dt, timesum, marknum)
+        startstep,
+        dt,
+        timesum,
+        marknum
+        )
     DynamicParameters(sp::StaticParameters) = new(
-        sp.startstep, sp.dtelastic, sp.starttimesum, sp.startmarknum)
+        sp.startstep,
+        sp.dtelastic,
+        sp.starttimesum,
+        sp.startmarknum,
+        )
     end
 
 
@@ -967,7 +979,7 @@ function initmarkers!(
             etavpm[m] = etasolidm[tm[m]]
         end
         # secondary marker properties
-        compute_static_marker_params!(m, ma, sp)
+        compute_static_marker_params!(m, ma, sp, dp)
         compute_dynamic_marker_params!(m, ma, sp, dp)
     end
 end
@@ -990,12 +1002,13 @@ $(SIGNATURES)
     - nothing
 """	
 function compute_static_marker_params!(
-    m::Int64, ma::MarkerArrays, sp::StaticParameters)
+    m::Int64, ma::MarkerArrays, sp::StaticParameters, dp::DynamicParameters)
     # @unpack_MarkerArrays ma
     @unpack tm, rhototalm, rhocptotalm, etatotalm, hrtotalm, ktotalm, gggtotalm,
         fricttotalm, cohestotalm, tenstotalm, etafluidcur, rhofluidcur = ma
-    @unpack rhosolidm, rhocpsolidm, etasolidm, hrsolidm, ksolidm, gggsolidm,
+    @unpack rhosolidm, rhocpsolidm, etasolidm, ksolidm, gggsolidm,
         frictsolidm, cohessolidm, tenssolidm, etafluidm, rhofluidm = sp
+    @unpack hrsolidm = dp
 
     # static secondary marker properties
     if tm[m] < 3
@@ -1137,13 +1150,12 @@ $(SIGNATURES)
 function compute_dynamic_marker_params!(
     m::Int64, ma::MarkerArrays, sp::StaticParameters, dp::DynamicParameters
     )
-    # @unpack_MarkerArrays ma
     @unpack tm, tkm, phim, rhototalm, rhocptotalm, etatotalm, hrtotalm, ktotalm,
          kphim = ma
-    # @unpack_Params sp
     @unpack rhosolidm, rhofluidm, rhocpsolidm, rhocpfluidm, tmiron, tmsilicate,
         etamin, etasolidmm, etasolidm, etafluidmm, etafluidm, kphim0, phim0,
-        hrsolidm, hrfluidm, ksolidm, kfluidm  = sp
+        ksolidm, kfluidm  = sp
+    @unpack hrsolidm, hrfluidm = dp
 
     if tm[m] < 3
         # rocks
@@ -1326,15 +1338,7 @@ function timestepping(
     )
     # unpack simulation parameters
     @unpack Nx, Ny, Nx1, Ny1, startstep, dtelastic, starttimesum = sp
-    @unpack timestep, dtelastic, timesum, marknum, hrsolidm, hrfluidm = dp
-
-    # initialize counters and timestepping loop variables
-    "timestep counter (current)"
-    timestep::Int64 = startstep
-    "computational timestep (current) [s]"
-    dt::Float64 = dtelastic
-    "time sum (current) [s]"
-    timesum::Float64 = starttimesum
+    @unpack timestep, dt, timesum, marknum, hrsolidm, hrfluidm = dp
 
     # set up marker interpolation arrays
     interp_arrays = InterpArrays(Nx, Ny, Nx1, Ny1)
