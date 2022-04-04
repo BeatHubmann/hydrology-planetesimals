@@ -967,7 +967,7 @@ function initmarkers!(
             etavpm[m] = etasolidm[tm[m]]
         end
         # secondary marker properties
-        compute_static_marker_params!(m, ma, sp, dp)
+        compute_static_marker_params!(m, ma, sp)
         compute_dynamic_marker_params!(m, ma, sp, dp)
     end
 end
@@ -1106,14 +1106,15 @@ $(SIGNATURES)
 # Details
 
     - kphim0: standard permeability [m^2]
+    - phim: actual (marker) porosity
     - phim0: standard iron fraction (porosity)
 
 # Returns
 
     - kphim: iron porosity-dependent permeability [m^2]
 """
-function kphi(kphim0, phim0)
-    return kphim0 * (phi/phim0)^3 / ((1.0-phim)/(1.0-phim0))^2
+function kphi(kphim0, phim, phim0)
+    return kphim0 * (phim/phim0)^3 / ((1.0-phim)/(1.0-phim0))^2
 end
 
 
@@ -1142,7 +1143,7 @@ function compute_dynamic_marker_params!(
     # @unpack_Params sp
     @unpack rhosolidm, rhofluidm, rhocpsolidm, rhocpfluidm, tmiron, tmsilicate,
         etamin, etasolidmm, etasolidm, etafluidmm, etafluidm, kphim0, phim0,
-        hrsolidm, hrfluidm, ksolidm, kfluidm  = p
+        hrsolidm, hrfluidm, ksolidm, kfluidm  = sp
 
     if tm[m] < 3
         # rocks
@@ -1303,7 +1304,7 @@ const vynodes = VyNodes(para.xsize, para.ysize, para.dx, para.dy)
 const pnodes = PNodes(para.xsize, para.ysize, para.dx, para.dy)
 
 const markers = MarkerArrays(para.marknum)
-initmarkers!(markers, para)
+initmarkers!(markers, static_parameters, dynamic_parameters)
 
 """
 Main simulation loop: runs timestepping.
