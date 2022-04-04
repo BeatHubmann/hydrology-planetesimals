@@ -8,53 +8,14 @@ using BenchmarkTools
 using TimerOutputs
 
 const to = TimerOutput()
-# Visco-elasto-plastic hydro-thermomechanical [HTM] planetary code
-# Solving Poisson; momentum; mass & energy conservation eqs.
-# for self-gravitating coupled fluid-solid system()
-# in primitive variable formulation
-# with variable viscosity & thermal conductivity
-# using FD with staggered grid()
-# Clearing memory & figures
-
-# # Load mat file
-# # fdata=fopen("file.txt','rt")
-# io = open("file.txt", "r")
-# # timestep=fscanf(fdata,"#d",1)
-# timestep = parse(Int, read(io, String));
-# # fclose(fdata)
-# close(io)
-# if(timestep>0)
-#     # namemat    =  ["madcph_",num2str(timestep)]
-#     namemat = "madcph_" * string(timestep) * ".mat"
-#     vars = matread(namemat)
-# else # if uncommented; uncoment end in line 266
-# # clear all()
-
-# Parameters
-# #Switch for radioactive heating
-# const hr_al = true  #if 1 radioactive heating from 26Al active
-# const hr_fe = true  #if 1 radioactive heating from 60Fe active
-
-# # Define Numerical model
-# const xsize = 140000 # Horizontal model size; m
-# const ysize = 140000 # Vertical model size; m
-# const Nx = 141 # Horizontal grid resolution
-# const Ny = 141 # Vertical grid resolution
-# const Nx1 = Nx + 1
-# const Ny1 = Ny + 1
-# const dx = xsize / (Nx-1) # Horizontal grid step, m
-# const dy = ysize / (Ny-1) # Vertical grid step, m
-
-# # Define Gravity
-# const G = 6.672e-11 # Gravity constant; N*m^2/kg^2
 
 """"
-Parameters: Grids, markers, switches, constants
+Static parameters: Grids, markers, switches, constants, etc. which remain
+constant throughout the simulation.
 
 $(TYPEDFIELDS)
 """
-@with_kw struct Params
-# Base.@kwdef struct Params
+@with_kw struct StaticParamemeters
     # Radioactive switches
     "radioactive heating from 26Al active"
     hr_al::Bool = true
@@ -257,41 +218,22 @@ $(TYPEDFIELDS)
     nsteps::Int64 = 30000 
 end
 
-#  """
-# Mutable simulation parameters, counters
 
-# $(TYPEDFIELDS)
-# """
-# Base.@kwdef mutable struct MutableParams
-#     "timestep counter (current)"
-#     timestep::Int64
-#     "computational timestep (current) [s]"
-#     dt::Float64
-#     "time sum (current) [s]"
-#     timesum::Float64
-# end
+ """
+ Dynamic parameters: Grids, markers, switches, constants, etc. which undergo
+ change throughout the simulation.
 
+$(TYPEDFIELDS)
+"""
+Base.@kwdef mutable struct DynamicParameters
+    "timestep counter (current)"
+    timestep::Int64
+    "computational timestep (current) [s]"
+    dt::Float64
+    "time sum (current) [s]"
+    timesum::Float64
+end
 
-# mutablepara = MutableParams(
-#     timestep = para.startstep,
-#     dt = para.dtelastic,
-#     timesum = para.starttimesum
-# )
-
-
-# Coordinates of different nodal points (constant)
-# # Basic nodes
-# const x = 0:dx:xsize # Horizontal coordinates of basic grid points; m
-# const y = 0:dy:ysize # Vertical coordinates of basic grid points; m
-# # Vx-Nodes
-# const xvx = 0:dx:xsize+dy # Horizontal coordinates of vx grid points; m
-# const yvx =-dy/2:dy:ysize+dy/2 # Vertical coordinates of vx grid points; m
-# # Vy-nodes
-# const xvy =-dx/2:dx:xsize+dx/2 # Horizontal coordinates of vy grid points; m
-# const yvy = 0:dy:ysize+dy # Vertical coordinates of vy grid points; m
-# # P-Nodes
-# const xp =-dx/2:dx:xsize+dx/2 # Horizontal coordinates of P grid points; m
-# const yp =-dy/2:dy:ysize+dy/2 # Vertical coordinates of P grid points; m
 
 """
 Basic node coordinates
