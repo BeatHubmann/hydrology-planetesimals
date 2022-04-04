@@ -253,6 +253,7 @@ $(TYPEDFIELDS)
         )
 end
 
+
 """
 Vx node coordinates
 
@@ -270,6 +271,7 @@ $(TYPEDFIELDS)
         collect(-dy/2:dy:ysize+dy/2)
         )
 end
+
 
 """
 Vy node coordinates
@@ -289,6 +291,7 @@ $(TYPEDFIELDS)
         )
 end
 
+
 """
 P node coordinates
 
@@ -307,20 +310,6 @@ $(TYPEDFIELDS)
         )
 end
 
-
-# Nodal arrays (mutable)
-# # Basic nodes
-# ETA=zeros(Ny,Nx); # Viscoplastic Viscosity, Pa*s
-# ETA0=zeros(Ny,Nx); # Viscous Viscosity, Pa*s
-# GGG=zeros(Ny,Nx); # Shear modulus, Pa
-# EXY=zeros(Ny,Nx); # EPSILONxy, 1/s
-# SXY=zeros(Ny,Nx); # SIGMAxy, 1/s
-# SXY0=zeros(Ny,Nx); # SIGMA0xy, 1/s
-# wyx=zeros(Ny,Nx); # Rotation rate, 1/s
-# COH=zeros(Ny,Nx); # Compressive strength, Pa
-# TEN=zeros(Ny,Nx); # Tensile strength, Pa
-# FRI=zeros(Ny,Nx); # Friction
-# YNY=zeros(Ny,Nx); # Plastic yielding mark, 1=yes,0=no
 
 """
 Basic node properties
@@ -366,17 +355,6 @@ $(TYPEDFIELDS)
 end
 
 
-# Vx-Nodes
-# RHOX=zeros(Ny1,Nx1); # Density, kg/m^3
-# RHOFX=zeros(Ny1,Nx1); # Fluid Density, kg/m^3
-# KX=zeros(Ny1,Nx1); # Thermal conductivity, W/m/K
-# PHIX=zeros(Ny1,Nx1); # Porosity
-# vx=zeros(Ny1,Nx1); # Solid vx-velocity m/s
-# vxf=zeros(Ny1,Nx1); # Fluid vx-velocity m/s
-# RX=zeros(Ny1,Nx1); # ETAfluid/Kphi ratio , m^2
-# qxD=zeros(Ny1,Nx1); # qx-Darcy flux m/s
-# gx=zeros(Ny1,Nx1); # gx-gravity, m/s^2
-
 """
 Vx node properties
 
@@ -416,16 +394,6 @@ $(TYPEDFIELDS)
         )
 end
 
-# Vy-Nodes
-# RHOY=zeros(Ny1,Nx1); # Density, kg/m^3
-# RHOFY=zeros(Ny1,Nx1); # Fluid Density, kg/m^3
-# KY=zeros(Ny1,Nx1); # Thermal cnductivity, W/m/K
-# PHIY=zeros(Ny1,Nx1); # Porosity
-# vy=zeros(Ny1,Nx1); # Solid vy-velocity m/s
-# vyf=zeros(Ny1,Nx1); # Fluid vy-velocity m/s
-# RY=zeros(Ny1,Nx1); # ETAfluid/Kphi ratio , m^2
-# qyD=zeros(Ny1,Nx1); # qy-Darcy flux m/s
-# gy=zeros(Ny1,Nx1); # gy-gravity, m/s^2
 
 """
 Vy node properties
@@ -466,36 +434,6 @@ $(TYPEDFIELDS)
         )
 end
 
-# P-nodes
-# RHO=zeros(Ny1,Nx1); # Density, kg/m^3
-# RHOCP=zeros(Ny1,Nx1); # Volumetric heat capacity, J/m^3/K
-# ALPHA=zeros(Ny1,Nx1); # Thermal expansion, J/m^3/K
-# ALPHAF=zeros(Ny1,Nx1); # Fluid Thermal expansion, J/m^3/K
-# HR=zeros(Ny1,Nx1); # Radioactive heating, W/m^3
-# HA=zeros(Ny1,Nx1); # Adiabatic heating, W/m^3
-# HS=zeros(Ny1,Nx1); # Shear heating, W/m^3
-# ETAP=zeros(Ny1,Nx1); # Viscosity, Pa*s
-# GGGP=zeros(Ny1,Nx1); # Shear modulus, Pa
-# EXX=zeros(Ny,Nx); # EPSILONxx, 1/s
-# SXX=zeros(Ny,Nx); # SIGMA'xx, 1/s
-# SXX0=zeros(Ny,Nx); # SIGMA0'xx, 1/s
-# tk1=zeros(Ny1,Nx1); # Old temperature, K
-# tk2=zeros(Ny1,Nx1); # New temperature, K
-# vxp=zeros(Ny1,Nx1); # Solid Vx in pressure nodes, m/s
-# vyp=zeros(Ny1,Nx1); # Solid Vy in pressure nodes, m/s
-# vxpf=zeros(Ny1,Nx1); # Fluid Vx in pressure nodes, m/s
-# vypf=zeros(Ny1,Nx1); # Fluid Vy in pressure nodes, m/s
-# pr=zeros(Ny1,Nx1); # Total Pressure, Pa
-# pf=zeros(Ny1,Nx1); # Fluid Pressure, Pa
-# ps=zeros(Ny1,Nx1); # Solid Pressure, Pa
-# pr0=zeros(Ny1,Nx1); # Old Total Pressure, Pa
-# pf0=zeros(Ny1,Nx1); # Old Fluid Pressure, Pa
-# ps0=zeros(Ny1,Nx1); # Old Solid Pressure, Pa
-# ETAPHI=zeros(Ny1,Nx1); # Bulk Viscosity, Pa*s
-# BETTAPHI=zeros(Ny1,Nx1); # Bulk compresibility, Pa*s
-# PHI=zeros(Ny1,Nx1); # porosity
-# APHI=zeros(Ny1,Nx1); # Dln[(1-PHI)/PHI]/Dt
-# FI=zeros(Ny1,Nx1); # Gravity potential, J/kg
 
 """
 P node properties
@@ -596,22 +534,6 @@ $(TYPEDFIELDS)
     )
 end
 
-# # Define markers
-# Nxmc=4; # Number of markers per cell in horizontal direction
-# Nymc=4; # Number of markers per cell in vertical direction
-# Nxm=(Nx-1)*Nxmc; # Marker grid resolution in horizontal direction
-# Nym=(Ny-1)*Nymc; # Marker grid resolution in vertical direction
-# dxm=xsize/Nxm; # Marker grid step in horizontal direction,m
-# dym=ysize/Nym; # Marker grid step in vertical direction,m
-# marknum=Nxm*Nym; # Number of markers
-# xm=zeros(1,marknum); # Horizontal coordinates, m
-# ym=zeros(1,marknum); # Vertical coordinates, m
-# tm=zeros(Int8, 1,marknum); # Material type()
-# tkm=zeros(1,marknum); # Marker temperature, K
-# sxxm=zeros(1,marknum); # SIGMA'xx, Pa
-# sxym=zeros(1,marknum); # SIGMAxy, Pa
-# etavpm=zeros(1,marknum); # Visco-plastic viscosity, Pa
-# phim=zeros(1,marknum); # Marker porosity
 
 """
 Marker properties: Fixed and calculated during timestepping
@@ -689,26 +611,6 @@ $(TYPEDFIELDS)
     )
 end
 
-# """
-# Marker parameters: Calculated during timestepping
-
-# $(TYPEDFIELDS)
-# """
-# @with_kw struct MarkerParams
-#     kphim::MVector{nthreads(), Float64} = zeros(nthreads())
-#     rhototalm::MVector{nthreads(), Float64} = zeros(nthreads())
-#     rhocptotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-#     etatotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-#     hrtotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-#     ktotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-#     gggtotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-#     fricttotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-#     cohestotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-#     tenstotalm::MVector{nthreads(), Float64} = zeros(nthreads())
-#     etafluidcur::MVector{nthreads(), Float64} = zeros(nthreads())
-#     etasolidcur::MVector{nthreads(), Float64} = zeros(nthreads())
-#     rhofluidcur::MVector{nthreads(), Float64} = zeros(nthreads())
-# end
 
 """
 Interpolation arrays: Calculated during timestepping
@@ -817,107 +719,6 @@ $(TYPEDFIELDS)
 end
 
 
-
-# # Define properties of materials: 
-# #            Planet  Crust Space
-# rhosolidm   = [3300.0 3300.0 1.0   ]; # Solid Density, kg/m^3
-# rhofluidm   = [7000.0 7000.0 1.0   ]; # Fluid Density, kg/m^3
-# etasolidm   = [1e+16  1e+16  1e+14 ]; # Solid Viscosity, Pa s
-# etasolidmm  = [1e+14  1e+14  1e+14 ]; # Molten Solid Viscosity, Pa s
-# etafluidm   = [1e-2   1e-2   1e+12 ]; # Fluid Viscosity, Pa s
-# etafluidmm  = [1e-2   1e-2   1e+12 ]; # Molten Fluid Viscosity, Pa s
-# rhocpsolidm = [3.3e+6 3.3e+6 3.0e+6]; # Solid Volumetric heat capacity, kg/m^3
-# rhocpfluidm = [7.0e+6 7.0e+6 3.0e+6]; # Fluid Volumetric heat capacity, kg/m^3
-# alphasolidm = [3e-5   3e-5   0.0   ]; # Solid Thermal expansion, 1/K
-# alphafluidm = [5e-5   5e-5   0.0   ]; # Fluid Thermal expansion, 1/K
-# ksolidm     = [3.0    3.0    3000.0]; # Solid Thermal conductivity, W/m/K
-# kfluidm     = [50     50     3000.0]; # Fluid Thermal conductivity, W/m/K
-# hrsolidm    = [0.0    0.0    0.0   ]; # Solid Radiogenic heat production, W/m^3
-# hrfluidm    = [0.0    0.0    0.0   ]; # Fluid Radiogenic heat production, W/m^3
-# gggsolidm   = [1e+10  1e+10  1e+10 ]; # Solid Shear Modulus, Pa
-# frictsolidm = [0.6    0.6    0.0   ]; # Solid Friction coefficient
-# cohessolidm = [1e+8   1e+8   1e+8  ]; # Solid compressive strength, Pa
-# tenssolidm  = [6e+7   6e+7   6e+7  ]; # Solid tensile strength, Pa
-# kphim0      = [1e-13  1e-13  1e-17 ]; # Standard permeability, m^2
-# etaphikoef=1e-4; # Koefficient to compute compaction viscosity from shear viscosity
-
-# # Constants for 26Al decay
-# t_half_al=717000*31540000; #s
-# tau_al=t_half_al/log(2)
-# ratio_al=5.0e-5; # ratio of 26Al & 27Al Isotopes 
-# E_al=5.0470e-13; # [J]
-# f_al=1.9e23; #atoms/kg
-
-# #Constants for 60Fe decay
-# t_half_fe=2620000*31540000; #s
-# tau_fe=t_half_fe/log(2)
-# ratio_fe=1e-6; #Initial 60Fe/56Fe
-# E_fe=4.34e-13; #[J]
-# f_fe=1.957e24; #atoms/kg
-
-# # Melting temperatures
-# tmsilicate=1e+6;#1416; 
-# tmiron=1273; 
-
-# phim0=0.2; # standard iron fraction [porosity]
-# phimin=1e-4; # Min porosity
-# phimax=1-phimin; # Max porosity
-
-
-# Define marker coordinates; temperature & material type()
-# rplanet=50000; # Planetary radius
-# rcrust=48000; # Crust radius
-# psurface=1e+3; # Surface pressure
-
-
-# let m=1; # Marker counter
-#     for jm=1:1:Nxm
-#         for im=1:1:Nym
-#             # Define marker coordinates
-#             xm[m]=dxm/2+(jm-1)*dxm+(rand()-0.5)*dxm
-#             ym[m]=dym/2+(im-1)*dym+(rand()-0.5)*dym
-#             # Marker properties
-#             rmark=((xm[m]-xsize/2)^2+(ym[m]-ysize/2)^2)^0.5
-#             if(rmark<rplanet)
-#                 # Planet
-#                 tm[m]=1; # mantle
-#                 if(rmark>rcrust) 
-#                     tm[m]=2; # crust
-#                 end
-#                 tkm[m]=300; # Temperature
-#                 phim[m]=phim0*(1+1.0*(rand()-0.5)); # Porosity
-#                 etavpm[m]=etasolidm[tm[m]];#*exp(-28*phim[m]); # Matrix viscosity
-#             else()
-#                 # Sticky space [to have internal free surface]
-#                 tm[m]=3; # Material type()
-#                 tkm[m]=273; # Temperature
-#                 phim[m]=phimin; # Porosity
-#                 etavpm[m]=etasolidm[tm[m]]; # Matrix viscosity
-#             end
-#             # Update marker counter
-#             m=m+1
-#         end
-#     end
-# end
-
-
-# Introducing scaled pressure
-# pscale=1e+23/dx
-
-# Define global matrixes 
-# # Hydro-Mechanical solution: L[], R[]
-# N=Nx1*Ny1*6; # Global number of unknowns
-# L=spzeros(N,N); # Matrix of coefficients [left part]
-# R=zeros(N,1); # Vector of right parts
-# # Thermal solution: LT[], RT[]
-# N=Nx1*Ny1; # Global number of unknowns
-# LT=spzeros(N,N); # Matrix of coefficients [left part]
-# RT=zeros(N,1); # Vector of right parts
-# # Gravity solution: LP[], RP[]
-# N=Nx1*Ny1; # Global number of unknowns
-# LP=spzeros(N,N); # Matrix of coefficients [left part]
-# RP=zeros(N,1); # Vector of right parts
-
 """
 Global matrices: Hydro-mechanical solution
 
@@ -954,6 +755,7 @@ $(TYPEDFIELDS)
         )
 end
 
+
 """
 Global matrices: Gravity solution
 
@@ -972,139 +774,7 @@ $(TYPEDFIELDS)
         )
 end
 
-# # Mechanical boundary conditions: free slip=-1; No Slip=1
-# bcleft=-1
-# bcright=-1
-# bctop=-1
-# bcbottom=-1
-# # Hydraulic boundary conditions: free slip=-1; No Slip=1
-# bcfleft=-1
-# bcfright=-1
-# bcftop=-1
-# bcfbottom=-1
-# # Extension/shortening velocities
-# strainrate=0e-13; # Shortening strain rate
-# vxleft=strainrate*xsize/2
-# vxright=-strainrate*xsize/2
-# vytop=-strainrate*ysize/2
-# vybottom=strainrate*ysize/2
 
-# Thermal boundary conditions: insulation at all boundaries
-
-# Timestepping
-
-# nname="madcph_"; #mat filename
-# savematstep=50; #.mat storage periodicity
-# dtelastic=1e+11; # Maximal computational timestep; s
-# dt=dtelastic; # Current computational timestep; s
-# dtkoef=2; # Koefficient to decrese computational timestep
-# dtkoefup=1.1; # Koefficient to increase computational timestep
-# dtstep=200; # Number of iterations before changing computational timestep
-# dxymax=0.05; # Max marker movement per time step; grid steps
-# vpratio=1/3; # Weight of averaged velocity for moving markers
-# DTmax=20; # Max temperature change per time step; K
-# dsubgridt=0; # Subgrid temperature diffusion parameter
-# dsubgrids=0; # Subgrid stress diffusion parameter
-# global timesum=1e6*365.25*24*3600; # Time sum; s
-# etamin=1e+12; # Lower viscosity cut-off; Pa s
-# etamax=1e+23; # Upper viscosity cut-off; Pa s
-# nplast=100000; # Number of plastic iterations
-# visstep=1; # Periodicity of visualization
-# yerrmax=1e+2; # Tolerance level for yielding error()
-# YERRNOD=zeros(1,nplast); # Yielding error of nodes
-# etawt=0; # Weight for old viscosity
-# dphimax=0.01; # max porosity ratio change per time step
-# nsteps=30000; # number of timesteps
-# timestep=1
-# # end - CLOSES else FROM LINE 23
-
-# @with_kw struct TimestepParams
-#     "mat filename"
-#     nname::String = "madcph_"
-#     ".mat storage periodicity"
-#     savematstep::Int64 =50
-#     "Maximal computational timestep [s]"
-#     dtelastic::Float64 = 1e+11 
-#     "Current computational timestep [s]"
-#     dt::Float64 = dtelastic 
-#     "Coefficient to decrese computational timestep"
-#     dtkoef::Float64 = 2 
-#     "Coefficient to increase computational timestep"
-#     dtkoefup::Float64 = 1.1 
-#     "Number of iterations before changing computational timestep"
-#     dtstep::Int64 = 200 
-#     "Max marker movement per time step [grid steps]"
-#     dxymax::Float64 = 0.05 
-#     "Weight of averaged velocity for moving markers"
-#     vpratio::Float64 = 1 / 3 
-#     "Max temperature change per time step [K]"
-#     DTmax::Float64 = 20 
-#     "Subgrid temperature diffusion parameter"
-#     dsubgridt::Float64 = 0 
-#     "Subgrid stress diffusion parameter"
-#     dsubgrids::Float64 = 0
-#     "Time sum [s]"
-#     timesum::Float64 = 1e6 * 365.25 * 24 * 3600 
-#     "Lower viscosity cut-off [Pa s]"	
-#     etamin::Float64 = 1e+12 
-#     "Upper viscosity cut-off [Pa s]"
-#     etamax::Float64 = 1e+23 
-#     "Number of plastic iterations"
-#     nplast::Int64 = 100000
-#     "Periodicity of visualization"
-#     visstep::Int64 = 1 
-#     "Tolerance level for yielding error()"
-#     yerrmax::Float64 = 1e+2 
-#     "Yielding error of nodes"
-#     YERRNOD::Array{Float64} = zeros(1, nplast) 
-#     "Weight for old viscosity"
-#     etawt::Float64 = 0 
-#     "max porosity ratio change per time step"
-#     dphimax::Float64 = 0.01 
-#     "number of timesteps"
-#     nsteps::Int64 = 30000 
-#     timestep::Int64 = 1
-#     ".mat storage periodicity"
-#     savematstep::Int64 = 50
-# end
-
-# savematstep=50; #.mat storage periodicity
-
-
-# function initmarkers!(markers::MarkerArrays, p::Params)
-#     @unpack_Params p
-#     xcenter = xsize / 2
-#     ycenter = ysize / 2
-#     radius(x, y) = sqrt((x - xcenter)^2 + (y - ycenter)^2)
-#     for jm=1:1:Nxm
-#         for im=1:1:Nym
-#             # calculate marker counter
-#             m = (jm-1) * Nym + im
-#             # Define marker coordinates
-#             markers.xm[m] = dxm/2 + (jm-1) * dxm + (rand()-0.5) * dxm
-#             markers.ym[m] = dym/2 + (im-1) * dym + (rand()-0.5) * dym
-#             # Marker properties
-#             rmark = radius(markers.xm[m], markers.ym[m])
-#             if rmark < rplanet
-#                 # Planet
-#                 if rmark > rcrust 
-#                     markers.tm[m] = 2 # crust
-#                 else
-#                     markers.tm[m] = 1 # mantle
-#                 end
-#                 markers.tkm[m] = 300 # Temperature
-#                 markers.phim[m] = phim0 * (1 + 1.0*(rand()-0.5)) # Porosity
-#                 markers.etavpm[m] = etasolidm[markers.tm[m]] #*exp(-28*phim[m]) # Matrix viscosity
-#             else
-#                 # Sticky space [to have internal free surface]
-#                 markers.tm[m] = 3 # space
-#                 markers.tkm[m] = 273 # Temperature
-#                 markers.phim[m] = phimin # Porosity
-#                 markers.etavpm[m] = etasolidm[markers.tm[m]] # Matrix viscosity
-#             end
-#         end
-#     end
-# end
 
 """
 Initialize markers according to model parameters
@@ -1154,6 +824,16 @@ function initmarkers!(ma::MarkerArrays, p::Params)
     end
 end
 
+
+"""
+Compute static marker properties.
+
+$(SIGNATURES)
+
+# Details 
+
+Run once during initialization.
+"""	
 function compute_static_marker_params!(m::Int64, ma::MarkerArrays, p::Params)
     # @unpack_MarkerArrays ma
     @unpack tm, rhototalm, rhocptotalm, etatotalm, hrtotalm, ktotalm, gggtotalm,
@@ -1183,19 +863,42 @@ function compute_static_marker_params!(m::Int64, ma::MarkerArrays, p::Params)
     rhofluidcur[m] = rhofluidm[tm[m]]
 end
 
-# function rhototal(rhosolid, rhofluid, phi)
-#     return rhosolid * (1.0-phi) + rhofluid * phi
-# end
 
-# function rhocptotal(rhocpsolid, rhocpfluid, phi)
-#     return rhocpsolid * (1.0-phi) + rhocpfluid * phi
-# end
+"""
+Compute convex combination of fluid and solid properties to get total property.
 
+$(SIGNATURES)
 
+# Details
+
+    - fluid: fluid properties
+    - solid: solid properties
+    - phi: fraction of fluid
+"""
 function total(solid, fluid, phi)
     return solid * (1.0-phi) + fluid * phi
 end
 
+
+"""
+Compute temperature-dependent total viscosity for iron-containing silicate rock.
+
+$(SIGNATURES)
+
+# Details
+
+    - tk: temperature [K]
+    - tmsilicate: melting temperature of silicate in [K]
+    - tmiron: melting temperature of iron in K [K]
+    - etamin: minimum viscosity [Pa s]
+    - etasolidm: solid viscosity of solid [Pa s]
+    - etasolidmm: molten solid viscosity [Pa s]
+    - etafluidm: fluid viscosity [Pa s]
+    - etafluidmm: molten fluid viscosity [Pa s]
+
+# Returns
+    - etatotal: temperature-dependent total viscosity [Pa s]
+"""	
 function etatotal_rock(
     tk,
     tmsilicate,
@@ -1212,6 +915,7 @@ function etatotal_rock(
         tk > tmiron ? etafluidmm : etafluidm
         )
 end
+
 
 function ktotal(ksolid, kfluid, phi)
     return (ksolid * kfluid/2 + ((ksolid * (3*phi-2)
