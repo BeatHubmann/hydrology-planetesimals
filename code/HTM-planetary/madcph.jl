@@ -1336,21 +1336,9 @@ function radiogenic_heating(f, ratio, E, tau, time)
 end
 
 
-function calculate_radioactive_heating(
-    hr_al::Bool,
-    f_al::Float64,
-    ratio_al::Float64,
-    E_al::Float64,
-    tau_al::Float64,
-    hr_fe::Bool,
-    f_fe::Float64,
-    ratio_fe::Float64,
-    E_fe::Float64,
-    tau_fe::Float64,
-    timesum::Float64,
-    rhosolidm::SVector{3, Float64},
-    rhofluidm::SVector{3, Float64}
-)
+function calculate_radioactive_heating(p::Params)
+    @unpack hr_al, f_al, ratio_al, E_al, tau_al, hr_fe, f_fe, ratio_fe, E_fe,
+        tau_fe, timesum, rhosolidm, rhofluidm = p
     #26Al
     if hr_al
         # 26Al radiogenic heat production [W/kg]
@@ -1761,7 +1749,8 @@ initmarkers!(markers, para)
 
 function timestepping(markers::MarkerArrays, p::Params)
     # unpack simulation parameters
-    @unpack_Params p
+    @unpack Nx, Ny, Nx1, Ny1, startstep, dtelastic, starttimesum = p
+    # @unpack_Params p
 
     # initialize counters and timestepping loop variables
     "timestep counter (current)"
@@ -1774,113 +1763,18 @@ function timestepping(markers::MarkerArrays, p::Params)
     # set up marker interpolation arrays
     interp_arrays = InterpArrays(Nx, Ny, Nx1, Ny1)
 
-    # # set up marker parameter struct
-    # marker_para = MarkerParams()
-
-    # (
-    #     ETA0SUM,
-    #     ETASUM,
-    #     GGGSUM,
-    #     SXYSUM,
-    #     COHSUM,
-    #     TENSUM,
-    #     FRISUM,
-    #     WTSUM,
-    #     RHOXSUM,
-    #     RHOFXSUM,
-    #     KXSUM,
-    #     PHIXSUM,
-    #     RXSUM,
-    #     WTXSUM,
-    #     RHOYSUM,
-    #     RHOFYSUM,
-    #     KYSUM,
-    #     PHIYSUM,
-    #     RYSUM,
-    #     WTYSUM,
-    #     GGGPSUM,
-    #     SXXSUM,
-    #     RHOSUM,
-    #     RHOCPSUM,
-    #     ALPHASUM,
-    #     ALPHAFSUM,
-    #     HRSUM,
-    #     TKSUM,
-    #     PHISUM,
-    #     WTPSUM
-    # ) = setup_interpolation_arrays(p)
-
     # iterate timesteps   
     for timestep = timestep:1:1000#nsteps
 
         # Updating radioactive heating
-        hrsolidm, hrfluidm = calculate_radioactive_heating(
-            hr_al,
-            f_al,
-            ratio_al,
-            E_al,
-            tau_al,
-            hr_fe,
-            f_fe,
-            ratio_fe,
-            E_fe,
-            tau_fe,
-            timesum,
-            rhosolidm,
-            rhofluidm,
-        )
+        hrsolidm, hrfluidm = calculate_radioactive_heating(p)
 
         # set interpolation arrays to zero for this timestep
         reset_interpolation_arrays!(interp_arrays)
-        # reset_interpolation_arrays!(
-        #     ETA0SUM,
-        #     ETASUM,
-        #     GGGSUM,
-        #     SXYSUM,
-        #     COHSUM,
-        #     TENSUM,
-        #     FRISUM,
-        #     WTSUM,
-        #     RHOXSUM,
-        #     RHOFXSUM,
-        #     KXSUM,
-        #     PHIXSUM,
-        #     RXSUM,
-        #     WTXSUM,
-        #     RHOYSUM,
-        #     RHOFYSUM,
-        #     KYSUM,
-        #     PHIYSUM,
-        #     RYSUM,
-        #     WTYSUM,
-        #     GGGPSUM,
-        #     SXXSUM,
-        #     RHOSUM,
-        #     RHOCPSUM,
-        #     ALPHASUM,
-        #     ALPHAFSUM,
-        #     HRSUM,
-        #     TKSUM,
-        #     PHISUM,
-        #     WTPSUM
-        # )
 
         # compute marker parameters 
         # for m=1:1:marknum
         @threads for m=1:1:marknum
-            # kphim,
-            # rhototalm,
-            # rhocptotalm,
-            # etatotalm,
-            # hrtotalm,
-            # ktotalm,
-            # gggtotalm,
-            # fricttotalm,
-            # cohestotalm,
-            # tenstotalm,
-            # etafluidcur,
-            # rhofluidcur = compute_marker_parameters(m, markers, p)
-            # compute_marker_parameters!(m, markers, marker_para, p)
             compute_dynamic_marker_params!(m, markers, p)
         end
 
