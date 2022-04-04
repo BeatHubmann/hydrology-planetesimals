@@ -238,7 +238,7 @@ Base.@kwdef mutable struct DynamicParameters
     DynamicParameters(startstep, dt, timesum, marknum) = new(
         startstep, dt, timesum, marknum)
     DynamicParameters(sp::StaticParameters) = new(
-        sp.startstep, sp.dt, sp.starttimesum, sp.startmarknum)
+        sp.startstep, sp.dtelastic, sp.starttimesum, sp.startmarknum)
     end
 
 
@@ -1181,7 +1181,7 @@ $(SIGNATURES)
     - f: fraction of radioactive matter [atoms/kg]
     - ratio: initial ratio of radioactive to non-radioactive isotopes
     - E: heat energy [J]
-    - tau: exponential decay mean lifetime `\tau = \frac{t_{1/2}}{\log{2}}` [s]
+    - tau: exp decay mean lifetime ``\\tau=\\frac{t_{1/2}}{\\log{2}}`` [s]
     - time: time elapsed since start of radioactive decay [s]
 
 # Returns
@@ -1298,13 +1298,13 @@ const static_parameters = StaticParameters(
 )
 # initialize dynamic parameters from static parameters
 const dynamic_parameters = DynamicParameters(static_parameters)
-const basicnodes = BasicNodes(para.xsize, para.ysize, para.dx, para.dy)
-const vxnodes = VxNodes(para.xsize, para.ysize, para.dx, para.dy)
-const vynodes = VyNodes(para.xsize, para.ysize, para.dx, para.dy)
-const pnodes = PNodes(para.xsize, para.ysize, para.dx, para.dy)
-
-const markers = MarkerArrays(para.marknum)
+const basicnodes = BasicNodes(static_parameters)
+const vxnodes = VxNodes(static_parameters)
+const vynodes = VyNodes(static_parameters)
+const pnodes = PNodes(static_parameters)
+const markers = MarkerArrays(static_parameters.startmarknum)
 initmarkers!(markers, static_parameters, dynamic_parameters)
+
 
 """
 Main simulation loop: runs timestepping.
