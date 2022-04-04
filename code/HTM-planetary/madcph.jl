@@ -15,7 +15,7 @@ constant throughout the simulation.
 
 $(TYPEDFIELDS)
 """
-@with_kw struct StaticParamemeters
+@with_kw struct StaticParameters
     # Radioactive switches
     "radioactive heating from 26Al active"
     hr_al::Bool = true
@@ -56,8 +56,8 @@ $(TYPEDFIELDS)
     dxm::Float64 = xsize / Nxm
     "marker grid step in vertical direction"
     dym::Float64 = ysize / Nym
-    "number of markers"
-    marknum::Int64 = Nxm * Nym
+    "number of markers at start"
+    startmarknum::Int64 = Nxm * Nym
     # Physical constants
     "gravitational constant [m^3*kg^-1*s^-2]"
     G::Float64 = 6.672e-11
@@ -174,7 +174,7 @@ $(TYPEDFIELDS)
     savematstep::Int64 = 50
     "Maximal computational timestep [s]"
     dtelastic::Float64 = 1e+11 
-    "Coefficient to decrese computational timestep"
+    "Coefficient to decrease computational timestep"
     dtkoef::Float64 = 2 
     "Coefficient to increase computational timestep"
     dtkoefup::Float64 = 1.1 
@@ -232,7 +232,14 @@ Base.@kwdef mutable struct DynamicParameters
     dt::Float64
     "time sum (current) [s]"
     timesum::Float64
-end
+    "current number of markers"
+    marknum::Int64
+    "inner constructor"
+    DynamicParameters(startstep, dt, timesum, marknum) = new(
+        startstep, dt, timesum, marknum)
+    DynamicParameters(sp::StaticParameters) = new(
+        sp.startstep, sp.dt, sp.starttimesum, sp.startmarknum)
+    end
 
 
 """
@@ -250,6 +257,10 @@ $(TYPEDFIELDS)
     BasicNodes(xsize, ysize, dx, dy) = new(
         collect(0:dx:xsize),
         collect(0:dy:ysize)
+        )
+    BasicNodes(sp::StaticParameters) = new(
+        collect(0:sp.dx:sp.xsize),
+        collect(0:sp.dy:sp.ysize)
         )
 end
 
@@ -270,6 +281,10 @@ $(TYPEDFIELDS)
         collect(0:dx:xsize+dy),
         collect(-dy/2:dy:ysize+dy/2)
         )
+    VxNodes(sp::StaticParameters) = new(
+        collect(0:sp.dx:sp.xsize+sp.dy),
+        collect(-sp.dy/2:sp.dy:sp.ysize+sp.dy/2)
+        )
 end
 
 
@@ -288,6 +303,10 @@ $(TYPEDFIELDS)
     VyNodes(xsize, ysize, dx, dy) = new(
         collect(-dx/2:dx:xsize+dx/2),
         collect(0:dy:ysize+dy)
+        )
+    VyNodes(sp::StaticParameters) = new(
+        collect(-sp.dx/2:sp.dx:sp.xsize+sp.dx/2),
+        collect(0:sp.dy:sp.ysize+sp.dy)
         )
 end
 
@@ -308,6 +327,10 @@ $(TYPEDFIELDS)
         collect(-dx/2:dx:xsize+dx/2),
         collect(-dy/2:dy:ysize+dy/2)
         )
+    PNodes(sp::StaticParameters) = new(
+        collect(-sp.dx/2:sp.dx:sp.xsize+sp.dx/2),
+        collect(-sp.dy/2:sp.dy:sp.ysize+sp.dy/2)
+        )     
 end
 
 
@@ -352,6 +375,19 @@ $(TYPEDFIELDS)
         zeros(Ny,Nx),
         zeros(Ny,Nx)
         )
+    NodalArrays(sp::StaticParameters) = new(
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx)
+        )
 end
 
 
@@ -392,6 +428,17 @@ $(TYPEDFIELDS)
         zeros(Ny1,Nx1),
         zeros(Ny1,Nx1)
         )
+    NodalArrays(sp::StaticParameters) = new(
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1)
+     )
 end
 
 
@@ -432,6 +479,17 @@ $(TYPEDFIELDS)
         zeros(Ny1,Nx1),
         zeros(Ny1,Nx1)
         )
+    NodalArrays(sp::StaticParameters) = new(
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1)
+     )
 end
 
 
@@ -532,6 +590,37 @@ $(TYPEDFIELDS)
         zeros(Ny1, Nx1),
         zeros(Ny1, Nx1)
     )
+    PNodalArrays(sp::StaticParameters) = new(
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1)
+    )
 end
 
 
@@ -541,7 +630,6 @@ Marker properties: Fixed and calculated during timestepping
 $(TYPEDFIELDS)
 """
 @with_kw struct MarkerArrays
-# Base.@kwdef mutable struct MarkerArrays
     # original marker properties 
     "horizontal coordinates [m]"
     xm::Vector{Float64}
@@ -716,6 +804,37 @@ $(TYPEDFIELDS)
         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
     )
+    InterpArrays(sp::StaticParameters) = new(
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()])
+    )
 end
 
 
@@ -735,7 +854,12 @@ $(TYPEDFIELDS)
         spzeros(Nx1*Ny1*6, Nx1*Ny1*6),
         zeros(Nx1*Ny1*6)
         )
+    GlobalHydroMechanical(sp::StaticParameters) = new(
+        spzeros(sp.Nx1*sp.Ny1*6, sp.Nx1*sp.Ny1*6),
+        zeros(sp.Nx1*sp.Ny1*6)
+        )
 end
+
 
 """
 Global matrices: Thermal solution
@@ -752,6 +876,10 @@ $(TYPEDFIELDS)
     GlobalThermal(Nx1, Ny1) = new(
         spzeros(Nx1*Ny1, Nx1*Ny1),
         zeros(Nx1*Ny1)
+        )
+    GlobalThermal(sp::StaticParameters) = new(
+        spzeros(sp.Nx1*sp.Ny1, sp.Nx1*sp.Ny1),
+        zeros(sp.Nx1*sp.Ny1)
         )
 end
 
@@ -772,6 +900,10 @@ $(TYPEDFIELDS)
         spzeros(Nx1*Ny1, Nx1*Ny1),
         zeros(Nx1*Ny1)
         )
+    GlobalGravity(sp::StaticParameters) = new(
+        spzeros(sp.Nx1*sp.Ny1, sp.Nx1*sp.Ny1),
+        zeros(sp.Nx1*sp.Ny1)
+        )
 end
 
 
@@ -783,12 +915,19 @@ $(SIGNATURES)
 
 # Details
 
-TBD
+    - ma: arrays containing marker properties
+    - sp: static simulation parameters
+    - dp: dynamic simulation parameters
+
+# Returns
+
+    - nothing
 """
-function initmarkers!(ma::MarkerArrays, p::Params)
-    @unpack_MarkerArrays ma
-    # @unpack_Params p
-    @unpack xsize, ysize, Nxm, Nym, dxm, dym, rplanet, rcrust, phimin, etasolidm, phim0 = p
+function initmarkers!(
+    ma::MarkerArrays, sp::StaticParameters, dp::DynamicParameters)
+    @unpack xm, ym, tm, tkm, phim, etavpm = ma
+    @unpack xsize, ysize, Nxm, Nym, dxm, dym, rplanet, rcrust, phimin,
+        etasolidm, phim0 = sp
 
     xcenter = xsize / 2
     ycenter = ysize / 2
@@ -802,50 +941,66 @@ function initmarkers!(ma::MarkerArrays, p::Params)
         # primary marker properties 
         rmark = radius(xm[m], ym[m])
         if rmark < rplanet
-            # Planet
-            if rmark > rcrust 
-                tm[m] = 2 # crust
+            # planet
+            if rmark > rcrust
+                # crust
+                tm[m] = 2
             else
-                tm[m] = 1 # mantle
+                # mantle
+                tm[m] = 1
             end
-            tkm[m] = 300 # Temperature
-            phim[m] = phim0 * (1 + 1.0*(rand()-0.5)) # Porosity
-            etavpm[m] = etasolidm[tm[m]] #*exp(-28*phim[m]) # Matrix viscosity
+            # temperature
+            tkm[m] = 300
+            # porosity
+            phim[m] = phim0 * (1.0 + (rand()-0.5))
+            # matrix viscosity
+            etavpm[m] = etasolidm[tm[m]] # *exp(-28*phim[m])
         else
-            # Sticky space [to have internal free surface]
-            tm[m] = 3 # space
-            tkm[m] = 273 # Temperature
-            phim[m] = phimin # Porosity
-            etavpm[m] = etasolidm[tm[m]] # Matrix viscosity
+            # sticky space ("air") [to have internal free surface]
+            # space
+            tm[m] = 3
+            # temperature
+            tkm[m] = 273
+            # porosity
+            phim[m] = phimin
+            # matrix viscosity
+            etavpm[m] = etasolidm[tm[m]]
         end
         # secondary marker properties
-        compute_static_marker_params!(m, ma, p)
-        compute_dynamic_marker_params!(m, ma, p)
+        compute_static_marker_params!(m, ma, sp, dp)
+        compute_dynamic_marker_params!(m, ma, sp, dp)
     end
 end
 
 
 """
 Compute static marker properties.
+Runs once during initialization.
 
 $(SIGNATURES)
 
 # Details 
 
-Run once during initialization.
+    - m: marker counter of marker whose static properties are to be computed
+    - ma: arrays containing marker properties
+    - sp: static simulation parameters
+
+# Returns
+
+    - nothing
 """	
-function compute_static_marker_params!(m::Int64, ma::MarkerArrays, p::Params)
+function compute_static_marker_params!(
+    m::Int64, ma::MarkerArrays, sp::StaticParameters)
     # @unpack_MarkerArrays ma
     @unpack tm, rhototalm, rhocptotalm, etatotalm, hrtotalm, ktotalm, gggtotalm,
         fricttotalm, cohestotalm, tenstotalm, etafluidcur, rhofluidcur = ma
-    # @unpack_Params p
     @unpack rhosolidm, rhocpsolidm, etasolidm, hrsolidm, ksolidm, gggsolidm,
-        frictsolidm, cohessolidm, tenssolidm, etafluidm, rhofluidm = p
+        frictsolidm, cohessolidm, tenssolidm, etafluidm, rhofluidm = sp
 
     # static secondary marker properties
     if tm[m] < 3
         # rocks
-        
+        # pass
     else
         # air
         rhototalm[m] = rhosolidm[tm[m]]
@@ -874,6 +1029,10 @@ $(SIGNATURES)
     - fluid: fluid properties
     - solid: solid properties
     - phi: fraction of fluid
+
+# Returns
+
+    - total: computed total property
 """
 function total(solid, fluid, phi)
     return solid * (1.0-phi) + fluid * phi
@@ -974,11 +1133,13 @@ $(SIGNATURES)
 # Returns
     - nothing
 """
-function compute_dynamic_marker_params!(m::Int64, ma::MarkerArrays, p::Params)
+function compute_dynamic_marker_params!(
+    m::Int64, ma::MarkerArrays, sp::StaticParameters, dp::DynamicParameters
+    )
     # @unpack_MarkerArrays ma
     @unpack tm, tkm, phim, rhototalm, rhocptotalm, etatotalm, hrtotalm, ktotalm,
          kphim = ma
-    # @unpack_Params p
+    # @unpack_Params sp
     @unpack rhosolidm, rhofluidm, rhocpsolidm, rhocpfluidm, tmiron, tmsilicate,
         etamin, etasolidmm, etasolidm, etafluidmm, etafluidm, kphim0, phim0,
         hrsolidm, hrfluidm, ksolidm, kfluidm  = p
@@ -1009,148 +1170,85 @@ function compute_dynamic_marker_params!(m::Int64, ma::MarkerArrays, p::Params)
 end
 
 
-function radiogenic_heating(f, ratio, E, tau, time)
+"""
+Compute radiogenic heat production of isotope mixture.
+
+$(SIGNATURES)
+
+# Details
+
+    - f: fraction of radioactive matter [atoms/kg]
+    - ratio: initial ratio of radioactive to non-radioactive isotopes
+    - E: heat energy [J]
+    - tau: exponential decay mean lifetime `\tau = \frac{t_{1/2}}{\log{2}}` [s]
+    - time: time elapsed since start of radioactive decay [s]
+
+# Returns
+
+    - Q: radiogenic heat production [W/kg]
+"""
+function Q_radiogenic(f, ratio, E, tau, time)
     return f * ratio * E * exp(-time/tau) / tau
 end
 
 
-function calculate_radioactive_heating(p::Params)
+"""
+Compute radiogenic heat production of 26Al and 60Fe isotopes.
+
+$(SIGNATURES)
+
+# Details
+    - sp: static simulation parameters
+    - dp: dynamic simulation parameters
+
+# Returns
+    - hrsolidm: radiogenic heat production of 26Al [W/m^3]
+    - hrfluidm: radiogenic heat production of 60Fe [W/m^3]
+"""
+function calculate_radioactive_heating(
+    sp::StaticParameters, dp::DynamicParameters
+    )
     @unpack hr_al, f_al, ratio_al, E_al, tau_al, hr_fe, f_fe, ratio_fe, E_fe,
-        tau_fe, timesum, rhosolidm, rhofluidm = p
-    #26Al
+        tau_fe, rhosolidm, rhofluidm = sp
+    @unpack timesum = dp
+    #26Al: planet ✓, crust ✓, space ×
     if hr_al
         # 26Al radiogenic heat production [W/kg]
-        Q_al = radiogenic_heating(f_al, ratio_al, E_al, tau_al, timesum)
+        Q_al = Q_radiogenic(f_al, ratio_al, E_al, tau_al, timesum)
         # Solid phase 26Al radiogenic heat production [W/m^3]
         hrsolidm = @SVector [Q_al*rhosolidm[1], Q_al*rhosolidm[2], 0.0]
-    end
-    #60Fe
+    else
+        hrsolidm = @SVector [0.0, 0.0, 0.0]
+    end    
+    #60Fe: planet ✓, crust ×, space ×
     if hr_fe
         # 60Fe radiogenic heat production [W/kg]
-        Q_fe = radiogenic_heating(f_fe, ratio_fe, E_fe, tau_fe, timesum)
+        Q_fe = Q_radiogenic(f_fe, ratio_fe, E_fe, tau_fe, timesum)
         # Fluid phase 60Fe radiogenic heat production [W/m^3]
         hrfluidm = @SVector [Q_fe*rhofluidm[1], 0.0, 0.0]
+    else
+        hrfluidm = @SVector [0.0, 0.0, 0.0]
     end
     return hrsolidm, hrfluidm
 end
 
 
+"""
+Reset interpolation arrays for next time step.
+Avoids costly realllocation of arrays.
 
-# function setup_interpolation_arrays(p::Params)
-#     # unpack parameters
-#     @unpack_Params p
-#     # setup data structures to interpolate properties from markers to nodes
-#     # basic nodes
-#     ETA0SUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-#     ETASUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-#     GGGSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-#     SXYSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-#     COHSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-#     TENSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-#     FRISUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-#     WTSUM = Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()])
-#     # Vx-nodes
-#     RHOXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     RHOFXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     KXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     PHIXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     RXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     WTXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     # Vy-nodes
-#     RHOYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     RHOFYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     KYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     PHIYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     RYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     WTYSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     # P-Nodes
-#     GGGPSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     SXXSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     RHOSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     RHOCPSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     ALPHASUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     ALPHAFSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     HRSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     TKSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     PHISUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
-#     WTPSUM = Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()])
+$(SIGNATURES)
 
-#     return ETA0SUM,
-#         ETASUM,
-#         GGGSUM,
-#         SXYSUM,
-#         COHSUM,
-#         TENSUM,
-#         FRISUM,
-#         WTSUM,
-#         RHOXSUM,
-#         RHOFXSUM,
-#         KXSUM,
-#         PHIXSUM,
-#         RXSUM,
-#         WTXSUM,
-#         RHOYSUM,
-#         RHOFYSUM,
-#         KYSUM,
-#         PHIYSUM,
-#         RYSUM,
-#         WTYSUM,
-#         GGGPSUM,
-#         SXXSUM,
-#         RHOSUM,
-#         RHOCPSUM,
-#         ALPHASUM,
-#         ALPHAFSUM,
-#         HRSUM,
-#         TKSUM,
-#         PHISUM,
-#         WTPSUM
-# end
+# Detail
 
+    - interp_arrays: interpolation arrays for current time step
 
+# Returns
+
+    - nothing
+"""
 function reset_interpolation_arrays!(interp_arrays::InterpArrays)
     @unpack_InterpArrays interp_arrays
-    # set arrays to zero 
-    # @threads for _ = 1:1:nthreads()
-    #     # basic nodes
-    #     ETA0SUM[threadid()] .= zero(0.0)
-    #     ETASUM[threadid()] .= zero(0.0)
-    #     GGGSUM[threadid()] .= zero(0.0)
-    #     SXYSUM[threadid()] .= zero(0.0)
-    #     COHSUM[threadid()] .= zero(0.0)
-    #     TENSUM[threadid()] .= zero(0.0)
-    #     FRISUM[threadid()] .= zero(0.0)
-    #     WTSUM[threadid()] .= zero(0.0)
-    #     # Vx-nodes
-    #     RHOXSUM[threadid()] .= zero(0.0)
-    #     RHOFXSUM[threadid()] .= zero(0.0)
-    #     KXSUM[threadid()] .= zero(0.0)
-    #     PHIXSUM[threadid()] .= zero(0.0)
-    #     RXSUM[threadid()] .= zero(0.0)
-    #     WTXSUM[threadid()] .= zero(0.0)
-    #     # Vy-nodes
-    #     RHOYSUM[threadid()] .= zero(0.0)
-    #     RHOFYSUM[threadid()] .= zero(0.0)
-    #     KYSUM[threadid()] .= zero(0.0)
-    #     PHIYSUM[threadid()] .= zero(0.0)
-    #     RYSUM[threadid()] .= zero(0.0)
-    #     WTYSUM[threadid()] .= zero(0.0)
-    #     # P-Nodes
-    #     GGGPSUM[threadid()] .= zero(0.0)
-    #     SXXSUM[threadid()] .= zero(0.0)
-    #     RHOSUM[threadid()] .= zero(0.0)
-    #     RHOCPSUM[threadid()] .= zero(0.0)
-    #     ALPHASUM[threadid()] .= zero(0.0)
-    #     ALPHAFSUM[threadid()] .= zero(0.0)
-    #     HRSUM[threadid()] .= zero(0.0)
-    #     TKSUM[threadid()] .= zero(0.0)
-    #     PHISUM[threadid()] .= zero(0.0)
-    #     WTPSUM[threadid()] .= zero(0.0)
-    # end
-
-    # RMK: sequential version, 20% slower than threaded version above
-    # when nthreads() = 24
-    # reset datastructures for this timestep
     for threadid = 1:1:nthreads()
         # basic nodes
         ETA0SUM[threadid] .= zero(0.0)
@@ -1188,233 +1286,17 @@ function reset_interpolation_arrays!(interp_arrays::InterpArrays)
         WTPSUM[threadid] .= zero(0.0)
     end
 end
-# function reset_interpolation_arrays!(
-#     ETA0SUM,
-#     ETASUM,
-#     GGGSUM,
-#     SXYSUM,
-#     COHSUM,
-#     TENSUM,
-#     FRISUM,
-#     WTSUM,
-#     RHOXSUM,
-#     RHOFXSUM,
-#     KXSUM,
-#     PHIXSUM,
-#     RXSUM,
-#     WTXSUM,
-#     RHOYSUM,
-#     RHOFYSUM,
-#     KYSUM,
-#     PHIYSUM,
-#     RYSUM,
-#     WTYSUM,
-#     GGGPSUM,
-#     SXXSUM,
-#     RHOSUM,
-#     RHOCPSUM,
-#     ALPHASUM,
-#     ALPHAFSUM,
-#     HRSUM,
-#     TKSUM,
-#     PHISUM,
-#     WTPSUM,
-# )
-
-#     # set arrays to zero 
-#     @threads for _ = 1:1:nthreads()
-#         # basic nodes
-#         ETA0SUM[threadid()] .= zero(0.0)
-#         ETASUM[threadid()] .= zero(0.0)
-#         GGGSUM[threadid()] .= zero(0.0)
-#         SXYSUM[threadid()] .= zero(0.0)
-#         COHSUM[threadid()] .= zero(0.0)
-#         TENSUM[threadid()] .= zero(0.0)
-#         FRISUM[threadid()] .= zero(0.0)
-#         WTSUM[threadid()] .= zero(0.0)
-#         # Vx-nodes
-#         RHOXSUM[threadid()] .= zero(0.0)
-#         RHOFXSUM[threadid()] .= zero(0.0)
-#         KXSUM[threadid()] .= zero(0.0)
-#         PHIXSUM[threadid()] .= zero(0.0)
-#         RXSUM[threadid()] .= zero(0.0)
-#         WTXSUM[threadid()] .= zero(0.0)
-#         # Vy-nodes
-#         RHOYSUM[threadid()] .= zero(0.0)
-#         RHOFYSUM[threadid()] .= zero(0.0)
-#         KYSUM[threadid()] .= zero(0.0)
-#         PHIYSUM[threadid()] .= zero(0.0)
-#         RYSUM[threadid()] .= zero(0.0)
-#         WTYSUM[threadid()] .= zero(0.0)
-#         # P-Nodes
-#         GGGPSUM[threadid()] .= zero(0.0)
-#         SXXSUM[threadid()] .= zero(0.0)
-#         RHOSUM[threadid()] .= zero(0.0)
-#         RHOCPSUM[threadid()] .= zero(0.0)
-#         ALPHASUM[threadid()] .= zero(0.0)
-#         ALPHAFSUM[threadid()] .= zero(0.0)
-#         HRSUM[threadid()] .= zero(0.0)
-#         TKSUM[threadid()] .= zero(0.0)
-#         PHISUM[threadid()] .= zero(0.0)
-#         WTPSUM[threadid()] .= zero(0.0)
-#     end
-
-#     # RMK: sequential version, 20% slower than threaded version above
-#     # when nthreads() = 24
-#     # reset datastructures for this timestep
-#     # for threadid = 1:1:nthreads()
-#     #     # basic nodes
-#     #     ETA0SUM[threadid] .= zero(0.0)
-#     #     ETASUM[threadid] .= zero(0.0)
-#     #     GGGSUM[threadid] .= zero(0.0)
-#     #     SXYSUM[threadid] .= zero(0.0)
-#     #     COHSUM[threadid] .= zero(0.0)
-#     #     TENSUM[threadid] .= zero(0.0)
-#     #     FRISUM[threadid] .= zero(0.0)
-#     #     WTSUM[threadid] .= zero(0.0)
-#     #     # Vx-nodes
-#     #     RHOXSUM[threadid] .= zero(0.0)
-#     #     RHOFXSUM[threadid] .= zero(0.0)
-#     #     KXSUM[threadid] .= zero(0.0)
-#     #     PHIXSUM[threadid] .= zero(0.0)
-#     #     RXSUM[threadid] .= zero(0.0)
-#     #     WTXSUM[threadid] .= zero(0.0)
-#     #     # Vy-nodes
-#     #     RHOYSUM[threadid] .= zero(0.0)
-#     #     RHOFYSUM[threadid] .= zero(0.0)
-#     #     KYSUM[threadid] .= zero(0.0)
-#     #     PHIYSUM[threadid] .= zero(0.0)
-#     #     RYSUM[threadid] .= zero(0.0)
-#     #     WTYSUM[threadid] .= zero(0.0)
-#     #     # P-Nodes
-#     #     GGGPSUM[threadid] .= zero(0.0)
-#     #     SXXSUM[threadid] .= zero(0.0)
-#     #     RHOSUM[threadid] .= zero(0.0)
-#     #     RHOCPSUM[threadid] .= zero(0.0)
-#     #     ALPHASUM[threadid] .= zero(0.0)
-#     #     ALPHAFSUM[threadid] .= zero(0.0)
-#     #     HRSUM[threadid] .= zero(0.0)
-#     #     TKSUM[threadid] .= zero(0.0)
-#     #     PHISUM[threadid] .= zero(0.0)
-#     #     WTPSUM[threadid] .= zero(0.0)
-#     # end
-# end
-
-# function compute_marker_parameters(m::Int64, markers::MarkerArrays, p::Params)
-#     @unpack_MarkerArrays markers
-#     @unpack_Params p
-
-#     if tm[m] < 3 
-#         # rocks
-#         kphim = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2; #Permeability
-#         rhototalm = rhosolidm[tm[m]] * (1-phim[m]) + rhofluidm[tm[m]] * phim[m]
-#         rhocptotalm = rhocpsolidm[tm[m]] * (1-phim[m]) + rhocpfluidm[tm[m]] * phim[m]
-#         etasolidcur = etasolidm[tm[m]]
-#         if tkm[m] > tmsilicate
-#             etasolidcur = etasolidmm[tm[m]]
-#         end
-#         hrtotalm = hrsolidm[tm[m]] * (1-phim[m]) + hrfluidm[tm[m]] * phim[m]
-#         ktotalm = (ksolidm[tm[m]] * kfluidm[tm[m]]/2 + ((ksolidm[tm[m]] * (3*phim[m]-2) + kfluidm[tm[m]] * (1-3*phim[m]))^2)/16)^0.5 - (ksolidm[tm[m]]*(3*phim[m]-2) + kfluidm[tm[m]]*(1-3*phim[m]))/4
-#         gggtotalm = gggsolidm[tm[m]]
-#         fricttotalm = frictsolidm[tm[m]]
-#         cohestotalm = cohessolidm[tm[m]]
-#         tenstotalm = tenssolidm[tm[m]]
-#         etafluidcur = etafluidm[tm[m]]
-#         rhofluidcur = rhofluidm[tm[m]]
-#         if tkm[m] > tmiron
-#             etafluidcur = etafluidmm[tm[m]]
-#         end
-#         etatotalm = max(etamin, etafluidcur, etasolidcur) # *exp(-28*phim[m])))
-#     else
-#         # air
-#         kphim = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2 #Permeability
-#         rhototalm = rhosolidm[tm[m]]
-#         rhocptotalm = rhocpsolidm[tm[m]]
-#         etatotalm = etasolidm[tm[m]]
-#         hrtotalm = hrsolidm[tm[m]]
-#         ktotalm = ksolidm[tm[m]]
-#         gggtotalm = gggsolidm[tm[m]]
-#         fricttotalm = frictsolidm[tm[m]]
-#         cohestotalm = cohessolidm[tm[m]]
-#         tenstotalm = tenssolidm[tm[m]]
-#         etafluidcur = etafluidm[tm[m]]
-#         rhofluidcur = rhofluidm[tm[m]]
-#     end
-
-#     return kphim,
-#         rhototalm,
-#         rhocptotalm,
-#         etatotalm,
-#         hrtotalm,
-#         ktotalm,
-#         gggtotalm,
-#         fricttotalm,
-#         cohestotalm,
-#         tenstotalm,
-#         etafluidcur,
-#         rhofluidcur
-# end
 
 
-# function compute_marker_parameters!(
-#     m::Int64,
-#     markers::MarkerArrays,
-#     marker_para::MarkerParams,
-#     p::Params)
-#     @unpack_MarkerArrays markers
-#     @unpack_MarkerParams marker_para
-#     @unpack_Params p
-
-#     if tm[m] < 3 
-#         # rocks
-#         kphim[threadid()] = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2; #Permeability
-#         rhototalm[threadid()] = rhosolidm[tm[m]] * (1-phim[m]) + rhofluidm[tm[m]] * phim[m]
-#         rhocptotalm[threadid()] = rhocpsolidm[tm[m]] * (1-phim[m]) + rhocpfluidm[tm[m]] * phim[m]
-#         etasolidcur[threadid()] = etasolidm[tm[m]]
-#         if tkm[m] > tmsilicate
-#             etasolidcur[threadid()] = etasolidmm[tm[m]]
-#         end
-#         hrtotalm[threadid()] = hrsolidm[tm[m]] * (1-phim[m]) + hrfluidm[tm[m]] * phim[m]
-#         ktotalm[threadid()] = (ksolidm[tm[m]] * kfluidm[tm[m]]/2 + ((ksolidm[tm[m]] * (3*phim[m]-2) + kfluidm[tm[m]] * (1-3*phim[m]))^2)/16)^0.5 - (ksolidm[tm[m]]*(3*phim[m]-2) + kfluidm[tm[m]]*(1-3*phim[m]))/4
-#         gggtotalm[threadid()] = gggsolidm[tm[m]]
-#         fricttotalm[threadid()] = frictsolidm[tm[m]]
-#         cohestotalm[threadid()] = cohessolidm[tm[m]]
-#         tenstotalm[threadid()] = tenssolidm[tm[m]]
-#         etafluidcur[threadid()] = etafluidm[tm[m]]
-#         rhofluidcur[threadid()] = rhofluidm[tm[m]]
-#         if tkm[m] > tmiron
-#             etafluidcur[threadid()] = etafluidmm[tm[m]]
-#         end
-#         etatotalm[threadid()] = max(
-#             etamin,
-#             etafluidcur[threadid()],
-#             etasolidcur[threadid()]
-#             ) # *exp(-28*phim[m])))
-#     else
-#         # air
-#         kphim[threadid()] = kphim0[tm[m]] * (phim[m]/phim0)^3 / ((1-phim[m])/(1-phim0))^2 #Permeability
-#         rhototalm[threadid()] = rhosolidm[tm[m]]
-#         rhocptotalm[threadid()] = rhocpsolidm[tm[m]]
-#         etatotalm[threadid()] = etasolidm[tm[m]]
-#         hrtotalm[threadid()] = hrsolidm[tm[m]]
-#         ktotalm[threadid()] = ksolidm[tm[m]]
-#         gggtotalm[threadid()] = gggsolidm[tm[m]]
-#         fricttotalm[threadid()] = frictsolidm[tm[m]]
-#         cohestotalm[threadid()] = cohessolidm[tm[m]]
-#         tenstotalm[threadid()] = tenssolidm[tm[m]]
-#         etafluidcur[threadid()] = etafluidm[tm[m]]
-#         rhofluidcur[threadid()] = rhofluidm[tm[m]]
-#     end
-# end
-
-
-# Initialize parameters
-const para = Params(
+# initialize parameters
+const static_parameters = StaticParameters(
     Nx = 141,
     Ny = 141,
     Nxmc = 4,
     Nymc = 4
 )
+# initialize dynamic parameters from static parameters
+const dynamic_parameters = DynamicParameters(static_parameters)
 const basicnodes = BasicNodes(para.xsize, para.ysize, para.dx, para.dy)
 const vxnodes = VxNodes(para.xsize, para.ysize, para.dx, para.dy)
 const vynodes = VyNodes(para.xsize, para.ysize, para.dx, para.dy)
@@ -1423,12 +1305,27 @@ const pnodes = PNodes(para.xsize, para.ysize, para.dx, para.dy)
 const markers = MarkerArrays(para.marknum)
 initmarkers!(markers, para)
 
-# for timestep=timestep:1:nsteps # ends at EOF
+"""
+Main simulation loop: runs timestepping.
 
-function timestepping(markers::MarkerArrays, p::Params)
+$(SIGNATURES)
+
+# Detail
+
+    - markers: arrays containing all marker properties
+    - sp: static simulation parameters
+    - dp: dynamic simulation parameters
+
+# Returns
+    
+    - nothing
+"""
+function timestepping(
+    markers::MarkerArrays, sp::StaticParameters, dp::DynamicParameters
+    )
     # unpack simulation parameters
-    @unpack Nx, Ny, Nx1, Ny1, startstep, dtelastic, starttimesum = p
-    # @unpack_Params p
+    @unpack Nx, Ny, Nx1, Ny1, startstep, dtelastic, starttimesum = sp
+    @unpack timestep, dtelastic, timesum, marknum, hrsolidm, hrfluidm = dp
 
     # initialize counters and timestepping loop variables
     "timestep counter (current)"
@@ -1443,17 +1340,15 @@ function timestepping(markers::MarkerArrays, p::Params)
 
     # iterate timesteps   
     for timestep = timestep:1:1000#nsteps
-
-        # Updating radioactive heating
-        hrsolidm, hrfluidm = calculate_radioactive_heating(p)
-
         # set interpolation arrays to zero for this timestep
-        reset_interpolation_arrays!(interp_arrays)
+        reset_interpolation_arrays!(interp_arrays)        
+
+        # calculate radioactive heating
+        hrsolidm, hrfluidm = calculate_radioactive_heating(sp, dp)
 
         # compute marker parameters 
-        # for m=1:1:marknum
         @threads for m=1:1:marknum
-            compute_dynamic_marker_params!(m, markers, p)
+            compute_dynamic_marker_params!(m, markers, sp, dp)
         end
 
         if timestep % 100 == 0
