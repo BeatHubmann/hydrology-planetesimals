@@ -1508,8 +1508,11 @@ $(SIGNATURES)
     - fix: upper (on y-axis) / left (on x-axis) node index on given grid axis
 """
 function fix(
-    position::Float64, reference_axis::Array{Float64}, mesh_width::Float64)
-    return trunc(Int, (position - reference_axis[1]) / mesh_width) + 1
+    position::Float64,
+    reference_axis::Array{Float64},
+    mesh_width::Float64)
+    idx = trunc(Int, (position - reference_axis[1]) / mesh_width) + 1
+    return min(max(idx, 1), length(reference_axis))
 end
 
 
@@ -1554,14 +1557,39 @@ end # timeit "setup interp_arrays"
         # calculate radioactive heating
         @timeit to "calc radioheat" hrsolidm, hrfluidm = calculate_radioactive_heating(sp, dp)
 
-@timeit to "compute marker properties" begin
-        # compute marker parameters 
+# @timeit to "compute marker properties" begin
         # for m=1:1:marknum
-        # @batch for m=1:1:marknum
         @threads for m=1:1:marknum
+            # compute marker properties 
             compute_dynamic_marker_params!(m, markers, sp, dp)
+
+            # interpolate marker properties to basic nodes
+            interpolate_basic_nodes!(m, markers, sp, dp, interp_arrays)
+
+            # interpolate marker properties to Vx nodes
+            interpolate_vx_nodes!(m, markers, sp, dp, interp_arrays)
+
+            # interpolate marker properties to Vy nodes
+            interpolate_vy_nodes!(m, markers, sp, dp, interp_arrays)
+
+            # interpolate marker properties to P nodes
+            interpolate_p_nodes!(m, markers, sp, dp, interp_arrays)
         end
-end # timeit " compute marker properties"
+
+        # compute physical properties of basic nodes
+
+        
+# end # timeit " compute marker properties"
+
+        # interpolate marker properties to basic nodes
+        interpolate_basic_nodes!()
+
+
+
+
+        # save old stresses - RMK: not used anywhere in code
+        # sxxm00 = sxxm 
+        # sxym00 = sxym    
 
         if timestep % 100 == 0
             println("timestep: ", timestep)
@@ -1571,15 +1599,8 @@ end # timeit " compute marker properties"
             break
         end
 
-        # save old stresses - RMK: not used anywhere in code
-        # sxxm00 = sxxm 
-        # sxym00 = sxym    
-
-
-
-
 end # timeit "timestepping"
-    end # for timestep = timestep:1:nsteps
+    end # for timestep = startstep:1:nsteps
 end # function timestepping(p::Params)
 
   
