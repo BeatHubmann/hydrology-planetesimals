@@ -1576,8 +1576,6 @@ end # timeit "setup interp_arrays"
             interpolate_p_nodes!(m, markers, sp, dp, interp_arrays)
 
         end
-
-        
 # end # timeit " compute marker properties"
 
         # compute physical properties of basic nodes
@@ -1611,8 +1609,79 @@ end # timeit "setup interp_arrays"
 
         # interpolate updated viscoplastic viscosity to markers
         for m = 1:1:marknum
+            # ~50 lines MATLAB 
+        end
+
+        # apply subgrid stress diffusion to markers
+        for m = 1:1:marknum
             # ~100 lines MATLAB 
         end
+
+        # compute DSXXsubgrid, DSXYsubgrid
+        compute_dsxx_dsxy_subgrids!(sp, dp, interp_arrays)
+
+        # interpolate DSXX, DSXY to markers
+        for m = 1:1:marknum
+            # ~50 lines MATLAB 
+        end
+
+        # compute shear heating HS in P nodes
+        compute_HS_p_nodes!(sp, dp, interp_arrays)
+
+        # compute adiabatic heating HA in P nodes
+        compute_HA_p_nodes!(sp, dp, interp_arrays)
+
+        # perform thermal iterations
+        # ~100 lines MATLAB
+
+        # apply subgrid temperature diffusion on markers
+        for m = 1:1:marknum
+            # ~50 lines MATLAB
+        end
+
+        # compute DTsubgrid
+        compute_DT_subgrid!(sp, dp, interp_arrays)
+
+        # interpolate DT to markers
+        for m = 1:1:marknum
+            # ~30 lines MATLAB
+        end
+
+        # update porosity on markers
+        for m = 1:1:marknum
+            # ~30 lines MATLAB
+        end
+
+        # compute fluid velocity in P nodes including boundary conditions
+        compute_v_fluid_p_nodes(sp, dp, interp_arrays)
+
+        # compute velocity in P nodes
+        compute_v_p_nodes!(sp, dp, interp_arrays)
+
+        # compute rotation rate in basic nodes
+        compute_ω_basic_nodes!(sp, dp, interp_arrays)
+
+        # move markers with RK4
+        for m = 1:1:marknum
+            # ~300 lines MATLAB
+        end
+
+        # backtrack P nodes: Ptotal with RK4
+
+        # backtrack P nodes: Pfluid with RK1/2/3
+
+        # replenish sparse areas with additional markers
+        for m = 1:1:marknum
+            # ~100 lines MATLAB
+        end
+
+        # update timesum
+
+        # save data for analysis and visualization
+
+
+
+
 
 
         # save old stresses - RMK: not used anywhere in code
