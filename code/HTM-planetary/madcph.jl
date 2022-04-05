@@ -1,4 +1,5 @@
 using Base.Threads
+# using Polyester
 using SparseArrays
 using MAT
 using DocStringExtensions
@@ -193,9 +194,9 @@ $(TYPEDFIELDS)
     "length of year [s]"
     yearlength::Float64 = 365.25 * 24 * 3600
     "Time sum (start) [s]"
-    starttimesum::Float64 = 1e6 * yearlength 
+    starttime::Float64 = 1e6 * yearlength 
     "Time sum (end) [s]"
-    endtimesum::Float64 = 15 * 1000000 * yearlength
+    endtime::Float64 = 15 * 1000000 * yearlength
     "Lower viscosity cut-off [Pa s]"	
     etamin::Float64 = 1e+12 
     "Upper viscosity cut-off [Pa s]"
@@ -226,17 +227,17 @@ end
 $(TYPEDFIELDS)
 """
 Base.@kwdef mutable struct DynamicParameters
-    "timestep counter (current)"
+    "timestep counter (current), init to startstep"
     timestep::Int64
-    "computational timestep (current) [s]"
+    "computational timestep (current), init to dtelastic [s]"
     dt::Float64
-    "time sum (current) [s]"
+    "time sum (current), init to starttime [s]"
     timesum::Float64
-    "current number of markers"
+    "current number of markers, init to startmarknum"
     marknum::Int64
-    "radiogenic heat production solid phase"
+    "radiogenic heat production solid phase, init to zero"
     hrsolidm::SVector{3, Float64} = zeros(3)
-    "radiogenic heat production fluid phase"
+    "radiogenic heat production fluid phase, init to zero"
     hrfluidm::SVector{3, Float64} = zeros(3)
     "inner constructor"
     DynamicParameters(startstep, dt, timesum, marknum) = new(
@@ -248,7 +249,7 @@ Base.@kwdef mutable struct DynamicParameters
     DynamicParameters(sp::StaticParameters) = new(
         sp.startstep,
         sp.dtelastic,
-        sp.starttimesum,
+        sp.starttime,
         sp.startmarknum,
         )
     end
@@ -845,10 +846,142 @@ $(TYPEDFIELDS)
         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()])
     )
 end
 
+@with_kw struct InterpArrays2
+    # basic nodes
+    "basic nodes: ETA0SUM"
+    ETA0SUM::Tuple
+    "basic nodes: ETASUM"
+    ETASUM::Tuple
+    "basic nodes: GGGSUM"
+    GGGSUM::Tuple
+    "basic nodes: SXYSUM"
+    SXYSUM::Tuple
+    "basic nodes: COHSUM"
+    COHSUM::Tuple
+    "basic nodes: TENSUM"
+    TENSUM::Tuple
+    "basic nodes: FRISUM"	
+    FRISUM::Tuple
+    "basic nodes: WTSUM"
+    WTSUM::Tuple
+    # Vx-nodes
+    "Vx-nodes: RHOXSUM"	
+    RHOXSUM::Tuple
+    "Vx-nodes: RHOFXSUM"
+    RHOFXSUM::Tuple
+    "Vx-nodes: KXSUM"
+    KXSUM::Tuple
+    "Vx-nodes: PHIXSUM"
+    PHIXSUM::Tuple
+    "Vx-nodes: RXSUM"	
+    RXSUM::Tuple
+    "Vx-nodes: WTXSUM"	
+    WTXSUM::Tuple
+    # Vy-nodes
+    "Vy-nodes: RHOYSUM"	
+    RHOYSUM::Tuple
+    "Vy-nodes: RHOFYSUM"
+    RHOFYSUM::Tuple
+    "Vy-nodes: KYSUM"	
+    KYSUM::Tuple
+    "Vy-nodes: PHIYSUM"
+    PHIYSUM::Tuple
+    "Vy-nodes: RYSUM"
+    RYSUM::Tuple
+    "Vy-nodes: WTYSUM"
+    WTYSUM::Tuple
+    # P-Nodes
+    "P-nodes: GGGPSUM"
+    GGGPSUM::Tuple
+    "P-nodes: SXXSUM"
+    SXXSUM::Tuple
+    "P-nodes: RHOSUM"
+    RHOSUM::Tuple
+    "P-nodes: RHOCPSUM"
+    RHOCPSUM::Tuple
+    "P-nodes: ALPHASUM"	
+    ALPHASUM::Tuple
+    "P-nodes: ALFAFSUM"
+    ALPHAFSUM::Tuple
+    "P-nodes: HRSUM"	
+    HRSUM::Tuple
+    "P-nodes: TKSUM"
+    TKSUM::Tuple
+    "P-nodes: PHISUM"
+    PHISUM::Tuple
+    "P-nodes: WTPSUM"
+    WTPSUM::Tuple
+    "inner constructor"
+    InterpArrays2(Nx, Ny, Nx1, Ny1) = new(
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+    )
+    InterpArrays2(sp::StaticParameters) = new(
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()])
+    )
+end
 
 """
 Global matrices: Hydro-mechanical solution
@@ -1262,42 +1395,79 @@ $(SIGNATURES)
 """
 function reset_interpolation_arrays!(interp_arrays::InterpArrays)
     @unpack_InterpArrays interp_arrays
-    for threadid = 1:1:nthreads()
+    # for threadid = 1:1:nthreads()
+    
         # basic nodes
-        ETA0SUM[threadid] .= zero(0.0)
-        ETASUM[threadid] .= zero(0.0)
-        GGGSUM[threadid] .= zero(0.0)
-        SXYSUM[threadid] .= zero(0.0)
-        COHSUM[threadid] .= zero(0.0)
-        TENSUM[threadid] .= zero(0.0)
-        FRISUM[threadid] .= zero(0.0)
-        WTSUM[threadid] .= zero(0.0)
+      for threadid = 1:1:nthreads() ETA0SUM[threadid] .= zero(0.0) end
+       for threadid = 1:1:nthreads()   ETASUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        GGGSUM[threadid] .= zero(0.0) end
+         for threadid = 1:1:nthreads() SXYSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        COHSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        TENSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        FRISUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        WTSUM[threadid] .= zero(0.0) end
         # Vx-nodes
-        RHOXSUM[threadid] .= zero(0.0)
-        RHOFXSUM[threadid] .= zero(0.0)
-        KXSUM[threadid] .= zero(0.0)
-        PHIXSUM[threadid] .= zero(0.0)
-        RXSUM[threadid] .= zero(0.0)
-        WTXSUM[threadid] .= zero(0.0)
+  for threadid = 1:1:nthreads()        RHOXSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        RHOFXSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        KXSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        PHIXSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        RXSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        WTXSUM[threadid] .= zero(0.0) end
         # Vy-nodes
-        RHOYSUM[threadid] .= zero(0.0)
-        RHOFYSUM[threadid] .= zero(0.0)
-        KYSUM[threadid] .= zero(0.0)
-        PHIYSUM[threadid] .= zero(0.0)
-        RYSUM[threadid] .= zero(0.0)
-        WTYSUM[threadid] .= zero(0.0)
+  for threadid = 1:1:nthreads()        RHOYSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        RHOFYSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        KYSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        PHIYSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        RYSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        WTYSUM[threadid] .= zero(0.0) end
         # P-Nodes
-        GGGPSUM[threadid] .= zero(0.0)
-        SXXSUM[threadid] .= zero(0.0)
-        RHOSUM[threadid] .= zero(0.0)
-        RHOCPSUM[threadid] .= zero(0.0)
-        ALPHASUM[threadid] .= zero(0.0)
-        ALPHAFSUM[threadid] .= zero(0.0)
-        HRSUM[threadid] .= zero(0.0)
-        TKSUM[threadid] .= zero(0.0)
-        PHISUM[threadid] .= zero(0.0)
-        WTPSUM[threadid] .= zero(0.0)
-    end
+  for threadid = 1:1:nthreads()        GGGPSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        SXXSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        RHOSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        RHOCPSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        ALPHASUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        ALPHAFSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        HRSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        TKSUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        PHISUM[threadid] .= zero(0.0) end
+  for threadid = 1:1:nthreads()        WTPSUM[threadid] .= zero(0.0) end
+
+    # @threads for threadid = 1:1:nthreads() # multithreading faster but allocs
+    #     # basic nodes
+    #     ETA0SUM[threadid] .= zero(0.0)
+    #     ETASUM[threadid] .= zero(0.0)
+    #     GGGSUM[threadid] .= zero(0.0)
+    #     SXYSUM[threadid] .= zero(0.0)
+    #     COHSUM[threadid] .= zero(0.0)
+    #     TENSUM[threadid] .= zero(0.0)
+    #     FRISUM[threadid] .= zero(0.0)
+    #     WTSUM[threadid] .= zero(0.0)
+    #     # Vx-nodes
+    #     RHOXSUM[threadid] .= zero(0.0)
+    #     RHOFXSUM[threadid] .= zero(0.0)
+    #     KXSUM[threadid] .= zero(0.0)
+    #     PHIXSUM[threadid] .= zero(0.0)
+    #     RXSUM[threadid] .= zero(0.0)
+    #     WTXSUM[threadid] .= zero(0.0)
+    #     # Vy-nodes
+    #     RHOYSUM[threadid] .= zero(0.0)
+    #     RHOFYSUM[threadid] .= zero(0.0)
+    #     KYSUM[threadid] .= zero(0.0)
+    #     PHIYSUM[threadid] .= zero(0.0)
+    #     RYSUM[threadid] .= zero(0.0)
+    #     WTYSUM[threadid] .= zero(0.0)
+    #     # P-Nodes
+    #     GGGPSUM[threadid] .= zero(0.0)
+    #     SXXSUM[threadid] .= zero(0.0)
+    #     RHOSUM[threadid] .= zero(0.0)
+    #     RHOCPSUM[threadid] .= zero(0.0)
+    #     ALPHASUM[threadid] .= zero(0.0)
+    #     ALPHAFSUM[threadid] .= zero(0.0)
+    #     HRSUM[threadid] .= zero(0.0)
+    #     TKSUM[threadid] .= zero(0.0)
+    #     PHISUM[threadid] .= zero(0.0)
+    #     WTPSUM[threadid] .= zero(0.0)
+    # end
 end
 
 
@@ -1336,33 +1506,46 @@ $(SIGNATURES)
 function timestepping(
     markers::MarkerArrays, sp::StaticParameters, dp::DynamicParameters
     )
+    @timeit to "unpack" begin
     # unpack simulation parameters
-    @unpack Nx, Ny, Nx1, Ny1, startstep, dtelastic, starttimesum = sp
+    @unpack Nx, Ny, Nx1, Ny1, startstep, nsteps, endtime = sp
     @unpack timestep, dt, timesum, marknum, hrsolidm, hrfluidm = dp
+    end
 
+    @timeit to "setup interp_arrays" begin
     # set up marker interpolation arrays
     interp_arrays = InterpArrays(Nx, Ny, Nx1, Ny1)
+    end
 
+    @timeit to "timestepping" begin
     # iterate timesteps   
-    for timestep = timestep:1:1000#nsteps
+    # for timestep = startstep:1:1000
+    for timestep = startstep:1:nsteps
         # set interpolation arrays to zero for this timestep
-        reset_interpolation_arrays!(interp_arrays)        
+        @timeit to "reset interp_arrays" reset_interpolation_arrays!(interp_arrays)        
 
         # calculate radioactive heating
-        hrsolidm, hrfluidm = calculate_radioactive_heating(sp, dp)
+        @timeit to "calc radioheat" hrsolidm, hrfluidm = calculate_radioactive_heating(sp, dp)
 
+        @timeit to "compute marker properties" begin
         # compute marker parameters 
+        # for m=1:1:marknum
+        # @batch for m=1:1:marknum
         @threads for m=1:1:marknum
             compute_dynamic_marker_params!(m, markers, sp, dp)
         end
+    end
 
         if timestep % 100 == 0
             println("timestep: ", timestep)
         end
 
-        if timesum > endtimesum
+        if timesum > endtime
             break
         end
+
+
+    end
 
     end # for timestep = timestep:1:nsteps
 end # function timestepping(p::Params)
