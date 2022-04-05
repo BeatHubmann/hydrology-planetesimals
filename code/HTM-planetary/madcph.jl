@@ -1494,6 +1494,28 @@ initmarkers!(markers, static_parameters, dynamic_parameters)
 
 
 """
+Find upper/left grid index for given position and grid reference axis
+and grid axis mesh width.
+
+$(SIGNATURES)
+
+# Detail
+    - position: input position [m]
+    - reference_axis: grid reference axis array [m]
+    - mesh_width: grid axis mesh width [m]
+
+# Returns
+    - fix: upper (on y-axis) / left (on x-axis) node index on given grid axis
+"""
+function fix(
+    position::Float64, reference_axis::Array{Float64}, mesh_width::Float64)
+    return trunc(Int, (position - reference_axis[1]) / mesh_width) + 1
+end
+
+
+
+
+"""
 Main simulation loop: runs timestepping.
 
 $(SIGNATURES)
@@ -1511,35 +1533,35 @@ $(SIGNATURES)
 function timestepping(
     markers::MarkerArrays, sp::StaticParameters, dp::DynamicParameters
     )
-    @timeit to "unpack" begin
+@timeit to "unpack" begin
     # unpack simulation parameters
     @unpack Nx, Ny, Nx1, Ny1, startstep, nsteps, endtime = sp
     @unpack timestep, dt, timesum, marknum, hrsolidm, hrfluidm = dp
-    end
+end # timeit "unpack"
 
-    @timeit to "setup interp_arrays" begin
+@timeit to "setup interp_arrays" begin
     # set up marker interpolation arrays
     interp_arrays = InterpArrays(Nx, Ny, Nx1, Ny1)
-    end
+end # timeit "setup interp_arrays"
 
-    @timeit to "timestepping" begin
+@timeit to "timestepping loop" begin
     # iterate timesteps   
-    # for timestep = startstep:1:1000
-    for timestep = startstep:1:nsteps
+    for timestep = startstep:1:1000
+    # for timestep = startstep:1:nsteps
         # set interpolation arrays to zero for this timestep
         @timeit to "reset interp_arrays" reset_interpolation_arrays!(interp_arrays)        
 
         # calculate radioactive heating
         @timeit to "calc radioheat" hrsolidm, hrfluidm = calculate_radioactive_heating(sp, dp)
 
-        @timeit to "compute marker properties" begin
+@timeit to "compute marker properties" begin
         # compute marker parameters 
         # for m=1:1:marknum
         # @batch for m=1:1:marknum
         @threads for m=1:1:marknum
             compute_dynamic_marker_params!(m, markers, sp, dp)
         end
-    end
+end # timeit " compute marker properties"
 
         if timestep % 100 == 0
             println("timestep: ", timestep)
@@ -1549,92 +1571,16 @@ function timestepping(
             break
         end
 
+        # save old stresses - RMK: not used anywhere in code
+        # sxxm00 = sxxm 
+        # sxym00 = sxym    
 
-    end
 
+
+
+end # timeit "timestepping"
     end # for timestep = timestep:1:nsteps
 end # function timestepping(p::Params)
-
-
-
-# Save old stresses - RMK: not used anywhere in code
-# sxxm00=sxxm; 
-# sxym00=sxym;    
-    
-# # Interpolate properties from markers to nodes
-# # Basic nodes
-# ETA0SUM=zeros(Ny,Nx)
-# ETASUM=zeros(Ny,Nx)
-# GGGSUM=zeros(Ny,Nx)
-# SXYSUM=zeros(Ny,Nx)
-# COHSUM=zeros(Ny,Nx)
-# TENSUM=zeros(Ny,Nx)
-# FRISUM=zeros(Ny,Nx)
-# WTSUM=zeros(Ny,Nx)
-# # Vx-nodes
-# RHOXSUM=zeros(Ny1,Nx1)
-# RHOFXSUM=zeros(Ny1,Nx1)
-# KXSUM=zeros(Ny1,Nx1)
-# PHIXSUM=zeros(Ny1,Nx1)
-# RXSUM=zeros(Ny1,Nx1)
-# WTXSUM=zeros(Ny1,Nx1)
-# # Vy-nodes
-# RHOYSUM=zeros(Ny1,Nx1)
-# RHOFYSUM=zeros(Ny1,Nx1)
-# KYSUM=zeros(Ny1,Nx1)
-# PHIYSUM=zeros(Ny1,Nx1)
-# RYSUM=zeros(Ny1,Nx1)
-# WTYSUM=zeros(Ny1,Nx1)
-# # P-Nodes
-# GGGPSUM=zeros(Ny1,Nx1)
-# SXXSUM=zeros(Ny1,Nx1)
-# RHOSUM=zeros(Ny1,Nx1)
-# RHOCPSUM=zeros(Ny1,Nx1)
-# ALPHASUM=zeros(Ny1,Nx1)
-# ALPHAFSUM=zeros(Ny1,Nx1)
-# HRSUM=zeros(Ny1,Nx1)
-# TKSUM=zeros(Ny1,Nx1)
-# PHISUM=zeros(Ny1,Nx1)
-# WTPSUM=zeros(Ny1,Nx1)
-
-for m=1:1:marknum
-        # Compute marker parameters
-    if(tm[m]<3)
-        # Rocks
-        kphim=kphim0[tm[m]]*(phim[m]/phim0)^3/((1-phim[m])/(1-phim0))^2; #Permeability
-        rhototalm=rhosolidm[tm[m]]*(1-phim[m])+rhofluidm[tm[m]]*phim[m]
-        rhocptotalm=rhocpsolidm[tm[m]]*(1-phim[m])+rhocpfluidm[tm[m]]*phim[m]
-        etasolidcur=etasolidm[tm[m]]
-        if(tkm[m]>tmsilicate)
-            etasolidcur=etasolidmm[tm[m]]
-        end
-        hrtotalm=hrsolidm[tm[m]]*(1-phim[m])+hrfluidm[tm[m]]*phim[m]
-        ktotalm=(ksolidm[tm[m]]*kfluidm[tm[m]]/2+((ksolidm[tm[m]]*(3*phim[m]-2)+kfluidm[tm[m]]*(1-3*phim[m]))^2)/16)^0.5-(ksolidm[tm[m]]*(3*phim[m]-2)+ kfluidm[tm[m]]*(1-3*phim[m]))/4
-        gggtotalm=gggsolidm[tm[m]]
-        fricttotalm=frictsolidm[tm[m]]
-        cohestotalm=cohessolidm[tm[m]]
-        tenstotalm=tenssolidm[tm[m]]
-        etafluidcur=etafluidm[tm[m]]
-        rhofluidcur=rhofluidm[tm[m]]
-        if(tkm[m]>tmiron)
-            etafluidcur=etafluidmm[tm[m]]
-        end
-        etatotalm=max(etamin,maximum(etafluidcur,etasolidcur));#*exp(-28*phim[m])))
-    else()
-        # Sticky air
-        kphim=kphim0[tm[m]]*(phim[m]/phim0)^3/((1-phim[m])/(1-phim0))^2; #Permeability
-        rhototalm=rhosolidm[tm[m]]
-        rhocptotalm=rhocpsolidm[tm[m]]
-        etatotalm=etasolidm[tm[m]]
-        hrtotalm=hrsolidm[tm[m]]
-        ktotalm=ksolidm[tm[m]]
-        gggtotalm=gggsolidm[tm[m]]
-        fricttotalm=frictsolidm[tm[m]]
-        cohestotalm=cohessolidm[tm[m]]
-        tenstotalm=tenssolidm[tm[m]]
-        rhofluidcur=rhofluidm[tm[m]]
-        etafluidcur=etafluidm[tm[m]]
-    end
 
   
     # Interpolation to basic nodes
