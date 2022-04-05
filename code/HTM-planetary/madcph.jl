@@ -851,137 +851,138 @@ $(TYPEDFIELDS)
     )
 end
 
-@with_kw struct InterpArrays2
-    # basic nodes
-    "basic nodes: ETA0SUM"
-    ETA0SUM::Tuple
-    "basic nodes: ETASUM"
-    ETASUM::Tuple
-    "basic nodes: GGGSUM"
-    GGGSUM::Tuple
-    "basic nodes: SXYSUM"
-    SXYSUM::Tuple
-    "basic nodes: COHSUM"
-    COHSUM::Tuple
-    "basic nodes: TENSUM"
-    TENSUM::Tuple
-    "basic nodes: FRISUM"	
-    FRISUM::Tuple
-    "basic nodes: WTSUM"
-    WTSUM::Tuple
-    # Vx-nodes
-    "Vx-nodes: RHOXSUM"	
-    RHOXSUM::Tuple
-    "Vx-nodes: RHOFXSUM"
-    RHOFXSUM::Tuple
-    "Vx-nodes: KXSUM"
-    KXSUM::Tuple
-    "Vx-nodes: PHIXSUM"
-    PHIXSUM::Tuple
-    "Vx-nodes: RXSUM"	
-    RXSUM::Tuple
-    "Vx-nodes: WTXSUM"	
-    WTXSUM::Tuple
-    # Vy-nodes
-    "Vy-nodes: RHOYSUM"	
-    RHOYSUM::Tuple
-    "Vy-nodes: RHOFYSUM"
-    RHOFYSUM::Tuple
-    "Vy-nodes: KYSUM"	
-    KYSUM::Tuple
-    "Vy-nodes: PHIYSUM"
-    PHIYSUM::Tuple
-    "Vy-nodes: RYSUM"
-    RYSUM::Tuple
-    "Vy-nodes: WTYSUM"
-    WTYSUM::Tuple
-    # P-Nodes
-    "P-nodes: GGGPSUM"
-    GGGPSUM::Tuple
-    "P-nodes: SXXSUM"
-    SXXSUM::Tuple
-    "P-nodes: RHOSUM"
-    RHOSUM::Tuple
-    "P-nodes: RHOCPSUM"
-    RHOCPSUM::Tuple
-    "P-nodes: ALPHASUM"	
-    ALPHASUM::Tuple
-    "P-nodes: ALFAFSUM"
-    ALPHAFSUM::Tuple
-    "P-nodes: HRSUM"	
-    HRSUM::Tuple
-    "P-nodes: TKSUM"
-    TKSUM::Tuple
-    "P-nodes: PHISUM"
-    PHISUM::Tuple
-    "P-nodes: WTPSUM"
-    WTPSUM::Tuple
-    "inner constructor"
-    InterpArrays2(Nx, Ny, Nx1, Ny1) = new(
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-    )
-    InterpArrays2(sp::StaticParameters) = new(
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()])
-    )
-end
+
+# @with_kw struct InterpArrays2
+#     # basic nodes
+#     "basic nodes: ETA0SUM"
+#     ETA0SUM::Array
+#     "basic nodes: ETASUM"
+#     ETASUM::Array
+#     "basic nodes: GGGSUM"
+#     GGGSUM::Array
+#     "basic nodes: SXYSUM"
+#     SXYSUM::Array
+#     "basic nodes: COHSUM"
+#     COHSUM::Array
+#     "basic nodes: TENSUM"
+#     TENSUM::Array
+#     "basic nodes: FRISUM"	
+#     FRISUM::Array
+#     "basic nodes: WTSUM"
+#     WTSUM::Array
+#     # Vx-nodes
+#     "Vx-nodes: RHOXSUM"	
+#     RHOXSUM::Array
+#     "Vx-nodes: RHOFXSUM"
+#     RHOFXSUM::Array
+#     "Vx-nodes: KXSUM"
+#     KXSUM::Array
+#     "Vx-nodes: PHIXSUM"
+#     PHIXSUM::Array
+#     "Vx-nodes: RXSUM"	
+#     RXSUM::Array
+#     "Vx-nodes: WTXSUM"	
+#     WTXSUM::Array
+#     # Vy-nodes
+#     "Vy-nodes: RHOYSUM"	
+#     RHOYSUM::Array
+#     "Vy-nodes: RHOFYSUM"
+#     RHOFYSUM::Array
+#     "Vy-nodes: KYSUM"	
+#     KYSUM::Array
+#     "Vy-nodes: PHIYSUM"
+#     PHIYSUM::Array
+#     "Vy-nodes: RYSUM"
+#     RYSUM::Array
+#     "Vy-nodes: WTYSUM"
+#     WTYSUM::Array
+#     # P-Nodes
+#     "P-nodes: GGGPSUM"
+#     GGGPSUM::Array
+#     "P-nodes: SXXSUM"
+#     SXXSUM::Array
+#     "P-nodes: RHOSUM"
+#     RHOSUM::Array
+#     "P-nodes: RHOCPSUM"
+#     RHOCPSUM::Array
+#     "P-nodes: ALPHASUM"	
+#     ALPHASUM::Array
+#     "P-nodes: ALFAFSUM"
+#     ALPHAFSUM::Array
+#     "P-nodes: HRSUM"	
+#     HRSUM::Array
+#     "P-nodes: TKSUM"
+#     TKSUM::Array
+#     "P-nodes: PHISUM"
+#     PHISUM::Array
+#     "P-nodes: WTPSUM"
+#     WTPSUM::Array
+#     "inner constructor"
+#     InterpArrays2(Nx, Ny, Nx1, Ny1) = new(
+#         Array{Float64}(undef, Ny, Nx, nthreads()),
+#         Array{Float64}(undef, Ny, Nx, nthreads()),
+#         Array{Float64}(undef, Ny, Nx, nthreads()),
+#         Array{Float64}(undef, Ny, Nx, nthreads()),
+#         Array{Float64}(undef, Ny, Nx, nthreads()),
+#         Array{Float64}(undef, Ny, Nx, nthreads()),
+#         Array{Float64}(undef, Ny, Nx, nthreads()),
+#         Array{Float64}(undef, Ny, Nx, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads()),
+#         Array{Float64}(undef, Ny1, Nx1, nthreads())
+#     )
+#     InterpArrays2(sp::StaticParameters) = new(
+#         Array{Float64}(undef, sp.Ny, sp.Nx, nthreads()),
+#         Array{Float64}(undef, sp.Ny, sp.Nx, nthreads()),
+#         Array{Float64}(undef, sp.Ny, sp.Nx, nthreads()),
+#         Array{Float64}(undef, sp.Ny, sp.Nx, nthreads()),
+#         Array{Float64}(undef, sp.Ny, sp.Nx, nthreads()),
+#         Array{Float64}(undef, sp.Ny, sp.Nx, nthreads()),
+#         Array{Float64}(undef, sp.Ny, sp.Nx, nthreads()),
+#         Array{Float64}(undef, sp.Ny, sp.Nx, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads()),
+#         Array{Float64}(undef, sp.Ny1, sp.Nx1, nthreads())
+#     )
+# end
 
 """
 Global matrices: Hydro-mechanical solution
@@ -1396,80 +1397,84 @@ $(SIGNATURES)
 function reset_interpolation_arrays!(interp_arrays::InterpArrays)
     @unpack_InterpArrays interp_arrays
     # for threadid = 1:1:nthreads()
-    
+    @threads for threadid = 1:1:nthreads() # multithreading faster but allocs
         # basic nodes
-      for threadid = 1:1:nthreads() ETA0SUM[threadid] .= zero(0.0) end
-       for threadid = 1:1:nthreads()   ETASUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        GGGSUM[threadid] .= zero(0.0) end
-         for threadid = 1:1:nthreads() SXYSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        COHSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        TENSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        FRISUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        WTSUM[threadid] .= zero(0.0) end
+        ETA0SUM[threadid] .= zero(0.0)
+        ETASUM[threadid] .= zero(0.0)
+        GGGSUM[threadid] .= zero(0.0)
+        SXYSUM[threadid] .= zero(0.0)
+        COHSUM[threadid] .= zero(0.0)
+        TENSUM[threadid] .= zero(0.0)
+        FRISUM[threadid] .= zero(0.0)
+        WTSUM[threadid] .= zero(0.0)
         # Vx-nodes
-  for threadid = 1:1:nthreads()        RHOXSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        RHOFXSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        KXSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        PHIXSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        RXSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        WTXSUM[threadid] .= zero(0.0) end
+        RHOXSUM[threadid] .= zero(0.0)
+        RHOFXSUM[threadid] .= zero(0.0)
+        KXSUM[threadid] .= zero(0.0)
+        PHIXSUM[threadid] .= zero(0.0)
+        RXSUM[threadid] .= zero(0.0)
+        WTXSUM[threadid] .= zero(0.0)
         # Vy-nodes
-  for threadid = 1:1:nthreads()        RHOYSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        RHOFYSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        KYSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        PHIYSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        RYSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        WTYSUM[threadid] .= zero(0.0) end
+        RHOYSUM[threadid] .= zero(0.0)
+        RHOFYSUM[threadid] .= zero(0.0)
+        KYSUM[threadid] .= zero(0.0)
+        PHIYSUM[threadid] .= zero(0.0)
+        RYSUM[threadid] .= zero(0.0)
+        WTYSUM[threadid] .= zero(0.0)
         # P-Nodes
-  for threadid = 1:1:nthreads()        GGGPSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        SXXSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        RHOSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        RHOCPSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        ALPHASUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        ALPHAFSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        HRSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        TKSUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        PHISUM[threadid] .= zero(0.0) end
-  for threadid = 1:1:nthreads()        WTPSUM[threadid] .= zero(0.0) end
-
-    # @threads for threadid = 1:1:nthreads() # multithreading faster but allocs
-    #     # basic nodes
-    #     ETA0SUM[threadid] .= zero(0.0)
-    #     ETASUM[threadid] .= zero(0.0)
-    #     GGGSUM[threadid] .= zero(0.0)
-    #     SXYSUM[threadid] .= zero(0.0)
-    #     COHSUM[threadid] .= zero(0.0)
-    #     TENSUM[threadid] .= zero(0.0)
-    #     FRISUM[threadid] .= zero(0.0)
-    #     WTSUM[threadid] .= zero(0.0)
-    #     # Vx-nodes
-    #     RHOXSUM[threadid] .= zero(0.0)
-    #     RHOFXSUM[threadid] .= zero(0.0)
-    #     KXSUM[threadid] .= zero(0.0)
-    #     PHIXSUM[threadid] .= zero(0.0)
-    #     RXSUM[threadid] .= zero(0.0)
-    #     WTXSUM[threadid] .= zero(0.0)
-    #     # Vy-nodes
-    #     RHOYSUM[threadid] .= zero(0.0)
-    #     RHOFYSUM[threadid] .= zero(0.0)
-    #     KYSUM[threadid] .= zero(0.0)
-    #     PHIYSUM[threadid] .= zero(0.0)
-    #     RYSUM[threadid] .= zero(0.0)
-    #     WTYSUM[threadid] .= zero(0.0)
-    #     # P-Nodes
-    #     GGGPSUM[threadid] .= zero(0.0)
-    #     SXXSUM[threadid] .= zero(0.0)
-    #     RHOSUM[threadid] .= zero(0.0)
-    #     RHOCPSUM[threadid] .= zero(0.0)
-    #     ALPHASUM[threadid] .= zero(0.0)
-    #     ALPHAFSUM[threadid] .= zero(0.0)
-    #     HRSUM[threadid] .= zero(0.0)
-    #     TKSUM[threadid] .= zero(0.0)
-    #     PHISUM[threadid] .= zero(0.0)
-    #     WTPSUM[threadid] .= zero(0.0)
-    # end
+        GGGPSUM[threadid] .= zero(0.0)
+        SXXSUM[threadid] .= zero(0.0)
+        RHOSUM[threadid] .= zero(0.0)
+        RHOCPSUM[threadid] .= zero(0.0)
+        ALPHASUM[threadid] .= zero(0.0)
+        ALPHAFSUM[threadid] .= zero(0.0)
+        HRSUM[threadid] .= zero(0.0)
+        TKSUM[threadid] .= zero(0.0)
+        PHISUM[threadid] .= zero(0.0)
+        WTPSUM[threadid] .= zero(0.0)
+    end
 end
 
+# function reset_interpolation_arrays!(interp_arrays::InterpArrays2)
+#     @unpack_InterpArrays2 interp_arrays
+#     # for threadid = 1:1:nthreads()
+#     @threads for threadid = 1:1:nthreads() # multithreading faster but allocs
+#         # basic nodes
+#         ETA0SUM[:, :, threadid] .= zero(0.0)
+#         ETASUM[:, :, threadid] .= zero(0.0)
+#         GGGSUM[:, :, threadid] .= zero(0.0)
+#         SXYSUM[:, :, threadid] .= zero(0.0)
+#         COHSUM[:, :, threadid] .= zero(0.0)
+#         TENSUM[:, :, threadid] .= zero(0.0)
+#         FRISUM[:, :, threadid] .= zero(0.0)
+#         WTSUM[:, :, threadid] .= zero(0.0)
+#         # Vx-nodes
+#         RHOXSUM[:, :, threadid] .= zero(0.0)
+#         RHOFXSUM[:, :, threadid] .= zero(0.0)
+#         KXSUM[:, :, threadid] .= zero(0.0)
+#         PHIXSUM[:, :, threadid] .= zero(0.0)
+#         RXSUM[:, :, threadid] .= zero(0.0)
+#         WTXSUM[:, :, threadid] .= zero(0.0)
+#         # Vy-nodes
+#         RHOYSUM[:, :, threadid] .= zero(0.0)
+#         RHOFYSUM[:, :, threadid] .= zero(0.0)
+#         KYSUM[:, :, threadid] .= zero(0.0)
+#         PHIYSUM[:, :, threadid] .= zero(0.0)
+#         RYSUM[:, :, threadid] .= zero(0.0)
+#         WTYSUM[:, :, threadid] .= zero(0.0)
+#         # P-Nodes
+#         GGGPSUM[:, :, threadid] .= zero(0.0)
+#         SXXSUM[:, :, threadid] .= zero(0.0)
+#         RHOSUM[:, :, threadid] .= zero(0.0)
+#         RHOCPSUM[:, :, threadid] .= zero(0.0)
+#         ALPHASUM[:, :, threadid] .= zero(0.0)
+#         ALPHAFSUM[:, :, threadid] .= zero(0.0)
+#         HRSUM[:, :, threadid] .= zero(0.0)
+#         TKSUM[:, :, threadid] .= zero(0.0)
+#         PHISUM[:, :, threadid] .= zero(0.0)
+#         WTPSUM[:, :, threadid] .= zero(0.0)
+#     end
+# end
 
 # initialize parameters
 const static_parameters = StaticParameters(
