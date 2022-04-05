@@ -1574,17 +1574,45 @@ end # timeit "setup interp_arrays"
 
             # interpolate marker properties to P nodes
             interpolate_p_nodes!(m, markers, sp, dp, interp_arrays)
-        end
 
-        # compute physical properties of basic nodes
+        end
 
         
 # end # timeit " compute marker properties"
 
-        # interpolate marker properties to basic nodes
-        interpolate_basic_nodes!()
+        # compute physical properties of basic nodes
+        compute_properties_basic_nodes!(sp, dp, interp_arrays)
 
+        # compute physical properties of Vx nodes
+        compute_properties_vx_nodes!(sp, dp, interp_arrays)
 
+        # compute physical properties of Vy nodes
+        compute_properties_vy_nodes!(sp, dp, interp_arrays)
+
+        # compute physical properties of P nodes
+        compute_properties_p_nodes!(sp, dp, interp_arrays)
+
+        # applying thermal boundary conditions for interpolated temperature
+        apply_thermal_bc(sp, dp, tk1)
+
+        # compute gravity solution
+        compute_gravity_solution!(sp, dp, interp_arrays)
+
+        # compute gravitational acceleration
+        compute_grav_accel!(sp, dp, interp_arrays)
+
+        # probe increasing computational timestep
+        dt = min(dt*dtkoefup, dtelastic)
+
+        # perform plastic iterations
+        for iplast = 1:1:nplast
+            # ~600 lines MATLAB
+        end
+
+        # interpolate updated viscoplastic viscosity to markers
+        for m = 1:1:marknum
+            # ~100 lines MATLAB 
+        end
 
 
         # save old stresses - RMK: not used anywhere in code
