@@ -256,24 +256,71 @@ Base.@kwdef mutable struct DynamicParameters
 
 
 """
+Abstract parent type of all nodes.
+"""
+abstract type Nodes end
+
+
+"""
 Basic node coordinates
 
 $(TYPEDFIELDS)
 """
-@with_kw struct BasicNodes
+@with_kw struct BasicNodes <: Nodes
 # Base.@kwdef struct BasicNodes
-    "horizontal coordinates of basic grid points [m]"
+    # geometric layout
+    "x: horizontal coordinates of basic grid points [m]"
     x::Array{Float64}
-    "vertical coordinates of basic grid points [m]"
+    "y: vertical coordinates of basic grid points [m]"
     y::Array{Float64}
+    "Nx: number of grid points in x direction"
+    num_x::Int64
+    "Ny: number of grid points in y direction"
+    num_y::Int64
+    "dx: grid spacing in x direction [m]"
+    dx::Float64
+    "dy: grid spacing in y direction [m]"
+    dy::Float64
+    # physical node properties
+    "viscoplastic viscosity, Pa*s"
+    ETA::Array{Float64}
+    "viscous viscosity, Pa*s"
+    ETA0::Array{Float64}
+    "shear modulus, Pa"
+    GGG::Array{Float64}
+    "epsilonxy, 1/s"
+    EXY::Array{Float64}
+    "sigma0xy, 1/s"
+    SXY0::Array{Float64}
+    "rotation rate, 1/s"
+    WYX::Array{Float64}
+    "compressive strength, Pa"
+    COH::Array{Float64}
+    "tensile strength, Pa"
+    TEN::Array{Float64}
+    "friction"
+    FRI::Array{Float64}
+    "plastic yielding mark, 1=yes,0=no"
+    YNY::Array{Int8}
+    # constructors
     "inner constructor"
-    BasicNodes(xsize, ysize, dx, dy) = new(
-        collect(0:dx:xsize),
-        collect(0:dy:ysize)
-        )
     BasicNodes(sp::StaticParameters) = new(
         collect(0:sp.dx:sp.xsize),
-        collect(0:sp.dy:sp.ysize)
+        collect(0:sp.dy:sp.ysize),
+        sp.Nx,
+        sp.Ny,
+        sp.dx,
+        sp.dy,
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx),
+        zeros(sp.Ny,sp.Nx)
         )
 end
 
@@ -347,61 +394,61 @@ $(TYPEDFIELDS)
 end
 
 
-"""
-Basic node properties
+# """
+# Basic node properties
 
-$(TYPEDFIELDS)
-"""
-@with_kw struct BasicNodalArrays
-# Base.@kwdef mutable struct BasicNodalArrays
-    "viscoplastic viscosity, Pa*s"
-    eta::Array{Float64}
-    "viscous viscosity, Pa*s"
-    eta0::Array{Float64}
-    "shear modulus, Pa"
-    ggg::Array{Float64}
-    "epsilonxy, 1/s"
-    exy::Array{Float64}
-    "sigma0xy, 1/s"
-    sxy0::Array{Float64}
-    "rotation rate, 1/s"
-    wyx::Array{Float64}
-    "compressive strength, Pa"
-    coh::Array{Float64}
-    "tensile strength, Pa"
-    ten::Array{Float64}
-    "friction"
-    fri::Array{Float64}
-    "plastic yielding mark, 1=yes,0=no"
-    yny::Array{Int8}
-    "inner constructor"
-    NodalArrays(Nx, Ny) = new(
-        zeros(Ny,Nx),
-        zeros(Ny,Nx),
-        zeros(Ny,Nx),
-        zeros(Ny,Nx),
-        zeros(Ny,Nx),
-        zeros(Ny,Nx),
-        zeros(Ny,Nx),
-        zeros(Ny,Nx),
-        zeros(Ny,Nx),
-        zeros(Ny,Nx),
-        zeros(Ny,Nx)
-        )
-    NodalArrays(sp::StaticParameters) = new(
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx)
-        )
-end
+# $(TYPEDFIELDS)
+# """
+# @with_kw struct BasicNodalArrays
+# # Base.@kwdef mutable struct BasicNodalArrays
+#     "viscoplastic viscosity, Pa*s"
+#     eta::Array{Float64}
+#     "viscous viscosity, Pa*s"
+#     eta0::Array{Float64}
+#     "shear modulus, Pa"
+#     ggg::Array{Float64}
+#     "epsilonxy, 1/s"
+#     exy::Array{Float64}
+#     "sigma0xy, 1/s"
+#     sxy0::Array{Float64}
+#     "rotation rate, 1/s"
+#     wyx::Array{Float64}
+#     "compressive strength, Pa"
+#     coh::Array{Float64}
+#     "tensile strength, Pa"
+#     ten::Array{Float64}
+#     "friction"
+#     fri::Array{Float64}
+#     "plastic yielding mark, 1=yes,0=no"
+#     yny::Array{Int8}
+#     "inner constructor"
+#     NodalArrays(Nx, Ny) = new(
+#         zeros(Ny,Nx),
+#         zeros(Ny,Nx),
+#         zeros(Ny,Nx),
+#         zeros(Ny,Nx),
+#         zeros(Ny,Nx),
+#         zeros(Ny,Nx),
+#         zeros(Ny,Nx),
+#         zeros(Ny,Nx),
+#         zeros(Ny,Nx),
+#         zeros(Ny,Nx),
+#         zeros(Ny,Nx)
+#         )
+#     NodalArrays(sp::StaticParameters) = new(
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx)
+#         )
+# end
 
 
 """
