@@ -384,25 +384,61 @@ end
 
 
 """
-Vy node coordinates
+Vy nodes grid geometry and physical properties.
 
 $(TYPEDFIELDS)
 """
-@with_kw struct VyNodes
-# Base.@kwdef struct VyNodes
-    "horizontal coordinates of vy grid points [m]"
-    xvy::Array{Float64}
-    "vertical coordinates of vy grid points [m]"
-    yvy::Array{Float64}
+@with_kw struct VyNodes <: Nodes
+    # grid geometry
+    "xvy: horizontal coordinates of vy grid points [m]"
+    x::Array{Float64}
+    "yvy: vertical coordinates of vy grid points [m]"
+    y::Array{Float64}
+    "Nx: number of grid points in x direction"
+    num_x::Int64
+    "Ny: number of grid points in y direction"
+    num_y::Int64
+    "dx: grid spacing in x direction [m]"
+    dx::Float64
+    "dy: grid spacing in y direction [m]"
+    dy::Float64
+    # physical node properties
+    "density [kg/m^3]"
+    RHOY::Array{Float64}
+    "fluid density [kg/m^3]"
+    RHOFY::Array{Float64}
+    "thermal conductivity [W/m/K]"
+    KY::Array{Float64}
+    "porosity"
+    PHIY::Array{Float64}
+    "solid vy-velocity [m/s]"
+    vy::Array{Float64}
+    "fluid vy-velocity [m/s]"
+    vyf::Array{Float64}
+    "etafluid/kphi ratio [m^2]"
+    RY::Array{Float64}
+    "qy-darcy flux [m/s]"
+    qyD::Array{Float64}
+    "gy-gravity [m/s^2]"
+    gy::Array{Float64}
     "inner constructor"
-    VyNodes(xsize, ysize, dx, dy) = new(
-        collect(-dx/2:dx:xsize+dx/2),
-        collect(0:dy:ysize+dy)
-        )
     VyNodes(sp::StaticParameters) = new(
         collect(-sp.dx/2:sp.dx:sp.xsize+sp.dx/2),
-        collect(0:sp.dy:sp.ysize+sp.dy)
-        )
+        collect(0:sp.dy:sp.ysize+sp.dy),
+        sp.Nx,
+        sp.Ny,
+        sp.dx,
+        sp.dy,
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1)
+     )
 end
 
 
@@ -537,55 +573,55 @@ end
 # end
 
 
-"""
-Vy node properties
+# """
+# Vy node properties
 
-$(TYPEDFIELDS)
-"""
-@with_kw struct VyNodalArrays
-# Base.@kwdef mutable struct VyNodalArrays
-    "density [kg/m^3]"
-    rhoy::Array{Float64}
-    "fluid density [kg/m^3]"
-    rhofy::Array{Float64}
-    "thermal conductivity [W/m/K]"
-    ky::Array{Float64}
-    "porosity"
-    phiy::Array{Float64}
-    "solid vy-velocity [m/s]"
-    vy::Array{Float64}
-    "fluid vy-velocity [m/s]"
-    vyf::Array{Float64}
-    "etafluid/kphi ratio [m^2]"
-    ry::Array{Float64}
-    "qy-darcy flux [m/s]"
-    qyD::Array{Float64}
-    "gy-gravity [m/s^2]"
-    gy::Array{Float64}
-    "inner constructor"
-    NodalArrays(Nx1, Ny1) = new(
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1)
-        )
-    NodalArrays(sp::StaticParameters) = new(
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1)
-     )
-end
+# $(TYPEDFIELDS)
+# """
+# @with_kw struct VyNodalArrays
+# # Base.@kwdef mutable struct VyNodalArrays
+#     "density [kg/m^3]"
+#     rhoy::Array{Float64}
+#     "fluid density [kg/m^3]"
+#     rhofy::Array{Float64}
+#     "thermal conductivity [W/m/K]"
+#     ky::Array{Float64}
+#     "porosity"
+#     phiy::Array{Float64}
+#     "solid vy-velocity [m/s]"
+#     vy::Array{Float64}
+#     "fluid vy-velocity [m/s]"
+#     vyf::Array{Float64}
+#     "etafluid/kphi ratio [m^2]"
+#     ry::Array{Float64}
+#     "qy-darcy flux [m/s]"
+#     qyD::Array{Float64}
+#     "gy-gravity [m/s^2]"
+#     gy::Array{Float64}
+#     "inner constructor"
+#     NodalArrays(Nx1, Ny1) = new(
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1)
+#         )
+#     NodalArrays(sp::StaticParameters) = new(
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1)
+#      )
+# end
 
 
 """
