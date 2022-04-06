@@ -1538,6 +1538,30 @@ end
 
 
 """
+Compute bilinear interpolation weigths to nearest four grid nodes for given
+(x, y) position.
+
+# Details
+
+    - x: x-position [m]
+    - y: y-position [m]
+    - x_ref_axis: x-grid reference axis array [m]
+    - y_ref_axis: y-grid reference axis array [m]
+
+# Returns
+    - weights: vector of 4 bilinear interpolation weights to nearest four
+        grid nodes: [wtmij  : i  , j   node,
+                     wtmi1j : i+1, j   node,
+                     wtmij1 : i  , j+1 node,
+                     wtmi1j1: i+1, j+1 node]
+"""
+function weights(x::Float64, y::Float64, nodes::Nodes)
+
+
+end
+
+
+"""
 Interpolate marker properties to basic nodes.
 
 $(SIGMATURES)
