@@ -272,13 +272,13 @@ $(TYPEDFIELDS)
     x::Array{Float64}
     "y: vertical coordinates of basic grid points [m]"
     y::Array{Float64}
-    "Nx: number of grid points in x direction"
+    "Nx: number of basic grid points in x direction"
     num_x::Int64
-    "Ny: number of grid points in y direction"
+    "Ny: number of basic grid points in y direction"
     num_y::Int64
-    "dx: grid spacing in x direction [m]"
+    "dx: basic grid spacing in x direction [m]"
     dx::Float64
-    "dy: grid spacing in y direction [m]"
+    "dy: basic grid spacing in y direction [m]"
     dy::Float64
     # physical node properties
     "viscoplastic viscosity, Pa*s"
@@ -335,13 +335,13 @@ $(TYPEDFIELDS)
     x::Array{Float64}
     "yvx: vertical coordinates of vx grid points [m]"
     y::Array{Float64}
-    "Nx: number of grid points in x direction"
+    "Nx1: number of Vx grid points in x direction"
     num_x::Int64
-    "Ny: number of grid points in y direction"
+    "Ny1: number of Vx grid points in y direction"
     num_y::Int64
-    "dx: grid spacing in x direction [m]"
+    "dx: Vx grid spacing in x direction [m]"
     dx::Float64
-    "dy: grid spacing in y direction [m]"
+    "dy: Vx grid spacing in y direction [m]"
     dy::Float64
     # physical node properties
     "density [kg/m^3]"
@@ -366,8 +366,8 @@ $(TYPEDFIELDS)
     VxNodes(sp::StaticParameters) = new(
         collect(0:sp.dx:sp.xsize+sp.dy),
         collect(-sp.dy/2:sp.dy:sp.ysize+sp.dy/2),
-        sp.Nx,
-        sp.Ny,
+        sp.Nx1,
+        sp.Ny1,
         sp.dx,
         sp.dy,
         zeros(sp.Ny1, sp.Nx1),
@@ -394,13 +394,13 @@ $(TYPEDFIELDS)
     x::Array{Float64}
     "yvy: vertical coordinates of vy grid points [m]"
     y::Array{Float64}
-    "Nx: number of grid points in x direction"
+    "Nx1: number of Vy grid points in x direction"
     num_x::Int64
-    "Ny: number of grid points in y direction"
+    "Ny1: number of Vy grid points in y direction"
     num_y::Int64
-    "dx: grid spacing in x direction [m]"
+    "dx: Vy grid spacing in x direction [m]"
     dx::Float64
-    "dy: grid spacing in y direction [m]"
+    "dy: Vy grid spacing in y direction [m]"
     dy::Float64
     # physical node properties
     "density [kg/m^3]"
@@ -425,8 +425,8 @@ $(TYPEDFIELDS)
     VyNodes(sp::StaticParameters) = new(
         collect(-sp.dx/2:sp.dx:sp.xsize+sp.dx/2),
         collect(0:sp.dy:sp.ysize+sp.dy),
-        sp.Nx,
-        sp.Ny,
+        sp.Nx1,
+        sp.Ny1,
         sp.dx,
         sp.dy,
         zeros(sp.Ny1, sp.Nx1),
@@ -443,25 +443,121 @@ end
 
 
 """
-P node coordinates
+P nodes grid geometry and physical properties.
 
 $(TYPEDFIELDS)
 """
-@with_kw struct PNodes
-# Base.@kwdef struct PNodes
+@with_kw struct PNodes <: Nodes
+    # grid geometry
     "horizontal coordinates of P grid points [m]"
     xp::Array{Float64}
     "vertical coordinates of P grid points [m]"
     yp::Array{Float64}
+    "Nx1: number of P grid points in x direction"
+    num_x::Int64
+    "Ny1: number of P grid points in y direction"
+    num_y::Int64
+    "dx: P grid spacing in x direction [m]"
+    dx::Float64
+    "dy: P grid spacing in y direction [m]"
+    dy::Float64
+    # physical node properties
+    "density [kg/m^3]"
+    RHO::Array{Float64}
+    "volumetric heat capacity [J/m^3/K]"
+    RHOCP::Array{Float64}
+    "thermal expansion [J/m^3/K]"
+    ALPHA::Array{Float64}
+    "fluid thermal expansion [J/m^3/K]"
+    ALPHAF::Array{Float64}
+    "radioactive heating [W/m^3]"
+    HR::Array{Float64}
+    "adiabatic heating [W/m^3]"
+    HA::Array{Float64}
+    "shear heating [W/m^3]"
+    HS::Array{Float64}
+    "viscosity [Pa*s]"
+    ETAP::Array{Float64}
+    "shear modulus [Pa]"
+    GGGP::Array{Float64}
+    "EPSILONxx [1/s]"
+    EXX::Array{Float64}
+    "SIGMA'xx [1/s]"
+    SXX::Array{Float64}
+    "SIGMA0'xx [1/s]"
+    SXX0::Array{Float64}
+    "old temperature [K]"
+    tk1::Array{Float64}
+    "new temperature [K]"
+    tk2::Array{Float64}
+    "solid Vx in pressure nodes [m/s]"
+    vxp::Array{Float64}
+    "solid Vy in pressure nodes [m/s]"
+    vyp::Array{Float64}
+    "fluid Vx in pressure nodes [m/s]"
+    vxpf::Array{Float64}
+    "fluid Vy in pressure nodes [m/s]"
+    vypf::Array{Float64}
+    "total pressure [Pa]"
+    pr::Array{Float64}
+    "fluid pressure [Pa]"
+    pf::Array{Float64}
+    "solid pressure [Pa]"
+    ps::Array{Float64}
+    "old total pressure [Pa]"
+    pr0::Array{Float64}
+    "old fluid pressure [Pa]"
+    pf0::Array{Float64}
+    "old solid pressure [Pa]"
+    ps0::Array{Float64}
+    "bulk viscosity [Pa*s]"
+    ETAPHI::Array{Float64}
+    "bulk compresibility [Pa*s]"
+    BETTAPHI::Array{Float64}
+    "porosity"
+    PHI::Array{Float64}
+    "Dln[(1-PHI)/PHI]/Dt"
+    APHI::Array{Float64}
+    "gravity potential [J/kg]"
+    FI::Array{Float64}
     "inner constructor"
-    PNodes(xsize, ysize, dx, dy) = new(
-        collect(-dx/2:dx:xsize+dx/2),
-        collect(-dy/2:dy:ysize+dy/2)
-        )
     PNodes(sp::StaticParameters) = new(
         collect(-sp.dx/2:sp.dx:sp.xsize+sp.dx/2),
-        collect(-sp.dy/2:sp.dy:sp.ysize+sp.dy/2)
-        )     
+        collect(-sp.dy/2:sp.dy:sp.ysize+sp.dy/2),
+        sp.Nx1,
+        sp.Ny1,
+        sp.dx,
+        sp.dy,        
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1)
+    )
 end
 
 
@@ -624,135 +720,135 @@ end
 # end
 
 
-"""
-P node properties
+# """
+# P node properties
 
-$(TYPEDFIELDS)
-"""
-@with_kw struct PNodalArrays
-# Base.@kwdef mutable struct PNodalArrays
-    "density [kg/m^3]"
-    rho::Array{Float64}
-    "volumetric heat capacity [J/m^3/K]"
-    rhocp::Array{Float64}
-    "thermal expansion [J/m^3/K]"
-    alpha::Array{Float64}
-    "fluid thermal expansion [J/m^3/K]"
-    alphaf::Array{Float64}
-    "radioactive heating [W/m^3]"
-    hr::Array{Float64}
-    "adiabatic heating [W/m^3]"
-    ha::Array{Float64}
-    "shear heating [W/m^3]"
-    hs::Array{Float64}
-    "viscosity [Pa*s]"
-    etap::Array{Float64}
-    "shear modulus [Pa]"
-    gggp::Array{Float64}
-    "EPSILONxx [1/s]"
-    exx::Array{Float64}
-    "SIGMA'xx [1/s]"
-    sxx::Array{Float64}
-    "SIGMA0'xx [1/s]"
-    sxx0::Array{Float64}
-    "old temperature [K]"
-    tk1::Array{Float64}
-    "new temperature [K]"
-    tk2::Array{Float64}
-    "solid Vx in pressure nodes [m/s]"
-    vxp::Array{Float64}
-    "solid Vy in pressure nodes [m/s]"
-    vyp::Array{Float64}
-    "fluid Vx in pressure nodes [m/s]"
-    vxpf::Array{Float64}
-    "fluid Vy in pressure nodes [m/s]"
-    vypf::Array{Float64}
-    "total pressure [Pa]"
-    pr::Array{Float64}
-    "fluid pressure [Pa]"
-    pf::Array{Float64}
-    "solid pressure [Pa]"
-    ps::Array{Float64}
-    "old total pressure [Pa]"
-    pr0::Array{Float64}
-    "old fluid pressure [Pa]"
-    pf0::Array{Float64}
-    "old solid pressure [Pa]"
-    ps0::Array{Float64}
-    "bulk viscosity [Pa*s]"
-    etaphi::Array{Float64}
-    "bulk compresibility [Pa*s]"
-    bettaphi::Array{Float64}
-    "porosity"
-    phi::Array{Float64}
-    "Dln[(1-PHI)/PHI]/Dt"
-    aphi::Array{Float64}
-    "gravity potential [J/kg]"
-    fi::Array{Float64}
-    "inner constructor"
-    PNodalArrays(Nx1, Ny1) = new(
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1),
-        zeros(Ny1, Nx1)
-    )
-    PNodalArrays(sp::StaticParameters) = new(
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1)
-    )
-end
+# $(TYPEDFIELDS)
+# """
+# @with_kw struct PNodalArrays
+# # Base.@kwdef mutable struct PNodalArrays
+#     "density [kg/m^3]"
+#     rho::Array{Float64}
+#     "volumetric heat capacity [J/m^3/K]"
+#     rhocp::Array{Float64}
+#     "thermal expansion [J/m^3/K]"
+#     alpha::Array{Float64}
+#     "fluid thermal expansion [J/m^3/K]"
+#     alphaf::Array{Float64}
+#     "radioactive heating [W/m^3]"
+#     hr::Array{Float64}
+#     "adiabatic heating [W/m^3]"
+#     ha::Array{Float64}
+#     "shear heating [W/m^3]"
+#     hs::Array{Float64}
+#     "viscosity [Pa*s]"
+#     etap::Array{Float64}
+#     "shear modulus [Pa]"
+#     gggp::Array{Float64}
+#     "EPSILONxx [1/s]"
+#     exx::Array{Float64}
+#     "SIGMA'xx [1/s]"
+#     sxx::Array{Float64}
+#     "SIGMA0'xx [1/s]"
+#     sxx0::Array{Float64}
+#     "old temperature [K]"
+#     tk1::Array{Float64}
+#     "new temperature [K]"
+#     tk2::Array{Float64}
+#     "solid Vx in pressure nodes [m/s]"
+#     vxp::Array{Float64}
+#     "solid Vy in pressure nodes [m/s]"
+#     vyp::Array{Float64}
+#     "fluid Vx in pressure nodes [m/s]"
+#     vxpf::Array{Float64}
+#     "fluid Vy in pressure nodes [m/s]"
+#     vypf::Array{Float64}
+#     "total pressure [Pa]"
+#     pr::Array{Float64}
+#     "fluid pressure [Pa]"
+#     pf::Array{Float64}
+#     "solid pressure [Pa]"
+#     ps::Array{Float64}
+#     "old total pressure [Pa]"
+#     pr0::Array{Float64}
+#     "old fluid pressure [Pa]"
+#     pf0::Array{Float64}
+#     "old solid pressure [Pa]"
+#     ps0::Array{Float64}
+#     "bulk viscosity [Pa*s]"
+#     etaphi::Array{Float64}
+#     "bulk compresibility [Pa*s]"
+#     bettaphi::Array{Float64}
+#     "porosity"
+#     phi::Array{Float64}
+#     "Dln[(1-PHI)/PHI]/Dt"
+#     aphi::Array{Float64}
+#     "gravity potential [J/kg]"
+#     fi::Array{Float64}
+#     "inner constructor"
+#     PNodalArrays(Nx1, Ny1) = new(
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1)
+#     )
+#     PNodalArrays(sp::StaticParameters) = new(
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1)
+#     )
+# end
 
 
 """

@@ -61,7 +61,7 @@ TEN=zeros(Ny,Nx); % Tensile strength, Pa
 FRI=zeros(Ny,Nx); % Friction
 YNY=zeros(Ny,Nx); % Plastic yielding mark, 1=yes,0=no
 % Vx-Nodes
-RHOX=zeros(Ny1,Nx1); % Density, kg/m^3
+j=zeros(Ny1,Nx1); % Density, kg/m^3
 RHOFX=zeros(Ny1,Nx1); % Fluid Density, kg/m^3
 KX=zeros(Ny1,Nx1); % Thermal conductivity, W/m/K
 PHIX=zeros(Ny1,Nx1); % Porosity
