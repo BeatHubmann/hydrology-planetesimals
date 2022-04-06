@@ -2620,6 +2620,10 @@ if(fix(timestep/savematstep)*savematstep==timestep)
     fclose(fdata);
 end
 
+if mod(timestep, 100) == 0
+    disp(['timestep: ' num2str(timestep)])
+end
+
 if timesum > 15*3600*24*365.25*1000000
     break
 end

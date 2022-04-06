@@ -1085,7 +1085,7 @@ $(TYPEDFIELDS)
     "P-nodes: WTPSUM"
     WTPSUM::Tuple
     "inner constructor"
-    InterpArrays(Nx, Ny, Nx1, Ny1) = new(
+    InterpolationArrays(Nx, Ny, Nx1, Ny1) = new(
         Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
         Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
         Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
@@ -1117,7 +1117,7 @@ $(TYPEDFIELDS)
         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
     )
-    InterpArrays(sp::StaticParameters) = new(
+    InterpolationArrays(sp::StaticParameters) = new(
         Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
         Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
         Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
@@ -1694,7 +1694,7 @@ $(SIGNATURES)
     - nothing
 """
 function reset_interpolation_arrays!(ia::InterpolationArrays)
-    @unpack_InterpArrays ia
+    @unpack_InterpolationArrays ia
     # for threadid = 1:1:nthreads()
     @threads for threadid = 1:1:nthreads() # multithreading faster but allocs
         # basic nodes
@@ -1799,19 +1799,25 @@ and grid axis mesh width.
 $(SIGNATURES)
 
 # Detail
+
     - position: input position [m]
     - reference_axis: grid reference axis array [m]
     - mesh_width: grid axis mesh width [m]
+    - idx_min: minimum assignable index on given grid axis
+    - idx_max: maximum assignable index on given grid axis
 
 # Returns
-    - fix: upper (on y-axis) / left (on x-axis) node index on given grid axis
+
+    - fix: upper 'i' (y-axis) / left 'j' (x-axis) node index on given grid axis
 """
 function fix(
     position::Float64,
     reference_axis::Array{Float64},
-    mesh_width::Float64)
-    idx = trunc(Int, (position - reference_axis[1]) / mesh_width) + 1
-    return min(max(idx, 1), length(reference_axis))
+    mesh_width::Float64,
+    idx_min::Int64,
+    idx_max::Int64)
+    @inbounds idx = trunc(Int, (position - reference_axis[1]) / mesh_width) + 1
+    return min(max(idx, idx_min), idx_max)
 end
 
 
@@ -1832,7 +1838,7 @@ $(SIGNATURES)
 """
 function dist(
     position::Float64, reference_axis::Array{Float64}, axis_node_index::Int64)
-    return position - reference_axis[axis_node_index]
+    @inbounds return position - reference_axis[axis_node_index]
 end
 
 
@@ -1855,26 +1861,45 @@ Compute bilinear interpolation weigths to nearest four grid nodes for given
         wtmij1 : i  , j+1 node,
         wtmi1j1: i+1, j+1 node]
 """
-function bilinear_weights(x::Float64, y::Float64, nodes::Nodes)
+# function bilinear_weights(x::Float64, y::Float64, n::Nodes)
+#     # find nearest four grid nodes
+#     @timeit to "fix1" i = fix(x, n.x, n.dx, n.imin, n.imax)
+#     @timeit to "fix2" j = fix(y, n.y, n.dy, n.jmin, n.jmax)
+#     # compute distances
+#     @timeit to "dist1" dxmj = dist(x, n.x, i)
+#     @timeit to "dist2" dymi = dist(y, n.y, j)
+#     # compute bilinear interpolation weights
+#     @timeit to "weights" begin
+#     wtmij = (1.0-dxmj/n.dx) * (1.0-dymi/n.dy)
+#     wtmi1j = (1.0-dxmj/n.dx) * (dymi/n.dy)    
+#     wtmij1 = (dxmj/n.dx) * (1.0-dymi/n.dy)
+#     wtmi1j1 = (dxmj/n.dx) * (dymi/n.dy)
+#     end
+#     return i, j, @SVector[wtmij, wtmi1j, wtmij1, wtmi1j1]
+# end
+
+function bilinear_weights(x::Float64, y::Float64, n::Nodes)
     # find nearest four grid nodes
-    i = fix(x, nodes.x, nodes.dx)
-    j = fix(y, nodes.y, nodes.dy)
-    # compute distances
-    dxmj = dist(x, nodes.x, i)
-    dymi = dist(y, nodes.y, j)
-    # compute bilinear interpolation weights
-    wtmij = (1.0-dxmj/nodes.dx) * (1.0-dymi/nodes.dy)
-    wtmi1j = (1.0-dxmj/nodes.dx) * (dymi/nodes.dy)    
-    wtmij1 = (dxmj/nodes.dx) * (1.0-dymi/nodes.dy)
-    wtmi1j1 = (dxmj/nodes.dx) * (dymi/nodes.dy)
-    return @SVector [wtmij, wtmi1j, wtmij1, wtmi1j1]
+    @inbounds begin
+    @timeit to "trunc"  j = trunc(Int, (x - n.x[1]) / n.dx) + 1
+        i = trunc(Int, (y - n.y[1]) / n.dy) + 1
+        j = min(max(j, n.jmin), n.jmax)
+        i = min(max(i, n.imin), n.imax)
+        dxmj = x - n.x[j]
+        dymi = y - n.y[i]
+        wtmij = (1.0-dxmj/n.dx) * (1.0-dymi/n.dy)
+        wtmi1j = (1.0-dxmj/n.dx) * (dymi/n.dy)    
+        wtmij1 = (dxmj/n.dx) * (1.0-dymi/n.dy)
+        wtmi1j1 = (dxmj/n.dx) * (dymi/n.dy)
+    end
+    return i, j, @SVector[wtmij, wtmi1j, wtmij1, wtmi1j1]
 end
 
 
 """
 Interpolate marker properties to basic nodes.
 
-$(SIGMATURES)
+$(SIGNATURES)
 
 # Details
 
@@ -1886,10 +1911,101 @@ $(SIGMATURES)
 
     -nothing
 """
-function interpolate_basic_nodes!(
-    m::Int64, markers::MarkerArrays, ia::InterpArrays)
-    @unpack ETA0SUM, ETASUM, GGGSUM, SXYSUM, COHSUM, TENSUM, FRISUM, WTSUM = ia
+# function interpolate_basic_nodes!(
+#     m::Int64, mrk::MarkerArrays, ia::InterpolationArrays)
+#     @unpack ETA0SUM, ETASUM, GGGSUM, SXYSUM, COHSUM, TENSUM, FRISUM, WTSUM = ia
+#     # find nearest top/left grid indices
+#     # calculate bilinear weights
+#     i, j, weights = bilinear_weights(mrk.xm[m], mrk.ym[m], basicnodes)
+#     # update basic node properties
+#     # i, j node
+#     ETA0SUM[threadid()][i, j] += mrk.etatotalm[m] * weights[1]
+#     ETASUM[threadid()][i, j] += mrk.etavpm[m] * weights[1]
+#     GGGSUM[threadid()][i, j] += inv(mrk.gggtotalm[m]) * weights[1]
+#     SXYSUM[threadid()][i, j] += mrk.sxym[m] * weights[1]
+#     COHSUM[threadid()][i, j] += mrk.cohestotalm[m] * weights[1]
+#     TENSUM[threadid()][i, j] += mrk.tenstotalm[m] * weights[1]
+#     FRISUM[threadid()][i, j] += mrk.fricttotalm[m] * weights[1]
+#     WTSUM[threadid()][i, j] += weights[1]
+#     # i+1, j node
+#     ETA0SUM[threadid()][i+1, j] += mrk.etatotalm[m] * weights[2]
+#     ETASUM[threadid()][i+1, j] += mrk.etavpm[m] * weights[2]
+#     GGGSUM[threadid()][i+1, j] += inv(mrk.gggtotalm[m]) * weights[2]
+#     SXYSUM[threadid()][i+1, j] += mrk.sxym[m] * weights[2]
+#     COHSUM[threadid()][i+1, j] += mrk.cohestotalm[m] * weights[2]
+#     TENSUM[threadid()][i+1, j] += mrk.tenstotalm[m] * weights[2]
+#     FRISUM[threadid()][i+1, j] += mrk.fricttotalm[m] * weights[2]
+#     WTSUM[threadid()][i+1, j] += weights[2]
+#     # i, j+1 node
+#     ETA0SUM[threadid()][i, j+1] += mrk.etatotalm[m] * weights[3]
+#     ETASUM[threadid()][i, j+1] += mrk.etavpm[m] * weights[3]
+#     GGGSUM[threadid()][i, j+1] += inv(mrk.gggtotalm[m]) * weights[3]
+#     SXYSUM[threadid()][i, j+1] += mrk.sxym[m] * weights[3]
+#     COHSUM[threadid()][i, j+1] += mrk.cohestotalm[m] * weights[3]
+#     TENSUM[threadid()][i, j+1] += mrk.tenstotalm[m] * weights[3]
+#     FRISUM[threadid()][i, j+1] += mrk.fricttotalm[m] * weights[3]
+#     WTSUM[threadid()][i, j+1] += weights[3]
+#     # i+1, j+1 node
+#     ETA0SUM[threadid()][i+1, j+1] += mrk.etatotalm[m] * weights[4]
+#     ETASUM[threadid()][i+1, j+1] += mrk.etavpm[m] * weights[4]
+#     GGGSUM[threadid()][i+1, j+1] += inv(mrk.gggtotalm[m]) * weights[4]
+#     SXYSUM[threadid()][i+1, j+1] += mrk.sxym[m] * weights[4]
+#     COHSUM[threadid()][i+1, j+1] += mrk.cohestotalm[m] * weights[4]
+#     TENSUM[threadid()][i+1, j+1] += mrk.tenstotalm[m] * weights[4]
+#     FRISUM[threadid()][i+1, j+1] += mrk.fricttotalm[m] * weights[4]
+#     WTSUM[threadid()][i+1, j+1] += weights[4]
+# end
 
+
+function interpolate_basic_nodes!(
+    m::Int64, mrk::MarkerArrays, ia::InterpolationArrays)
+    @unpack ETA0SUM, ETASUM, GGGSUM, SXYSUM, COHSUM, TENSUM, FRISUM, WTSUM = ia
+    # find nearest top/left grid indices
+    # calculate bilinear weights
+    i, j, weights = bilinear_weights(mrk.xm[m], mrk.ym[m], basicnodes)
+    # update basic node properties
+    # i, j node
+    @inbounds begin
+        ETA0SUM[threadid()][i, j] += mrk.etatotalm[m] * weights[1]
+        ETA0SUM[threadid()][i+1, j] += mrk.etatotalm[m] * weights[2]
+        ETA0SUM[threadid()][i, j+1] += mrk.etatotalm[m] * weights[3]
+        ETA0SUM[threadid()][i+1, j+1] += mrk.etatotalm[m] * weights[4]
+
+        ETASUM[threadid()][i, j] += mrk.etavpm[m] * weights[1]
+        ETASUM[threadid()][i+1, j] += mrk.etavpm[m] * weights[2]
+        ETASUM[threadid()][i, j+1] += mrk.etavpm[m] * weights[3]
+        ETASUM[threadid()][i+1, j+1] += mrk.etavpm[m] * weights[4]
+
+        GGGSUM[threadid()][i, j] += inv(mrk.gggtotalm[m]) * weights[1]
+        GGGSUM[threadid()][i+1, j] += inv(mrk.gggtotalm[m]) * weights[2]
+        GGGSUM[threadid()][i, j+1] += inv(mrk.gggtotalm[m]) * weights[3]
+        GGGSUM[threadid()][i+1, j+1] += inv(mrk.gggtotalm[m]) * weights[4]
+
+        SXYSUM[threadid()][i, j] += mrk.sxym[m] * weights[1]
+        SXYSUM[threadid()][i+1, j] += mrk.sxym[m] * weights[2]
+        SXYSUM[threadid()][i, j+1] += mrk.sxym[m] * weights[3]
+        SXYSUM[threadid()][i+1, j+1] += mrk.sxym[m] * weights[4]
+
+        COHSUM[threadid()][i, j] += mrk.cohestotalm[m] * weights[1]
+        COHSUM[threadid()][i+1, j] += mrk.cohestotalm[m] * weights[2]
+        COHSUM[threadid()][i, j+1] += mrk.cohestotalm[m] * weights[3]
+        COHSUM[threadid()][i+1, j+1] += mrk.cohestotalm[m] * weights[4]
+
+        TENSUM[threadid()][i, j] += mrk.tenstotalm[m] * weights[1]
+        TENSUM[threadid()][i+1, j] += mrk.tenstotalm[m] * weights[2]
+        TENSUM[threadid()][i, j+1] += mrk.tenstotalm[m] * weights[3]
+        TENSUM[threadid()][i+1, j+1] += mrk.tenstotalm[m] * weights[4]
+
+        FRISUM[threadid()][i, j] += mrk.fricttotalm[m] * weights[1]
+        FRISUM[threadid()][i+1, j] += mrk.fricttotalm[m] * weights[2]
+        FRISUM[threadid()][i, j+1] += mrk.fricttotalm[m] * weights[3]
+        FRISUM[threadid()][i+1, j+1] += mrk.fricttotalm[m] * weights[4]
+
+        WTSUM[threadid()][i, j] += weights[1]
+        WTSUM[threadid()][i+1, j] += weights[2]
+        WTSUM[threadid()][i, j+1] += weights[3]
+        WTSUM[threadid()][i+1, j+1] += weights[4]
+    end
 end
 
 
@@ -1919,12 +2035,12 @@ end # timeit "unpack"
 
 @timeit to "setup interp_arrays" begin
     # set up marker interpolation arrays
-    interp_arrays = InterpArrays(Nx, Ny, Nx1, Ny1)
+    interp_arrays = InterpolationArrays(sp)
 end # timeit "setup interp_arrays"
 
 @timeit to "timestepping loop" begin
     # iterate timesteps   
-    for timestep = startstep:1:1000
+    for timestep = startstep:1:200
     # for timestep = startstep:1:nsteps
         # set interpolation arrays to zero for this timestep
         @timeit to "reset interp_arrays" reset_interpolation_arrays!(interp_arrays)        
@@ -1939,129 +2055,129 @@ end # timeit "setup interp_arrays"
             compute_dynamic_marker_params!(m, markers, sp, dp)
 
             # interpolate marker properties to basic nodes
-            interpolate_basic_nodes!(m, markers, sp, dp, interp_arrays)
+            interpolate_basic_nodes!(m, markers, interp_arrays)
 
-            # interpolate marker properties to Vx nodes
-            interpolate_vx_nodes!(m, markers, sp, dp, interp_arrays)
+            # # interpolate marker properties to Vx nodes
+            # interpolate_vx_nodes!(m, markers, sp, dp, interp_arrays)
 
-            # interpolate marker properties to Vy nodes
-            interpolate_vy_nodes!(m, markers, sp, dp, interp_arrays)
+            # # interpolate marker properties to Vy nodes
+            # interpolate_vy_nodes!(m, markers, sp, dp, interp_arrays)
 
-            # interpolate marker properties to P nodes
-            interpolate_p_nodes!(m, markers, sp, dp, interp_arrays)
+            # # interpolate marker properties to P nodes
+            # interpolate_p_nodes!(m, markers, sp, dp, interp_arrays)
 
         end
 # end # timeit " compute marker properties"
 
-        # compute physical properties of basic nodes
-        compute_properties_basic_nodes!(sp, dp, interp_arrays)
+        # # compute physical properties of basic nodes
+        # compute_properties_basic_nodes!(sp, dp, interp_arrays)
 
-        # compute physical properties of Vx nodes
-        compute_properties_vx_nodes!(sp, dp, interp_arrays)
+        # # compute physical properties of Vx nodes
+        # compute_properties_vx_nodes!(sp, dp, interp_arrays)
 
-        # compute physical properties of Vy nodes
-        compute_properties_vy_nodes!(sp, dp, interp_arrays)
+        # # compute physical properties of Vy nodes
+        # compute_properties_vy_nodes!(sp, dp, interp_arrays)
 
-        # compute physical properties of P nodes
-        compute_properties_p_nodes!(sp, dp, interp_arrays)
+        # # compute physical properties of P nodes
+        # compute_properties_p_nodes!(sp, dp, interp_arrays)
 
-        # applying thermal boundary conditions for interpolated temperature
-        apply_thermal_bc(sp, dp, tk1)
+        # # applying thermal boundary conditions for interpolated temperature
+        # apply_thermal_bc(sp, dp, tk1)
 
-        # compute gravity solution
-        compute_gravity_solution!(sp, dp, interp_arrays)
+        # # compute gravity solution
+        # compute_gravity_solution!(sp, dp, interp_arrays)
 
-        # compute gravitational acceleration
-        compute_grav_accel!(sp, dp, interp_arrays)
+        # # compute gravitational acceleration
+        # compute_grav_accel!(sp, dp, interp_arrays)
 
-        # probe increasing computational timestep
-        dt = min(dt*dtkoefup, dtelastic)
+        # # probe increasing computational timestep
+        # dt = min(dt*dtkoefup, dtelastic)
 
-        # perform plastic iterations
-        for iplast = 1:1:nplast
-            # ~600 lines MATLAB
-        end
+        # # perform plastic iterations
+        # for iplast = 1:1:nplast
+        #     # ~600 lines MATLAB
+        # end
 
-        # interpolate updated viscoplastic viscosity to markers
-        for m = 1:1:marknum
-            # ~50 lines MATLAB 
-        end
+        # # interpolate updated viscoplastic viscosity to markers
+        # for m = 1:1:marknum
+        #     # ~50 lines MATLAB 
+        # end
 
-        # apply subgrid stress diffusion to markers
-        for m = 1:1:marknum
-            # ~100 lines MATLAB 
-        end
+        # # apply subgrid stress diffusion to markers
+        # for m = 1:1:marknum
+        #     # ~100 lines MATLAB 
+        # end
 
-        # compute DSXXsubgrid, DSXYsubgrid
-        compute_dsxx_dsxy_subgrids!(sp, dp, interp_arrays)
+        # # compute DSXXsubgrid, DSXYsubgrid
+        # compute_dsxx_dsxy_subgrids!(sp, dp, interp_arrays)
 
-        # interpolate DSXX, DSXY to markers
-        for m = 1:1:marknum
-            # ~50 lines MATLAB 
-        end
+        # # interpolate DSXX, DSXY to markers
+        # for m = 1:1:marknum
+        #     # ~50 lines MATLAB 
+        # end
 
-        # compute shear heating HS in P nodes
-        compute_HS_p_nodes!(sp, dp, interp_arrays)
+        # # compute shear heating HS in P nodes
+        # compute_HS_p_nodes!(sp, dp, interp_arrays)
 
-        # compute adiabatic heating HA in P nodes
-        compute_HA_p_nodes!(sp, dp, interp_arrays)
+        # # compute adiabatic heating HA in P nodes
+        # compute_HA_p_nodes!(sp, dp, interp_arrays)
 
-        # perform thermal iterations
-        # ~100 lines MATLAB
+        # # perform thermal iterations
+        # # ~100 lines MATLAB
 
-        # apply subgrid temperature diffusion on markers
-        for m = 1:1:marknum
-            # ~50 lines MATLAB
-        end
+        # # apply subgrid temperature diffusion on markers
+        # for m = 1:1:marknum
+        #     # ~50 lines MATLAB
+        # end
 
-        # compute DTsubgrid
-        compute_DT_subgrid!(sp, dp, interp_arrays)
+        # # compute DTsubgrid
+        # compute_DT_subgrid!(sp, dp, interp_arrays)
 
-        # interpolate DT to markers
-        for m = 1:1:marknum
-            # ~30 lines MATLAB
-        end
+        # # interpolate DT to markers
+        # for m = 1:1:marknum
+        #     # ~30 lines MATLAB
+        # end
 
-        # update porosity on markers
-        for m = 1:1:marknum
-            # ~30 lines MATLAB
-        end
+        # # update porosity on markers
+        # for m = 1:1:marknum
+        #     # ~30 lines MATLAB
+        # end
 
-        # compute fluid velocity in P nodes including boundary conditions
-        compute_v_fluid_p_nodes(sp, dp, interp_arrays)
+        # # compute fluid velocity in P nodes including boundary conditions
+        # compute_v_fluid_p_nodes(sp, dp, interp_arrays)
 
-        # compute velocity in P nodes
-        compute_v_p_nodes!(sp, dp, interp_arrays)
+        # # compute velocity in P nodes
+        # compute_v_p_nodes!(sp, dp, interp_arrays)
 
-        # compute rotation rate in basic nodes
-        compute_ω_basic_nodes!(sp, dp, interp_arrays)
+        # # compute rotation rate in basic nodes
+        # compute_ω_basic_nodes!(sp, dp, interp_arrays)
 
-        # move markers with RK4
-        for m = 1:1:marknum
-            # ~300 lines MATLAB
-        end
+        # # move markers with RK4
+        # for m = 1:1:marknum
+        #     # ~300 lines MATLAB
+        # end
 
-        # backtrack P nodes: Ptotal with RK4
+        # # backtrack P nodes: Ptotal with RK4
 
-        # backtrack P nodes: Pfluid with RK1/2/3
+        # # backtrack P nodes: Pfluid with RK1/2/3
 
-        # replenish sparse areas with additional markers
-        for m = 1:1:marknum
-            # ~100 lines MATLAB
-        end
+        # # replenish sparse areas with additional markers
+        # for m = 1:1:marknum
+        #     # ~100 lines MATLAB
+        # end
 
-        # update timesum
+        # # update timesum
 
-        # save data for analysis and visualization
-
-
+        # # save data for analysis and visualization
 
 
 
 
-        # save old stresses - RMK: not used anywhere in code
-        # sxxm00 = sxxm 
-        # sxym00 = sxym    
+
+
+        # # save old stresses - RMK: not used anywhere in code
+        # # sxxm00 = sxxm 
+        # # sxym00 = sxym    
 
         if timestep % 100 == 0
             println("timestep: ", timestep)
