@@ -17,34 +17,72 @@ constant throughout the simulation.
 $(TYPEDFIELDS)
 """
 @with_kw struct StaticParameters
-    # Radioactive switches
+    # radioactive switches
     "radioactive heating from 26Al active"
     hr_al::Bool = true
     "radioactive heating from 60Fe active"	
     hr_fe::Bool = true
-    # Model size and resolution
+    # model size, geometry, and resolution
     "horizontal model size [m]"
     xsize::Int64 = 140000
     "vertical model size [m]"
     ysize::Int64 = 140000
-    "horizontal grid resolution"
+    "basic grid resolution in x direction (horizontal)"
     Nx::Int
-    "vertical grid resolution"	
+    "basic grid resolution in y direction (vertical)"	
     Ny::Int
+    "Vx, Vy, P grid resolution in x direction (horizontal)"
     Nx1::Int64 = Nx + 1
+    "Vx/Vy/P grid resolution in y direction (vertical)"
     Ny1::Int64 = Ny + 1
     "horizontal grid step [m]"
     dx::Float64 = xsize / (Nx-1)
     "vertical grid step [m]"
     dy::Float64 = ysize / (Ny-1)
-    # Planetary parameters
+    # basic grid min/max assignables indices
+    "minimum assignable basic grid index in x direction"
+    jmin_basic::Int64 = 1
+    "minimum assignable basic grid index in y direction"
+    imin_basic::Int64 = 1
+    "maximum assignable basic grid index in x direction"
+    jmax_basic::Int64 = Nx - 1
+    "maximum assignable basic grid index in y direction"
+    imax_basic::Int64 = Ny - 1
+    # Vx grid min/max assignables indices
+    "minimum assignable Vx grid index in x direction"
+    jmin_vx::Int64 = 1
+    "minimum assignable Vx grid index in y direction"
+    imin_vx::Int64 = 1
+    "maximum assignable Vx grid index in x direction"
+    jmax_vx::Int64 = Nx - 1
+    "maximum assignable Vx grid index in y direction"
+    imax_vx::Int64 = Ny
+    # Vy grid min/max assignables indices
+    "minimum assignable Vy grid index in x direction"
+    jmin_vy::Int64 = 1
+    "minimum assignable Vy grid index in y direction"
+    imin_vy::Int64 = 1
+    "maximum assignable Vy grid index in x direction"
+    jmax_vy::Int64 = Nx
+    "maximum assignable Vy grid index in y direction"
+    imax_vy::Int64 = Ny - 1
+    # P grid min/max assignables indices
+    "minimum assignable P grid index in x direction"
+    jmin_p::Int64 = 1
+    "minimum assignable P grid index in y direction"
+    imin_p::Int64 = 1
+    "maximum assignable P grid index in x direction"
+    jmax_p::Int64 = Nx
+    "maximum assignable P grid index in y direction"
+    imax_p::Int64 = Ny
+    # planetary parameters
     "planetary radius [m]"
     rplanet::Int64 = 50000
     "crust radius [m]"
     rcrust::Int64 = 48000
     "surface pressure [Pa]"
     psurface::Float64 = 1e+3
-    # Markers
+    # marker count and initial spacing
     "number of markers per cell in horizontal direction"
     Nxmc::Int
     "number of markers per cell in vertical direction"
@@ -59,12 +97,12 @@ $(TYPEDFIELDS)
     dym::Float64 = ysize / Nym
     "number of markers at start"
     startmarknum::Int64 = Nxm * Nym
-    # Physical constants
+    # physical constants
     "gravitational constant [m^3*kg^-1*s^-2]"
     G::Float64 = 6.672e-11
     "scaled pressure"    
     pscale::Float64 = 1e+23 / dx
-    # Materials properties:         Planet      Crust       Space
+    # materials properties:              planet      crust       space
     "solid Density [kg/m^3]"
     rhosolidm::SVector{3, Float64}   = [ 3300.0    , 3300.0    ,    1.0    ]
     "fluid density [kg/m^3]"	
@@ -127,19 +165,19 @@ $(TYPEDFIELDS)
     E_fe::Float64 = 4.34e-13
     "60Fe atoms/kg"	
     f_fe::Float64 = 1.957e24
-    # Melting temperatures
+    # melting temperatures
     "silicate melting temperature [K]"
     tmsilicate::Float64 = 1e+6
     "iron melting temperature [K]"
     tmiron::Float64 = 1273 
-    # Porosities
+    # porosities
     "standard Fe fraction [porosity]"
     phim0::Float64 = 0.2
     "min porosity"	
     phimin::Float64 = 1e-4
     "max porosity"
     phimax::Float64 = 1 - phimin            
-    # Mechanical boundary conditions: free slip=-1 / no slip=1
+    # mechanical boundary conditions: free slip=-1 / no slip=1
     "mechanical boundary condition left"
     bcleft::Float64 = -1
     "mechanical boundary condition right"
@@ -148,7 +186,7 @@ $(TYPEDFIELDS)
     bctop::Float64 = -1
     "mechanical boundary condition bottom"
     bcbottom::Float64 = -1
-    # Hydraulic boundary conditions: free slip=-1 / no slip=1
+    # hydraulic boundary conditions: free slip=-1 / no slip=1
     "hydraulic boundary condition left"
     bcfleft::Float64 = -1
     "hydraulic boundary condition right"
@@ -157,7 +195,7 @@ $(TYPEDFIELDS)
     bcftop::Float64 = -1
     "hydraulic boundary condition bottom"
     bcfbottom::Float64 = -1
-    # Extension/shortening velocities
+    # extension/shortening velocities
     "shortening strain rate"
     strainrate::Float64 = 0e-13
     "x extension/shortening velocity left"
@@ -215,7 +253,7 @@ $(TYPEDFIELDS)
     dphimax::Float64 = 0.01
     "starting timestep"
     startstep::Int64 = 1
-    "number of timesteps"
+    "number of timesteps to run"
     nsteps::Int64 = 30000 
 end
 
@@ -280,6 +318,14 @@ $(TYPEDFIELDS)
     dx::Float64
     "dy: basic grid spacing in y direction [m]"
     dy::Float64
+    "minimum assignable basic grid index in x direction"
+    jmin::Int64
+    "minimum assignable basic grid index in y direction"
+    imin::Int64
+    "maximum assignable basic grid index in x direction"
+    jmax::Int64
+    "maximum assignable basic grid index in y direction"
+    imax::Int64
     # physical node properties
     "viscoplastic viscosity, Pa*s"
     ETA::Array{Float64}
@@ -310,6 +356,10 @@ $(TYPEDFIELDS)
         sp.Ny,
         sp.dx,
         sp.dy,
+        sp.jmin_basic,
+        sp.imin_basic,
+        sp.jmax_basic,
+        sp.imax_basic,
         zeros(sp.Ny,sp.Nx),
         zeros(sp.Ny,sp.Nx),
         zeros(sp.Ny,sp.Nx),
@@ -343,6 +393,14 @@ $(TYPEDFIELDS)
     dx::Float64
     "dy: Vx grid spacing in y direction [m]"
     dy::Float64
+    "minimum assignable Vx grid index in x direction"
+    jmin::Int64
+    "minimum assignable Vx grid index in y direction"
+    imin::Int64
+    "maximum assignable Vx grid index in x direction"
+    jmax::Int64
+    "maximum assignable Vx grid index in y direction"
+    imax::Int64
     # physical node properties
     "density [kg/m^3]"
     RHOX::Array{Float64}
@@ -370,6 +428,10 @@ $(TYPEDFIELDS)
         sp.Ny1,
         sp.dx,
         sp.dy,
+        sp.jmin_vx,
+        sp.imin_vx,
+        sp.jmax_vx,
+        sp.imax_vx,
         zeros(sp.Ny1, sp.Nx1),
         zeros(sp.Ny1, sp.Nx1),
         zeros(sp.Ny1, sp.Nx1),
@@ -402,6 +464,14 @@ $(TYPEDFIELDS)
     dx::Float64
     "dy: Vy grid spacing in y direction [m]"
     dy::Float64
+    "minimum assignable Vy grid index in x direction"
+    jmin::Int64
+    "minimum assignable Vy grid index in y direction"
+    imin::Int64
+    "maximum assignable Vy grid index in x direction"
+    jmax::Int64
+    "maximum assignable Vy grid index in y direction"
+    imax::Int64
     # physical node properties
     "density [kg/m^3]"
     RHOY::Array{Float64}
@@ -429,6 +499,10 @@ $(TYPEDFIELDS)
         sp.Ny1,
         sp.dx,
         sp.dy,
+        sp.jmin_vy,
+        sp.imin_vy,
+        sp.jmax_vy,
+        sp.imax_vy,
         zeros(sp.Ny1, sp.Nx1),
         zeros(sp.Ny1, sp.Nx1),
         zeros(sp.Ny1, sp.Nx1),
@@ -461,6 +535,14 @@ $(TYPEDFIELDS)
     dx::Float64
     "dy: P grid spacing in y direction [m]"
     dy::Float64
+    "minimum assignable P grid index in x direction"
+    jmin::Int64
+    "minimum assignable P grid index in y direction"
+    imin::Int64
+    "maximum assignable P grid index in x direction"
+    jmax::Int64
+    "maximum assignable P grid index in y direction"
+    imax::Int64
     # physical node properties
     "density [kg/m^3]"
     RHO::Array{Float64}
@@ -527,7 +609,11 @@ $(TYPEDFIELDS)
         sp.Nx1,
         sp.Ny1,
         sp.dx,
-        sp.dy,        
+        sp.dy,
+        sp.jmin_p,
+        sp.imin_p,
+        sp.jmax_p,
+        sp.imax_p,    
         zeros(sp.Ny1, sp.Nx1),
         zeros(sp.Ny1, sp.Nx1),
         zeros(sp.Ny1, sp.Nx1),
@@ -875,7 +961,7 @@ $(TYPEDFIELDS)
     "Marker porosity"
     phim::Vector{Float64}
     # fixed marker properties used during timestepping calculations
-    # N/A: omitted - reconsider?
+    # RMK: omitted, as only used once - reconsider?
     # marker properties calculated during timestepping
     "kphim"
     kphim::Vector{Float64}
@@ -933,7 +1019,7 @@ to interpolate properties from markers to nodes
 
 $(TYPEDFIELDS)
 """
-@with_kw struct InterpArrays
+@with_kw struct InterpolationArrays
     # basic nodes
     "basic nodes: ETA0SUM"
     ETA0SUM::Tuple
@@ -1334,8 +1420,7 @@ end
 
 
 """
-Compute static marker properties.
-Runs once during initialization.
+Compute static marker properties.  Runs once during initialization.
 
 $(SIGNATURES)
 
@@ -1608,8 +1693,8 @@ $(SIGNATURES)
 
     - nothing
 """
-function reset_interpolation_arrays!(interp_arrays::InterpArrays)
-    @unpack_InterpArrays interp_arrays
+function reset_interpolation_arrays!(ia::InterpolationArrays)
+    @unpack_InterpArrays ia
     # for threadid = 1:1:nthreads()
     @threads for threadid = 1:1:nthreads() # multithreading faster but allocs
         # basic nodes
@@ -1763,15 +1848,26 @@ Compute bilinear interpolation weigths to nearest four grid nodes for given
     - y_ref_axis: y-grid reference axis array [m]
 
 # Returns
-    - weights: vector of 4 bilinear interpolation weights to nearest four
-        grid nodes: [wtmij  : i  , j   node,
-                     wtmi1j : i+1, j   node,
-                     wtmij1 : i  , j+1 node,
-                     wtmi1j1: i+1, j+1 node]
+    - bilinear_weights: vector of 4 bilinear interpolation weights to
+      nearest four grid nodes:
+       [wtmij  : i  , j   node,
+        wtmi1j : i+1, j   node,
+        wtmij1 : i  , j+1 node,
+        wtmi1j1: i+1, j+1 node]
 """
-function weights(x::Float64, y::Float64, nodes::Nodes)
-
-
+function bilinear_weights(x::Float64, y::Float64, nodes::Nodes)
+    # find nearest four grid nodes
+    i = fix(x, nodes.x, nodes.dx)
+    j = fix(y, nodes.y, nodes.dy)
+    # compute distances
+    dxmj = dist(x, nodes.x, i)
+    dymi = dist(y, nodes.y, j)
+    # compute bilinear interpolation weights
+    wtmij = (1.0-dxmj/nodes.dx) * (1.0-dymi/nodes.dy)
+    wtmi1j = (1.0-dxmj/nodes.dx) * (dymi/nodes.dy)    
+    wtmij1 = (dxmj/nodes.dx) * (1.0-dymi/nodes.dy)
+    wtmi1j1 = (dxmj/nodes.dx) * (dymi/nodes.dy)
+    return @SVector [wtmij, wtmi1j, wtmij1, wtmi1j1]
 end
 
 
