@@ -1494,7 +1494,7 @@ initmarkers!(markers, static_parameters, dynamic_parameters)
 
 
 """
-Find upper/left grid index for given position and grid reference axis
+Find upper/left grid node index for given position and grid reference axis
 and grid axis mesh width.
 
 $(SIGNATURES)
@@ -1516,6 +1516,47 @@ function fix(
 end
 
 
+"""
+Compute distance between given position and grid reference axis node index.
+
+$(SIGNATURES)
+
+# Detail
+
+    - position: input position [m]
+    - reference_axis: grid reference axis array [m]
+    - axis_node_index: grid axis node index
+
+# Returns
+
+    - dist: distance between position and grid reference axis node index [m]
+"""
+function dist(
+    position::Float64, reference_axis::Array{Float64}, axis_node_index::Int64)
+    return position - reference_axis[axis_node_index]
+end
+
+
+"""
+Interpolate marker properties to basic nodes.
+
+$(SIGMATURES)
+
+# Details
+
+    - m: index of marker whose properties are to be interpolated to nodes
+    - markers: arrays containing all marker properties
+
+
+# Returns
+
+    -nothing
+"""
+function interpolate_basic_nodes!(
+    m::Int64, markers::MarkerArrays, ia::InterpArrays)
+    @unpack ETA0SUM, ETASUM, GGGSUM, SXYSUM, COHSUM, TENSUM, FRISUM, WTSUM = ia
+
+end
 
 
 """
