@@ -262,13 +262,12 @@ abstract type Nodes end
 
 
 """
-Basic node coordinates
+Basic nodes grid geometry and physical properties.
 
 $(TYPEDFIELDS)
 """
 @with_kw struct BasicNodes <: Nodes
-# Base.@kwdef struct BasicNodes
-    # geometric layout
+    # grid geometry
     "x: horizontal coordinates of basic grid points [m]"
     x::Array{Float64}
     "y: vertical coordinates of basic grid points [m]"
@@ -326,25 +325,61 @@ end
 
 
 """
-Vx node coordinates
+Vx nodes grid geometry and physical properties.
 
 $(TYPEDFIELDS)
 """
-@with_kw struct VxNodes
-# Base.@kwdef struct VxNodes
-    "horizontal coordinates of vx grid points [m]"
-    xvx::Array{Float64}
-    "vertical coordinates of vx grid points [m]"
-    yvx::Array{Float64}
+@with_kw struct VxNodes <: Nodes
+    # grid geometry
+    "xvx: horizontal coordinates of vx grid points [m]"
+    x::Array{Float64}
+    "yvx: vertical coordinates of vx grid points [m]"
+    y::Array{Float64}
+    "Nx: number of grid points in x direction"
+    num_x::Int64
+    "Ny: number of grid points in y direction"
+    num_y::Int64
+    "dx: grid spacing in x direction [m]"
+    dx::Float64
+    "dy: grid spacing in y direction [m]"
+    dy::Float64
+    # physical node properties
+    "density [kg/m^3]"
+    RHOX::Array{Float64}
+    "fluid density [kg/m^3]"
+    RHOFX::Array{Float64}
+    "thermal conductivity [W/m/K]"
+    KX::Array{Float64}
+    "porosity"
+    PHIX::Array{Float64}
+    "solid vx-velocity [m/s]"
+    vx::Array{Float64}
+    "fluid vx-velocity [m/s]"
+    vxf::Array{Float64}
+    "etafluid/kphi ratio [m^2]"
+    RX::Array{Float64}
+    "qx-darcy flux [m/s]"
+    qxD::Array{Float64}
+    "gx-gravity [m/s^2]"
+    gx::Array{Float64}
     "inner constructor"
-    VxNodes(xsize, ysize, dx, dy) = new(
-        collect(0:dx:xsize+dy),
-        collect(-dy/2:dy:ysize+dy/2)
-        )
     VxNodes(sp::StaticParameters) = new(
         collect(0:sp.dx:sp.xsize+sp.dy),
-        collect(-sp.dy/2:sp.dy:sp.ysize+sp.dy/2)
-        )
+        collect(-sp.dy/2:sp.dy:sp.ysize+sp.dy/2),
+        sp.Nx,
+        sp.Ny,
+        sp.dx,
+        sp.dy,
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1),
+        zeros(sp.Ny1, sp.Nx1)
+     )
 end
 
 
@@ -451,55 +486,55 @@ end
 # end
 
 
-"""
-Vx node properties
+# """
+# Vx node properties
 
-$(TYPEDFIELDS)
-"""
-@with_kw struct VxNodalArrays
-# Base.@kwdef mutable struct VxNodalArrays
-    "density [kg/m^3]"
-    rhox::Array{Float64}
-    "fluid density [kg/m^3]"
-    rhofx::Array{Float64}
-    "thermal conductivity [W/m/K]"
-    kx::Array{Float64}
-    "porosity"
-    phix::Array{Float64}
-    "solid vx-velocity [m/s]"
-    vx::Array{Float64}
-    "fluid vx-velocity [m/s]"
-    vxf::Array{Float64}
-    "etafluid/kphi ratio [m^2]"
-    rx::Array{Float64}
-    "qx-darcy flux [m/s]"
-    qxD::Array{Float64}
-    "gx-gravity [m/s^2]"
-    gx::Array{Float64}
-    "inner constructor"
-    NodalArrays(Nx1, Ny1) = new(
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1),
-        zeros(Ny1,Nx1)
-        )
-    NodalArrays(sp::StaticParameters) = new(
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1)
-     )
-end
+# $(TYPEDFIELDS)
+# """
+# @with_kw struct VxNodalArrays
+# # Base.@kwdef mutable struct VxNodalArrays
+#     "density [kg/m^3]"
+#     rhox::Array{Float64}
+#     "fluid density [kg/m^3]"
+#     rhofx::Array{Float64}
+#     "thermal conductivity [W/m/K]"
+#     kx::Array{Float64}
+#     "porosity"
+#     phix::Array{Float64}
+#     "solid vx-velocity [m/s]"
+#     vx::Array{Float64}
+#     "fluid vx-velocity [m/s]"
+#     vxf::Array{Float64}
+#     "etafluid/kphi ratio [m^2]"
+#     rx::Array{Float64}
+#     "qx-darcy flux [m/s]"
+#     qxD::Array{Float64}
+#     "gx-gravity [m/s^2]"
+#     gx::Array{Float64}
+#     "inner constructor"
+#     NodalArrays(Nx1, Ny1) = new(
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1),
+#         zeros(Ny1,Nx1)
+#         )
+#     NodalArrays(sp::StaticParameters) = new(
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1)
+#      )
+# end
 
 
 """
