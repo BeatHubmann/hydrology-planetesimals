@@ -2026,7 +2026,11 @@ $(SIGNATURES)
     -nothing
 """
 function interpolate_basic_nodes!(
-        ij,
+        m,
+        mrk,
+        # ij,
+        i,
+        j,
         weights,
         ETA0SUM,
         ETASUM,
@@ -2037,45 +2041,85 @@ function interpolate_basic_nodes!(
         FRISUM,
         WTSUM
         )
-        ETA0SUM[ij[1]..., threadid()] += mrk.etatotalm[m] * weights[1]
-        ETA0SUM[ij[2]..., threadid()] += mrk.etatotalm[m] * weights[2]
-        ETA0SUM[ij[3]..., threadid()] += mrk.etatotalm[m] * weights[3]
-        ETA0SUM[ij[4]..., threadid()] += mrk.etatotalm[m] * weights[4]
+        ETA0SUM[i, j, threadid()] += mrk.etatotalm[m] * weights[1]
+        ETA0SUM[i+1, j, threadid()] += mrk.etatotalm[m] * weights[2]
+        ETA0SUM[i, j+1, threadid()] += mrk.etatotalm[m] * weights[3]
+        ETA0SUM[i+1, j+1, threadid()] += mrk.etatotalm[m] * weights[4]
 
-        ETASUM[ij[1]..., threadid()] += mrk.etavpm[m] * weights[1]
-        ETASUM[ij[2]..., threadid()] += mrk.etavpm[m] * weights[2]
-        ETASUM[ij[3]..., threadid()] += mrk.etavpm[m] * weights[3]
-        ETASUM[ij[4]..., threadid()] += mrk.etavpm[m] * weights[4]
+        ETASUM[i, j, threadid()] += mrk.etavpm[m] * weights[1]
+        ETASUM[i+1, j, threadid()] += mrk.etavpm[m] * weights[2]
+        ETASUM[i, j+1, threadid()] += mrk.etavpm[m] * weights[3]
+        ETASUM[i+1, j+1, threadid()] += mrk.etavpm[m] * weights[4]
 
-        GGGSUM[ij[1], threadid()] += inv(mrk.gggtotalm[m]) * weights[1]
-        GGGSUM[ij[2], threadid()] += inv(mrk.gggtotalm[m]) * weights[2]
-        GGGSUM[ij[3] threadid()] += inv(mrk.gggtotalm[m]) * weights[3]
-        GGGSUM[ij[4], threadid()] += inv(mrk.gggtotalm[m]) * weights[4]
+        GGGSUM[i, j, threadid()] += inv(mrk.gggtotalm[m]) * weights[1]
+        GGGSUM[i+1, j, threadid()] += inv(mrk.gggtotalm[m]) * weights[2]
+        GGGSUM[i, j+1, threadid()] += inv(mrk.gggtotalm[m]) * weights[3]
+        GGGSUM[i+1, j+1, threadid()] += inv(mrk.gggtotalm[m]) * weights[4]
 
-        SXYSUM[ij[1], threadid()] += mrk.sxym[m] * weights[1]
-        SXYSUM[ij[2], threadid()] += mrk.sxym[m] * weights[2]
-        SXYSUM[ij[3], threadid()] += mrk.sxym[m] * weights[3]
-        SXYSUM[ij[4], threadid()] += mrk.sxym[m] * weights[4]
+        SXYSUM[i, j, threadid()] += mrk.sxym[m] * weights[1]
+        SXYSUM[i+1, j, threadid()] += mrk.sxym[m] * weights[2]
+        SXYSUM[i, j+1, threadid()] += mrk.sxym[m] * weights[3]
+        SXYSUM[i+1, j+1, threadid()] += mrk.sxym[m] * weights[4]
 
-        COHSUM[ij[1], threadid()] += mrk.cohestotalm[m] * weights[1]
-        COHSUM[ij[2], threadid()] += mrk.cohestotalm[m] * weights[2]
-        COHSUM[ij[3], threadid()] += mrk.cohestotalm[m] * weights[3]
-        COHSUM[ij[4], threadid()] += mrk.cohestotalm[m] * weights[4]
+        COHSUM[i, j, threadid()] += mrk.cohestotalm[m] * weights[1]
+        COHSUM[i+1, j, threadid()] += mrk.cohestotalm[m] * weights[2]
+        COHSUM[i, j+1, threadid()] += mrk.cohestotalm[m] * weights[3]
+        COHSUM[i+1, j+1, threadid()] += mrk.cohestotalm[m] * weights[4]
 
-        TENSUM[ij[1], threadid()] += mrk.tenstotalm[m] * weights[1]
-        TENSUM[ij[2], threadid()] += mrk.tenstotalm[m] * weights[2]
-        TENSUM[ij[3], threadid()] += mrk.tenstotalm[m] * weights[3]
-        TENSUM[ij[4], threadid()] += mrk.tenstotalm[m] * weights[4]
+        TENSUM[i, j, threadid()] += mrk.tenstotalm[m] * weights[1]
+        TENSUM[i+1, j, threadid()] += mrk.tenstotalm[m] * weights[2]
+        TENSUM[i, j+1, threadid()] += mrk.tenstotalm[m] * weights[3]
+        TENSUM[i+1, j+1, threadid()] += mrk.tenstotalm[m] * weights[4]
 
-        FRISUM[ij[1], threadid()] += mrk.fricttotalm[m] * weights[1]
-        FRISUM[ij[2], threadid()] += mrk.fricttotalm[m] * weights[2]
-        FRISUM[ij[3], threadid()] += mrk.fricttotalm[m] * weights[3]
-        FRISUM[ij[4], threadid()] += mrk.fricttotalm[m] * weights[4]
+        FRISUM[i, j, threadid()] += mrk.fricttotalm[m] * weights[1]
+        FRISUM[i+1, j, threadid()] += mrk.fricttotalm[m] * weights[2]
+        FRISUM[i, j+1, threadid()] += mrk.fricttotalm[m] * weights[3]
+        FRISUM[i+1, j+1, threadid()] += mrk.fricttotalm[m] * weights[4]
 
-        WTSUM[ij[1], threadid()] += weights[1]
-        WTSUM[ij[2], threadid()] += weights[2]
-        WTSUM[ij[3], threadid()] += weights[3]
-        WTSUM[ij[4], threadid()] += weights[4]
+        WTSUM[i, j, threadid()] += weights[1]
+        WTSUM[i+1, j, threadid()] += weights[2]
+        WTSUM[i, j+1, threadid()] += weights[3]
+        WTSUM[i+1, j+1, threadid()] += weights[4]
+
+        # ETA0SUM[ij[1]..., threadid()] += mrk.etatotalm[m] * weights[1]
+        # ETA0SUM[ij[2]..., threadid()] += mrk.etatotalm[m] * weights[2]
+        # ETA0SUM[ij[3]..., threadid()] += mrk.etatotalm[m] * weights[3]
+        # ETA0SUM[ij[4]..., threadid()] += mrk.etatotalm[m] * weights[4]
+
+        # ETASUM[ij[1]..., threadid()] += mrk.etavpm[m] * weights[1]
+        # ETASUM[ij[2]..., threadid()] += mrk.etavpm[m] * weights[2]
+        # ETASUM[ij[3]..., threadid()] += mrk.etavpm[m] * weights[3]
+        # ETASUM[ij[4]..., threadid()] += mrk.etavpm[m] * weights[4]
+
+        # GGGSUM[ij[1]..., threadid()] += inv(mrk.gggtotalm[m]) * weights[1]
+        # GGGSUM[ij[2]..., threadid()] += inv(mrk.gggtotalm[m]) * weights[2]
+        # GGGSUM[ij[3]..., threadid()] += inv(mrk.gggtotalm[m]) * weights[3]
+        # GGGSUM[ij[4]..., threadid()] += inv(mrk.gggtotalm[m]) * weights[4]
+
+        # SXYSUM[ij[1]..., threadid()] += mrk.sxym[m] * weights[1]
+        # SXYSUM[ij[2]..., threadid()] += mrk.sxym[m] * weights[2]
+        # SXYSUM[ij[3]..., threadid()] += mrk.sxym[m] * weights[3]
+        # SXYSUM[ij[4]..., threadid()] += mrk.sxym[m] * weights[4]
+
+        # COHSUM[ij[1]..., threadid()] += mrk.cohestotalm[m] * weights[1]
+        # COHSUM[ij[2]..., threadid()] += mrk.cohestotalm[m] * weights[2]
+        # COHSUM[ij[3]..., threadid()] += mrk.cohestotalm[m] * weights[3]
+        # COHSUM[ij[4]..., threadid()] += mrk.cohestotalm[m] * weights[4]
+
+        # TENSUM[ij[1]..., threadid()] += mrk.tenstotalm[m] * weights[1]
+        # TENSUM[ij[2]..., threadid()] += mrk.tenstotalm[m] * weights[2]
+        # TENSUM[ij[3]..., threadid()] += mrk.tenstotalm[m] * weights[3]
+        # TENSUM[ij[4]..., threadid()] += mrk.tenstotalm[m] * weights[4]
+
+        # FRISUM[ij[1]..., threadid()] += mrk.fricttotalm[m] * weights[1]
+        # FRISUM[ij[2]..., threadid()] += mrk.fricttotalm[m] * weights[2]
+        # FRISUM[ij[3]..., threadid()] += mrk.fricttotalm[m] * weights[3]
+        # FRISUM[ij[4]..., threadid()] += mrk.fricttotalm[m] * weights[4]
+
+        # WTSUM[ij[1]..., threadid()] += weights[1]
+        # WTSUM[ij[2]..., threadid()] += weights[2]
+        # WTSUM[ij[3]..., threadid()] += weights[3]
+        # WTSUM[ij[4]..., threadid()] += weights[4]
 end
 
 
@@ -2121,9 +2165,11 @@ function timestepping(
     # basic nodes
     # grid geometry
     # "x: horizontal coordinates of basic grid points [m]"
-    x = @SVector [j for j = 0:dx:xsize]
+    # x = @SVector [j for j = 0:dx:xsize] # should work but doesn't
+    x = SVector{Nx, Float64}([j for j = 0:dx:xsize])
     # "y: vertical coordinates of basic grid points [m]"
-    y = @SVector [i for i = 0:dy:ysize]
+    # y = @SVector [i for i = 0:dy:ysize]
+    y = SVector{Ny, Float64}([j for j = 0:dy:ysize])
     # physical node properties
     # "viscoplastic viscosity, Pa*s"
     ETA = zeros(Float64, Ny, Nx)
@@ -2204,7 +2250,7 @@ function timestepping(
             # compute marker properties 
             compute_dynamic_marker_params!(m, markers, sp, dp)
 
-            ij, weights = fix_weigths(
+            ij, weights = fix_weights(
                 markers.xm[m],
                 markers.ym[m],
                 x,
@@ -2221,6 +2267,7 @@ function timestepping(
             interpolate_basic_nodes!(
                 ij,
                 weights,
+                markers,
                 ETA0SUM,
                 ETASUM,
                 GGGSUM,
