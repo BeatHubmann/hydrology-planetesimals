@@ -326,6 +326,7 @@ WTPSUM=zeros(Ny1,Nx1);
 
 for m=1:1:marknum
 
+   
 
         % Compute marker parameters
     if(tm(m)<3)
@@ -367,7 +368,7 @@ for m=1:1:marknum
         etafluidcur=etafluidm(tm(m));
     end
 
-  
+    tic
     % Interpolation to basic nodes
     % Define i,j indexes for the upper left node
     j=fix((xm(m)-x(1))/dx)+1;
@@ -427,7 +428,8 @@ for m=1:1:marknum
     TENSUM(i+1,j+1)=TENSUM(i+1,j+1)+tenstotalm*wtmi1j1;
     FRISUM(i+1,j+1)=FRISUM(i+1,j+1)+fricttotalm*wtmi1j1;
     WTSUM(i+1,j+1)=WTSUM(i+1,j+1)+wtmi1j1;    
-    
+    disp([num2str(toc * 10^9) ' ns'])
+
     
     % Interpolation to vx-nodes
     % Define i,j indexes for the upper left node
