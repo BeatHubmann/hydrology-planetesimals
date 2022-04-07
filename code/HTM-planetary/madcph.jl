@@ -1840,8 +1840,6 @@ function dist(
     position::Float64, reference_axis::Array{Float64}, axis_node_index::Int64)
     @inbounds return position - reference_axis[axis_node_index]
 end
-
-
 """
 Compute bilinear interpolation weigths to nearest four grid nodes for given
 (x, y) position.
@@ -1890,6 +1888,22 @@ function bilinear_weights(x::Float64, y::Float64, n::Nodes)
     wtmi1j = (1.0-dxmj/n.dx) * (dymi/n.dy)    
     wtmij1 = (dxmj/n.dx) * (1.0-dymi/n.dy)
     wtmi1j1 = (dxmj/n.dx) * (dymi/n.dy)
+    
+    return i, j, @SVector[wtmij, wtmi1j, wtmij1, wtmi1j1]
+end
+
+
+function fix_weigths(x, y, x_axis, y_axis, dx, dy, jmin, jmax, imin, imax)
+    @inbounds j = trunc(Int, (x - x_axis[1]) / dx) + 1
+    @inbounds i = trunc(Int, (y - y_axis[1]) / dy) + 1
+    j = min(max(j, jmin), jmax)
+    i = min(max(i, imin), imax)
+    @inbounds dxmj = x - x_axis[j]
+    @inbounds dymi = y - y_axis[i]
+    wtmij = (1.0-dxmj/dx) * (1.0-dymi/dy)
+    wtmi1j = (1.0-dxmj/dx) * (dymi/dy)    
+    wtmij1 = (dxmj/dx) * (1.0-dymi/dy)
+    wtmi1j1 = (dxmj/dx) * (dymi/dy)
     
     return i, j, @SVector[wtmij, wtmi1j, wtmij1, wtmi1j1]
 end
@@ -2022,7 +2036,13 @@ function interpolate_basic_nodes!(
         FRISUM,
         WTSUM
         )
-        i, j, weights = bilinear_weights(mrk.xm[m], mrk.ym[m], basicnodes)
+        i, j, weights = fix_weights(
+            mrk.xm[m],
+            mrk.ym[m],
+            basicnodes.x,
+            basicnodes.y,
+
+            )
 
         ETA0SUM[i, j, threadid()] += mrk.etatotalm[m] * weights[1]
         ETA0SUM[i+1, j, threadid()] += mrk.etatotalm[m] * weights[2]
