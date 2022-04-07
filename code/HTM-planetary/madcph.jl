@@ -1893,21 +1893,22 @@ function bilinear_weights(x::Float64, y::Float64, n::Nodes)
 end
 
 
-function fix_weigths(x, y, x_axis, y_axis, dx, dy, jmin, jmax, imin, imax)
+function fix_weights(x, y, x_axis, y_axis, dx, dy, jmin, jmax, imin, imax)
     @inbounds j = trunc(Int, (x - x_axis[1]) / dx) + 1
     @inbounds i = trunc(Int, (y - y_axis[1]) / dy) + 1
     j = min(max(j, jmin), jmax)
     i = min(max(i, imin), imax)
+    ij = [SVector(i, j), SVector(i+1, j), SVector(i, j+1), SVector(i+1, j+1)]
     @inbounds dxmj = x - x_axis[j]
     @inbounds dymi = y - y_axis[i]
-    wtmij = (1.0-dxmj/dx) * (1.0-dymi/dy)
-    wtmi1j = (1.0-dxmj/dx) * (dymi/dy)    
-    wtmij1 = (dxmj/dx) * (1.0-dymi/dy)
-    wtmi1j1 = (dxmj/dx) * (dymi/dy)
-    
-    return i, j, @SVector[wtmij, wtmi1j, wtmij1, wtmi1j1]
+    weights = SVector(
+        (1.0-dymi/dy) * (1.0-dxmj/dx),
+        (dymi/dy) * (1.0-dxmj/dx),
+        (1.0-dymi/dy) * (dxmj/dx),
+        (dymi/dy) * (dxmj/dx)
+        )
+    return ij, weights
 end
-
 
 
 # function interpolate_basic_nodes!(
@@ -2025,8 +2026,8 @@ $(SIGNATURES)
     -nothing
 """
 function interpolate_basic_nodes!(
-        m,
-        mrk,
+        ij,
+        weights,
         ETA0SUM,
         ETASUM,
         GGGSUM,
@@ -2036,53 +2037,45 @@ function interpolate_basic_nodes!(
         FRISUM,
         WTSUM
         )
-        i, j, weights = fix_weights(
-            mrk.xm[m],
-            mrk.ym[m],
-            basicnodes.x,
-            basicnodes.y,
+        ETA0SUM[ij[1]..., threadid()] += mrk.etatotalm[m] * weights[1]
+        ETA0SUM[ij[2]..., threadid()] += mrk.etatotalm[m] * weights[2]
+        ETA0SUM[ij[3]..., threadid()] += mrk.etatotalm[m] * weights[3]
+        ETA0SUM[ij[4]..., threadid()] += mrk.etatotalm[m] * weights[4]
 
-            )
+        ETASUM[ij[1]..., threadid()] += mrk.etavpm[m] * weights[1]
+        ETASUM[ij[2]..., threadid()] += mrk.etavpm[m] * weights[2]
+        ETASUM[ij[3]..., threadid()] += mrk.etavpm[m] * weights[3]
+        ETASUM[ij[4]..., threadid()] += mrk.etavpm[m] * weights[4]
 
-        ETA0SUM[i, j, threadid()] += mrk.etatotalm[m] * weights[1]
-        ETA0SUM[i+1, j, threadid()] += mrk.etatotalm[m] * weights[2]
-        ETA0SUM[i, j+1, threadid()] += mrk.etatotalm[m] * weights[3]
-        ETA0SUM[i+1, j+1, threadid()] += mrk.etatotalm[m] * weights[4]
+        GGGSUM[ij[1], threadid()] += inv(mrk.gggtotalm[m]) * weights[1]
+        GGGSUM[ij[2], threadid()] += inv(mrk.gggtotalm[m]) * weights[2]
+        GGGSUM[ij[3] threadid()] += inv(mrk.gggtotalm[m]) * weights[3]
+        GGGSUM[ij[4], threadid()] += inv(mrk.gggtotalm[m]) * weights[4]
 
-        ETASUM[i, j, threadid()] += mrk.etavpm[m] * weights[1]
-        ETASUM[i+1, j, threadid()] += mrk.etavpm[m] * weights[2]
-        ETASUM[i, j+1, threadid()] += mrk.etavpm[m] * weights[3]
-        ETASUM[i+1, j+1, threadid()] += mrk.etavpm[m] * weights[4]
+        SXYSUM[ij[1], threadid()] += mrk.sxym[m] * weights[1]
+        SXYSUM[ij[2], threadid()] += mrk.sxym[m] * weights[2]
+        SXYSUM[ij[3], threadid()] += mrk.sxym[m] * weights[3]
+        SXYSUM[ij[4], threadid()] += mrk.sxym[m] * weights[4]
 
-        GGGSUM[i, j, threadid()] += inv(mrk.gggtotalm[m]) * weights[1]
-        GGGSUM[i+1, j, threadid()] += inv(mrk.gggtotalm[m]) * weights[2]
-        GGGSUM[i, j+1, threadid()] += inv(mrk.gggtotalm[m]) * weights[3]
-        GGGSUM[i+1, j+1, threadid()] += inv(mrk.gggtotalm[m]) * weights[4]
+        COHSUM[ij[1], threadid()] += mrk.cohestotalm[m] * weights[1]
+        COHSUM[ij[2], threadid()] += mrk.cohestotalm[m] * weights[2]
+        COHSUM[ij[3], threadid()] += mrk.cohestotalm[m] * weights[3]
+        COHSUM[ij[4], threadid()] += mrk.cohestotalm[m] * weights[4]
 
-        SXYSUM[i, j, threadid()] += mrk.sxym[m] * weights[1]
-        SXYSUM[i+1, j, threadid()] += mrk.sxym[m] * weights[2]
-        SXYSUM[i, j+1, threadid()] += mrk.sxym[m] * weights[3]
-        SXYSUM[i+1, j+1, threadid()] += mrk.sxym[m] * weights[4]
+        TENSUM[ij[1], threadid()] += mrk.tenstotalm[m] * weights[1]
+        TENSUM[ij[2], threadid()] += mrk.tenstotalm[m] * weights[2]
+        TENSUM[ij[3], threadid()] += mrk.tenstotalm[m] * weights[3]
+        TENSUM[ij[4], threadid()] += mrk.tenstotalm[m] * weights[4]
 
-        COHSUM[i, j, threadid()] += mrk.cohestotalm[m] * weights[1]
-        COHSUM[i+1, j, threadid()] += mrk.cohestotalm[m] * weights[2]
-        COHSUM[i, j+1, threadid()] += mrk.cohestotalm[m] * weights[3]
-        COHSUM[i+1, j+1, threadid()] += mrk.cohestotalm[m] * weights[4]
+        FRISUM[ij[1], threadid()] += mrk.fricttotalm[m] * weights[1]
+        FRISUM[ij[2], threadid()] += mrk.fricttotalm[m] * weights[2]
+        FRISUM[ij[3], threadid()] += mrk.fricttotalm[m] * weights[3]
+        FRISUM[ij[4], threadid()] += mrk.fricttotalm[m] * weights[4]
 
-        TENSUM[i, j, threadid()] += mrk.tenstotalm[m] * weights[1]
-        TENSUM[i+1, j, threadid()] += mrk.tenstotalm[m] * weights[2]
-        TENSUM[i, j+1, threadid()] += mrk.tenstotalm[m] * weights[3]
-        TENSUM[i+1, j+1, threadid()] += mrk.tenstotalm[m] * weights[4]
-
-        FRISUM[i, j, threadid()] += mrk.fricttotalm[m] * weights[1]
-        FRISUM[i+1, j, threadid()] += mrk.fricttotalm[m] * weights[2]
-        FRISUM[i, j+1, threadid()] += mrk.fricttotalm[m] * weights[3]
-        FRISUM[i+1, j+1, threadid()] += mrk.fricttotalm[m] * weights[4]
-
-        WTSUM[i, j, threadid()] += weights[1]
-        WTSUM[i+1, j, threadid()] += weights[2]
-        WTSUM[i, j+1, threadid()] += weights[3]
-        WTSUM[i+1, j+1, threadid()] += weights[4]
+        WTSUM[ij[1], threadid()] += weights[1]
+        WTSUM[ij[2], threadid()] += weights[2]
+        WTSUM[ij[3], threadid()] += weights[3]
+        WTSUM[ij[4], threadid()] += weights[4]
 end
 
 
@@ -2107,12 +2100,55 @@ function timestepping(
     markers::MarkerArrays, sp::StaticParameters, dp::DynamicParameters
     )
     # unpack simulation parameters
-    @unpack Nx, Ny, Nx1, Ny1, startstep, nsteps, endtime = sp
+    @unpack xsize, ysize,
+            Nx, Ny,
+            Nx1, Ny1,
+            dx, dy,
+            jmin_basic, jmax_basic,
+            imin_basic, imax_basic,
+            jmin_vx, jmax_vx,
+            imin_vx, imax_vx,
+            jmin_vy, jmax_vy,
+            imin_vy, imax_vy,
+            jmin_p, jmax_p,
+            imin_p, imax_p,
+            startstep,
+            nsteps,
+            endtime = sp
     @unpack timestep, dt, timesum, marknum, hrsolidm, hrfluidm = dp
+
+    # set up staggered grid
+    # basic nodes
+    # grid geometry
+    # "x: horizontal coordinates of basic grid points [m]"
+    x = @SVector [j for j = 0:dx:xsize]
+    # "y: vertical coordinates of basic grid points [m]"
+    y = @SVector [i for i = 0:dy:ysize]
+    # physical node properties
+    # "viscoplastic viscosity, Pa*s"
+    ETA = zeros(Float64, Ny, Nx)
+    # "viscous viscosity, Pa*s"
+    ETA0 = zeros(Float64, Ny, Nx)
+    # "shear modulus, Pa"
+    GGG = zeros(Float64, Ny, Nx)
+    # "epsilonxy, 1/s"
+    EXY = zeros(Float64, Ny, Nx)
+    # "sigma0xy, 1/s"
+    SXY0 = zeros(Float64, Ny, Nx)
+    # "rotation rate, 1/s"
+    WYX = zeros(Float64, Ny, Nx)
+    # "compressive strength, Pa"
+    COH = zeros(Float64, Ny, Nx)
+    # "tensile strength, Pa"
+    TEN = zeros(Float64, Ny, Nx)
+    # "friction"
+    FRI = zeros(Float64, Ny, Nx)
+    # "plastic yielding mark, 1=yes,0=no"
+    YNY = zeros(Int8, Ny, Nx)
 
 # @timeit to "setup interp_arrays" begin
     # set up marker interpolation arrays
-    interp_arrays = InterpolationArrays(sp)
+    # interp_arrays = InterpolationArrays(sp)
 # end # timeit "setup interp_arrays"
 
 # @timeit to "timestepping loop" begin
@@ -2122,7 +2158,7 @@ function timestepping(
         # set interpolation arrays to zero for this timestep
         # @timeit to "reset interp_arrays" reset_interpolation_arrays!(interp_arrays)        
         # reset_interpolation_arrays!(interp_arrays)
-
+    
         # set up interpolation arrays
         # basic nodes
         ETA0SUM = zeros(Ny, Nx, nthreads())
@@ -2168,10 +2204,23 @@ function timestepping(
             # compute marker properties 
             compute_dynamic_marker_params!(m, markers, sp, dp)
 
+            ij, weights = fix_weigths(
+                markers.xm[m],
+                markers.ym[m],
+                x,
+                y,
+                dx,
+                dy, 
+                jmin_basic,
+                jmax_basic,
+                imin_basic,
+                imax_basic
+            )
+
             # interpolate marker properties to basic nodes
             interpolate_basic_nodes!(
-                m,
-                markers,
+                ij,
+                weights,
                 ETA0SUM,
                 ETASUM,
                 GGGSUM,
