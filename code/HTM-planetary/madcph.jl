@@ -676,17 +676,17 @@ end
 #     yny::Array{Int8}
 #     "inner constructor"
 #     NodalArrays(Nx, Ny) = new(
-#         zeros(Ny,Nx),
-#         zeros(Ny,Nx),
-#         zeros(Ny,Nx),
-#         zeros(Ny,Nx),
-#         zeros(Ny,Nx),
-#         zeros(Ny,Nx),
-#         zeros(Ny,Nx),
-#         zeros(Ny,Nx),
-#         zeros(Ny,Nx),
-#         zeros(Ny,Nx),
-#         zeros(Ny,Nx)
+#         zeros(Ny, Nx),
+#         zeros(Ny, Nx),
+#         zeros(Ny, Nx),
+#         zeros(Ny, Nx),
+#         zeros(Ny, Nx),
+#         zeros(Ny, Nx),
+#         zeros(Ny, Nx),
+#         zeros(Ny, Nx),
+#         zeros(Ny, Nx),
+#         zeros(Ny, Nx),
+#         zeros(Ny, Nx)
 #         )
 #     NodalArrays(sp::StaticParameters) = new(
 #         zeros(sp.Ny,sp.Nx),
@@ -731,15 +731,15 @@ end
 #     gx::Array{Float64}
 #     "inner constructor"
 #     NodalArrays(Nx1, Ny1) = new(
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1)
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1)
 #         )
 #     NodalArrays(sp::StaticParameters) = new(
 #         zeros(sp.Ny1, sp.Nx1),
@@ -782,15 +782,15 @@ end
 #     gy::Array{Float64}
 #     "inner constructor"
 #     NodalArrays(Nx1, Ny1) = new(
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1),
-#         zeros(Ny1,Nx1)
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1),
+#         zeros(Ny1, Nx1)
 #         )
 #     NodalArrays(sp::StaticParameters) = new(
 #         zeros(sp.Ny1, sp.Nx1),
@@ -1895,21 +1895,7 @@ function bilinear_weights(x::Float64, y::Float64, n::Nodes)
 end
 
 
-"""
-Interpolate marker properties to basic nodes.
 
-$(SIGNATURES)
-
-# Details
-
-    - m: index of marker whose properties are to be interpolated to nodes
-    - markers: arrays containing all marker properties
-
-
-# Returns
-
-    -nothing
-"""
 # function interpolate_basic_nodes!(
 #     m::Int64, mrk::MarkerArrays, ia::InterpolationArrays)
 #     @unpack ETA0SUM, ETASUM, GGGSUM, SXYSUM, COHSUM, TENSUM, FRISUM, WTSUM = ia
@@ -1956,58 +1942,73 @@ $(SIGNATURES)
 # end
 
 
-function interpolate_basic_nodes!(
-    m::Int64, mrk::MarkerArrays, ia::InterpolationArrays)
-    @unpack ETA0SUM, ETASUM, GGGSUM, SXYSUM, COHSUM, TENSUM, FRISUM, WTSUM = ia
-    # find nearest top/left grid indices
-    # calculate bilinear weights
-    i, j, weights = bilinear_weights(mrk.xm[m], mrk.ym[m], basicnodes)
-    # update basic node properties
-    # i, j node
-    @inbounds begin
-        ETA0SUM[threadid()][i, j] += mrk.etatotalm[m] * weights[1]
-        ETA0SUM[threadid()][i+1, j] += mrk.etatotalm[m] * weights[2]
-        ETA0SUM[threadid()][i, j+1] += mrk.etatotalm[m] * weights[3]
-        ETA0SUM[threadid()][i+1, j+1] += mrk.etatotalm[m] * weights[4]
+# function interpolate_basic_nodes!(
+#     m::Int64, mrk::MarkerArrays, ia::InterpolationArrays)
+#     @unpack ETA0SUM, ETASUM, GGGSUM, SXYSUM, COHSUM, TENSUM, FRISUM, WTSUM = ia
+#     # find nearest top/left grid indices
+#     # calculate bilinear weights
+#     i, j, weights = bilinear_weights(mrk.xm[m], mrk.ym[m], basicnodes)
+#     # update basic node properties
+#     # i, j node
+#     @inbounds begin
+#         ETA0SUM[threadid()][i, j] += mrk.etatotalm[m] * weights[1]
+#         ETA0SUM[threadid()][i+1, j] += mrk.etatotalm[m] * weights[2]
+#         ETA0SUM[threadid()][i, j+1] += mrk.etatotalm[m] * weights[3]
+#         ETA0SUM[threadid()][i+1, j+1] += mrk.etatotalm[m] * weights[4]
 
-        ETASUM[threadid()][i, j] += mrk.etavpm[m] * weights[1]
-        ETASUM[threadid()][i+1, j] += mrk.etavpm[m] * weights[2]
-        ETASUM[threadid()][i, j+1] += mrk.etavpm[m] * weights[3]
-        ETASUM[threadid()][i+1, j+1] += mrk.etavpm[m] * weights[4]
+#         ETASUM[threadid()][i, j] += mrk.etavpm[m] * weights[1]
+#         ETASUM[threadid()][i+1, j] += mrk.etavpm[m] * weights[2]
+#         ETASUM[threadid()][i, j+1] += mrk.etavpm[m] * weights[3]
+#         ETASUM[threadid()][i+1, j+1] += mrk.etavpm[m] * weights[4]
 
-        GGGSUM[threadid()][i, j] += inv(mrk.gggtotalm[m]) * weights[1]
-        GGGSUM[threadid()][i+1, j] += inv(mrk.gggtotalm[m]) * weights[2]
-        GGGSUM[threadid()][i, j+1] += inv(mrk.gggtotalm[m]) * weights[3]
-        GGGSUM[threadid()][i+1, j+1] += inv(mrk.gggtotalm[m]) * weights[4]
+#         GGGSUM[threadid()][i, j] += inv(mrk.gggtotalm[m]) * weights[1]
+#         GGGSUM[threadid()][i+1, j] += inv(mrk.gggtotalm[m]) * weights[2]
+#         GGGSUM[threadid()][i, j+1] += inv(mrk.gggtotalm[m]) * weights[3]
+#         GGGSUM[threadid()][i+1, j+1] += inv(mrk.gggtotalm[m]) * weights[4]
 
-        SXYSUM[threadid()][i, j] += mrk.sxym[m] * weights[1]
-        SXYSUM[threadid()][i+1, j] += mrk.sxym[m] * weights[2]
-        SXYSUM[threadid()][i, j+1] += mrk.sxym[m] * weights[3]
-        SXYSUM[threadid()][i+1, j+1] += mrk.sxym[m] * weights[4]
+#         SXYSUM[threadid()][i, j] += mrk.sxym[m] * weights[1]
+#         SXYSUM[threadid()][i+1, j] += mrk.sxym[m] * weights[2]
+#         SXYSUM[threadid()][i, j+1] += mrk.sxym[m] * weights[3]
+#         SXYSUM[threadid()][i+1, j+1] += mrk.sxym[m] * weights[4]
 
-        COHSUM[threadid()][i, j] += mrk.cohestotalm[m] * weights[1]
-        COHSUM[threadid()][i+1, j] += mrk.cohestotalm[m] * weights[2]
-        COHSUM[threadid()][i, j+1] += mrk.cohestotalm[m] * weights[3]
-        COHSUM[threadid()][i+1, j+1] += mrk.cohestotalm[m] * weights[4]
+#         COHSUM[threadid()][i, j] += mrk.cohestotalm[m] * weights[1]
+#         COHSUM[threadid()][i+1, j] += mrk.cohestotalm[m] * weights[2]
+#         COHSUM[threadid()][i, j+1] += mrk.cohestotalm[m] * weights[3]
+#         COHSUM[threadid()][i+1, j+1] += mrk.cohestotalm[m] * weights[4]
 
-        TENSUM[threadid()][i, j] += mrk.tenstotalm[m] * weights[1]
-        TENSUM[threadid()][i+1, j] += mrk.tenstotalm[m] * weights[2]
-        TENSUM[threadid()][i, j+1] += mrk.tenstotalm[m] * weights[3]
-        TENSUM[threadid()][i+1, j+1] += mrk.tenstotalm[m] * weights[4]
+#         TENSUM[threadid()][i, j] += mrk.tenstotalm[m] * weights[1]
+#         TENSUM[threadid()][i+1, j] += mrk.tenstotalm[m] * weights[2]
+#         TENSUM[threadid()][i, j+1] += mrk.tenstotalm[m] * weights[3]
+#         TENSUM[threadid()][i+1, j+1] += mrk.tenstotalm[m] * weights[4]
 
-        FRISUM[threadid()][i, j] += mrk.fricttotalm[m] * weights[1]
-        FRISUM[threadid()][i+1, j] += mrk.fricttotalm[m] * weights[2]
-        FRISUM[threadid()][i, j+1] += mrk.fricttotalm[m] * weights[3]
-        FRISUM[threadid()][i+1, j+1] += mrk.fricttotalm[m] * weights[4]
+#         FRISUM[threadid()][i, j] += mrk.fricttotalm[m] * weights[1]
+#         FRISUM[threadid()][i+1, j] += mrk.fricttotalm[m] * weights[2]
+#         FRISUM[threadid()][i, j+1] += mrk.fricttotalm[m] * weights[3]
+#         FRISUM[threadid()][i+1, j+1] += mrk.fricttotalm[m] * weights[4]
 
-        WTSUM[threadid()][i, j] += weights[1]
-        WTSUM[threadid()][i+1, j] += weights[2]
-        WTSUM[threadid()][i, j+1] += weights[3]
-        WTSUM[threadid()][i+1, j+1] += weights[4]
-    end
-end
+#         WTSUM[threadid()][i, j] += weights[1]
+#         WTSUM[threadid()][i+1, j] += weights[2]
+#         WTSUM[threadid()][i, j+1] += weights[3]
+#         WTSUM[threadid()][i+1, j+1] += weights[4]
+#     end
+# end
 
 
+"""
+Interpolate marker properties to basic nodes.
+
+$(SIGNATURES)
+
+# Details
+
+    - m: index of marker whose properties are to be interpolated to nodes
+    - markers: arrays containing all marker properties
+
+
+# Returns
+
+    -nothing
+"""
 function interpolate_basic_nodes!(
         m,
         mrk,
@@ -2021,14 +2022,46 @@ function interpolate_basic_nodes!(
         WTSUM
         )
         i, j, weights = bilinear_weights(mrk.xm[m], mrk.ym[m], basicnodes)
+
         ETA0SUM[i, j, threadid()] += mrk.etatotalm[m] * weights[1]
+        ETA0SUM[i+1, j, threadid()] += mrk.etatotalm[m] * weights[2]
+        ETA0SUM[i, j+1, threadid()] += mrk.etatotalm[m] * weights[3]
+        ETA0SUM[i+1, j+1, threadid()] += mrk.etatotalm[m] * weights[4]
+
         ETASUM[i, j, threadid()] += mrk.etavpm[m] * weights[1]
+        ETASUM[i+1, j, threadid()] += mrk.etavpm[m] * weights[2]
+        ETASUM[i, j+1, threadid()] += mrk.etavpm[m] * weights[3]
+        ETASUM[i+1, j+1, threadid()] += mrk.etavpm[m] * weights[4]
+
         GGGSUM[i, j, threadid()] += inv(mrk.gggtotalm[m]) * weights[1]
+        GGGSUM[i+1, j, threadid()] += inv(mrk.gggtotalm[m]) * weights[2]
+        GGGSUM[i, j+1, threadid()] += inv(mrk.gggtotalm[m]) * weights[3]
+        GGGSUM[i+1, j+1, threadid()] += inv(mrk.gggtotalm[m]) * weights[4]
+
         SXYSUM[i, j, threadid()] += mrk.sxym[m] * weights[1]
+        SXYSUM[i+1, j, threadid()] += mrk.sxym[m] * weights[2]
+        SXYSUM[i, j+1, threadid()] += mrk.sxym[m] * weights[3]
+        SXYSUM[i+1, j+1, threadid()] += mrk.sxym[m] * weights[4]
+
         COHSUM[i, j, threadid()] += mrk.cohestotalm[m] * weights[1]
+        COHSUM[i+1, j, threadid()] += mrk.cohestotalm[m] * weights[2]
+        COHSUM[i, j+1, threadid()] += mrk.cohestotalm[m] * weights[3]
+        COHSUM[i+1, j+1, threadid()] += mrk.cohestotalm[m] * weights[4]
+
         TENSUM[i, j, threadid()] += mrk.tenstotalm[m] * weights[1]
+        TENSUM[i+1, j, threadid()] += mrk.tenstotalm[m] * weights[2]
+        TENSUM[i, j+1, threadid()] += mrk.tenstotalm[m] * weights[3]
+        TENSUM[i+1, j+1, threadid()] += mrk.tenstotalm[m] * weights[4]
+
         FRISUM[i, j, threadid()] += mrk.fricttotalm[m] * weights[1]
+        FRISUM[i+1, j, threadid()] += mrk.fricttotalm[m] * weights[2]
+        FRISUM[i, j+1, threadid()] += mrk.fricttotalm[m] * weights[3]
+        FRISUM[i+1, j+1, threadid()] += mrk.fricttotalm[m] * weights[4]
+
         WTSUM[i, j, threadid()] += weights[1]
+        WTSUM[i+1, j, threadid()] += weights[2]
+        WTSUM[i, j+1, threadid()] += weights[3]
+        WTSUM[i+1, j+1, threadid()] += weights[4]
 end
 
 
@@ -2071,39 +2104,39 @@ function timestepping(
 
         # set up interpolation arrays
         # basic nodes
-        ETA0SUM = zeros(Ny,Nx, nthreads())
-        ETASUM = zeros(Ny,Nx, nthreads())
-        GGGSUM = zeros(Ny,Nx, nthreads())
-        SXYSUM = zeros(Ny,Nx, nthreads())
-        COHSUM = zeros(Ny,Nx, nthreads())
-        TENSUM = zeros(Ny,Nx, nthreads())
-        FRISUM = zeros(Ny,Nx, nthreads())
-        WTSUM = zeros(Ny,Nx, nthreads())
+        ETA0SUM = zeros(Ny, Nx, nthreads())
+        ETASUM = zeros(Ny, Nx, nthreads())
+        GGGSUM = zeros(Ny, Nx, nthreads())
+        SXYSUM = zeros(Ny, Nx, nthreads())
+        COHSUM = zeros(Ny, Nx, nthreads())
+        TENSUM = zeros(Ny, Nx, nthreads())
+        FRISUM = zeros(Ny, Nx, nthreads())
+        WTSUM = zeros(Ny, Nx, nthreads())
         # Vx nodes
-        RHOXSUM = zeros(Ny1,Nx1, nthreads())
-        RHOFXSUM = zeros(Ny1,Nx1, nthreads())
-        KXSUM = zeros(Ny1,Nx1, nthreads())
-        PHIXSUM = zeros(Ny1,Nx1, nthreads())
-        RXSUM = zeros(Ny1,Nx1, nthreads())
-        WTXSUM = zeros(Ny1,Nx1, nthreads())
+        RHOXSUM = zeros(Ny1, Nx1, nthreads())
+        RHOFXSUM = zeros(Ny1, Nx1, nthreads())
+        KXSUM = zeros(Ny1, Nx1, nthreads())
+        PHIXSUM = zeros(Ny1, Nx1, nthreads())
+        RXSUM = zeros(Ny1, Nx1, nthreads())
+        WTXSUM = zeros(Ny1, Nx1, nthreads())
         # Vy nodes
-        RHOYSUM = zeros(Ny1,Nx1, nthreads())
-        RHOFYSUM = zeros(Ny1,Nx1, nthreads())
-        KYSUM = zeros(Ny1,Nx1, nthreads())
-        PHIYSUM = zeros(Ny1,Nx1, nthreads())
-        RYSUM = zeros(Ny1,Nx1, nthreads())
-        WTYSUM = zeros(Ny1,Nx1, nthreads())
+        RHOYSUM = zeros(Ny1, Nx1, nthreads())
+        RHOFYSUM = zeros(Ny1, Nx1, nthreads())
+        KYSUM = zeros(Ny1, Nx1, nthreads())
+        PHIYSUM = zeros(Ny1, Nx1, nthreads())
+        RYSUM = zeros(Ny1, Nx1, nthreads())
+        WTYSUM = zeros(Ny1, Nx1, nthreads())
         # P Nodes
-        GGGPSUM = zeros(Ny1,Nx1, nthreads())
-        SXXSUM = zeros(Ny1,Nx1, nthreads())
-        RHOSUM = zeros(Ny1,Nx1, nthreads())
-        RHOCPSUM = zeros(Ny1,Nx1, nthreads())
-        ALPHASUM = zeros(Ny1,Nx1, nthreads())
-        ALPHAFSUM = zeros(Ny1,Nx1, nthreads())
-        HRSUM = zeros(Ny1,Nx1, nthreads())
-        TKSUM = zeros(Ny1,Nx1, nthreads())
-        PHISUM = zeros(Ny1,Nx1, nthreads())
-        WTPSUM = zeros(Ny1,Nx1, nthreads())
+        GGGPSUM = zeros(Ny1, Nx1, nthreads())
+        SXXSUM = zeros(Ny1, Nx1, nthreads())
+        RHOSUM = zeros(Ny1, Nx1, nthreads())
+        RHOCPSUM = zeros(Ny1, Nx1, nthreads())
+        ALPHASUM = zeros(Ny1, Nx1, nthreads())
+        ALPHAFSUM = zeros(Ny1, Nx1, nthreads())
+        HRSUM = zeros(Ny1, Nx1, nthreads())
+        TKSUM = zeros(Ny1, Nx1, nthreads())
+        PHISUM = zeros(Ny1, Nx1, nthreads())
+        WTPSUM = zeros(Ny1, Nx1, nthreads())
 
         # calculate radioactive heating
         hrsolidm, hrfluidm = calculate_radioactive_heating(sp, dp)
@@ -2128,7 +2161,8 @@ function timestepping(
                 WTSUM)
 
             # # interpolate marker properties to Vx nodes
-            # interpolate_vx_nodes!(m, markers, sp, dp, interp_arrays)
+            interpolate_vx_nodes!(m, markers,
+             sp, dp, interp_arrays)
 
             # # interpolate marker properties to Vy nodes
             # interpolate_vy_nodes!(m, markers, sp, dp, interp_arrays)
@@ -2499,7 +2533,7 @@ end # function timestepping(p::Params)
 end
 # Compute physical properties
 # Basic nodes
-YNY = zeros(Ny,Nx)
+YNY = zeros(Ny, Nx)
 for j=1:1:Nx
     for i=1:1:Ny
         if(WTSUM[i,j]>0)
@@ -2565,7 +2599,7 @@ tk1[Ny1,2:Nx]=tk1[Ny,2:Nx]; # Insulating boundary
 # Left boundary
 tk1[:,1]=tk1[:,2]; # Insulating boundary
 # Right boundary
-tk1[:,Nx1]=tk1[:,Nx]; # Insulating boundary
+tk1[:, Nx1]=tk1[:, Nx]; # Insulating boundary
 
 
 
@@ -2659,7 +2693,7 @@ YNY00=YNY
 
 # Start Plastic iterations on Nodes until 'End Plastic iterations on Nodes'
 if (timestep==1)
-    BETTAPHI = zeros(Ny1,Nx1); # No elastic compaction for the first timestep
+    BETTAPHI = zeros(Ny1, Nx1); # No elastic compaction for the first timestep
 end
 for iplast=1:1:nplast
 
@@ -2966,7 +3000,7 @@ for j=1:1:Nx1
 end
 
 # Compute Dln[(1-PHI)/PHI]/Dt
-APHI = zeros(Ny1,Nx1)
+APHI = zeros(Ny1, Nx1)
 aphimax=0
 for j=2:1:Nx
     for i=2:1:Ny
@@ -2997,7 +3031,7 @@ end
 # Left
 vyf[:,1]=-bcfleft*vyf[:,2];    
 # Right
-vyf[:,Nx1]=-bcfright*vyf[:,Nx];     
+vyf[:, Nx1]=-bcfright*vyf[:, Nx];     
 # Add solid velocity
 vxf0=vxf; vxf=vxf+vx
 vyf0=vyf; vyf=vyf+vy
@@ -3031,9 +3065,9 @@ end
 
 # Compute Stress; stress change & strain rate components
 # Compute EPSILONxy; SIGMAxy in basic nodes
-EXY = zeros(Ny,Nx); # Strain rate EPSILONxy, 1/s
-SXY = zeros(Ny,Nx); # Stress SIGMAxy, Pa
-DSXY = zeros(Ny,Nx); # Stress change SIGMAxy, Pa
+EXY = zeros(Ny, Nx); # Strain rate EPSILONxy, 1/s
+SXY = zeros(Ny, Nx); # Stress SIGMAxy, Pa
+DSXY = zeros(Ny, Nx); # Stress change SIGMAxy, Pa
 for j=1:1:Nx
     for i=1:1:Ny
         # EXY;SXY; DSXY
@@ -3043,12 +3077,12 @@ for j=1:1:Nx
     end
 end
 # Compute EPSILONxx; SIGMA'xx in pressure nodes
-EXX = zeros(Ny1,Nx1); # Strain rate EPSILONxx, 1/s
-EII = zeros(Ny1,Nx1); # Second strain rate invariant, 1/s
-SXX = zeros(Ny1,Nx1); # Stress SIGMA'xx, Pa
-SII = zeros(Ny1,Nx1); # Second stress invariant, Pa
-DSXX = zeros(Ny1,Nx1); # Stress change SIGMA'xx, Pa
-DIVV = zeros(Ny1,Nx1); # div[v]
+EXX = zeros(Ny1, Nx1); # Strain rate EPSILONxx, 1/s
+EII = zeros(Ny1, Nx1); # Second strain rate invariant, 1/s
+SXX = zeros(Ny1, Nx1); # Stress SIGMA'xx, Pa
+SII = zeros(Ny1, Nx1); # Second stress invariant, Pa
+DSXX = zeros(Ny1, Nx1); # Stress change SIGMA'xx, Pa
+DIVV = zeros(Ny1, Nx1); # div[v]
 for j=2:1:Nx
     for i=2:1:Ny
         # DIVV
@@ -3066,7 +3100,7 @@ for j=2:1:Nx
 end
 
 # Recompute Dln[(1-PHI)/PHI]/Dt
-APHI = zeros(Ny1,Nx1)
+APHI = zeros(Ny1, Nx1)
 for j=2:1:Nx
     for i=2:1:Ny
         APHI[i,j]=((pr[i,j]-pf[i,j])/ETAPHI[i,j]+ ((pr[i,j]-pr0[i,j])-(pf[i,j]-pf0[i,j]))/dt*BETTAPHI[i,j])/(1-PHI[i,j])/PHI[i,j]
@@ -3095,11 +3129,11 @@ PHI[:,1]=PHI[:,2];
 pr[:,1]=pr[:,2];    
 pf[:,1]=pf[:,2];    
 # Right
-SXX[:,Nx1]=SXX[:,Nx]
-APHI[:,Nx1]=APHI[:,Nx];    
-PHI[:,Nx1]=PHI[:,Nx];    
-pr[:,Nx1]=pr[:,Nx];    
-pf[:,Nx1]=pf[:,Nx]; 
+SXX[:, Nx1]=SXX[:, Nx]
+APHI[:, Nx1]=APHI[:, Nx];    
+PHI[:, Nx1]=PHI[:, Nx];    
+pr[:, Nx1]=pr[:, Nx];    
+pf[:, Nx1]=pf[:, Nx]; 
 
 # Compute solid pressure
 ps=(pr-pf.*PHI)./(1-PHI)
@@ -3114,8 +3148,8 @@ DSXY0=DSXY
 # Update viscosity for yielding
 # Basic nodes
 ETA5=ETA0
-YNY5 = zeros(Ny,Nx)
-DSY = zeros(Ny,Nx)
+YNY5 = zeros(Ny, Nx)
+DSY = zeros(Ny, Nx)
 ynpl=0
 ddd=0
 for i=1:1:Ny
@@ -3255,10 +3289,10 @@ end
 
 # Apply subgrid stress diffusion to markers
 if(dsubgrids>0)
-SXYSUM = zeros(Ny,Nx)
-WTSUM = zeros(Ny,Nx)
-SXXSUM = zeros(Ny1,Nx1)
-WTPSUM = zeros(Ny1,Nx1)
+SXYSUM = zeros(Ny, Nx)
+WTSUM = zeros(Ny, Nx)
+SXXSUM = zeros(Ny1, Nx1)
+WTPSUM = zeros(Ny1, Nx1)
 for m=1:1:marknum
     # SIGMA'xx
     # Define i;j indexes for the upper left node
@@ -3347,7 +3381,7 @@ for m=1:1:marknum
     WTSUM[i+1,j+1]=WTSUM[i+1,j+1]+wtmi1j1
 end
 # Compute DSXXsubgrid
-DSXXsubgrid = zeros(Ny1,Nx1)
+DSXXsubgrid = zeros(Ny1, Nx1)
 # P-nodes
 for j=2:1:Nx
     for i=2:1:Ny
@@ -3359,7 +3393,7 @@ end
 # Correct DSXX
 DSXX=DSXX-DSXXsubgrid
 # Compute DSXYsubgrid
-DSXYsubgrid = zeros(Ny,Nx)
+DSXYsubgrid = zeros(Ny, Nx)
 # Basic nodes
 for j=1:1:Nx
     for i=1:1:Ny
@@ -3427,7 +3461,7 @@ end
 
 
 # Compute shear heating HS in Temperature/Pressure nodes
-HS = zeros(Ny1,Nx1); # Adiabatic heating, W/m^3
+HS = zeros(Ny1, Nx1); # Adiabatic heating, W/m^3
 for j=2:1:Nx
     for i=2:1:Ny
         # Average SXY*EXY
@@ -3445,7 +3479,7 @@ if (timestep==1)
     ps0=pf; # No solid pressure change for the first timestep
 end
 # Old solid pressure
-HA = zeros(Ny1,Nx1); # Shear heating, W/m^3
+HA = zeros(Ny1, Nx1); # Shear heating, W/m^3
 for j=2:1:Nx
     for i=2:1:Ny
         # HA
@@ -3601,8 +3635,8 @@ DT0=DT
 
 # Apply subgrid temperature diffusion on markers
 if(dsubgridt>0)
-TKSUM = zeros(Ny1,Nx1)
-RHOCPSUM = zeros(Ny1,Nx1)
+TKSUM = zeros(Ny1, Nx1)
+RHOCPSUM = zeros(Ny1, Nx1)
 for m=1:1:marknum
     # Define i;j indexes for the upper left node
     j=trunc((xm[m]-xp[1])/dx)+1
@@ -3656,7 +3690,7 @@ for m=1:1:marknum
     RHOCPSUM[i+1,j+1]=RHOCPSUM[i+1,j+1]+rhocpm[tm[m]]*wtmi1j1
 end
 # Compute DTsubgrid
-DTsubgrid = zeros(Ny1,Nx1)
+DTsubgrid = zeros(Ny1, Nx1)
 # P-nodes
 for j=1:1:Nx1
     for i=1:1:Ny1
@@ -3755,7 +3789,7 @@ vxpf[Ny1,2:Nx-1]=-bcfbottom*vxpf[Ny,2:Nx-1];
 # Left
 vxpf[:,1]=2*vxleft-vxpf[:,2]
 # Right
-vxpf[:,Nx1]=2*vxright-vxpf[:,Nx]
+vxpf[:, Nx1]=2*vxright-vxpf[:, Nx]
 # vypf
 for j=2:1:Nx
     for i=2:1:Ny
@@ -3766,7 +3800,7 @@ end
 # Left
 vypf[2:Ny-1,1]=-bcfleft*vypf[2:Ny-1,2];    
 # Right
-vypf[2:Ny-1,Nx1]=-bcfright*vypf[2:Ny-1,Nx]; # Free slip    
+vypf[2:Ny-1, Nx1]=-bcfright*vypf[2:Ny-1, Nx]; # Free slip    
 # Top
 vypf[1,:]=2*vytop-vypf[2,:]
 # Bottom
@@ -3787,7 +3821,7 @@ vxp[Ny1,2:Nx-1]=-bcbottom*vxp[Ny,2:Nx-1];
 # Left
 vxp[:,1]=2*vxleft-vxp[:,2]
 # Right
-vxp[:,Nx1]=2*vxright-vxp[:,Nx]
+vxp[:, Nx1]=2*vxright-vxp[:, Nx]
 # vy
 for j=2:1:Nx
     for i=2:1:Ny
@@ -3798,7 +3832,7 @@ end
 # Left
 vyp[2:Ny-1,1]=-bcleft*vyp[2:Ny-1,2];    
 # Right
-vyp[2:Ny-1,Nx1]=-bcright*vyp[2:Ny-1,Nx]; # Free slip    
+vyp[2:Ny-1, Nx1]=-bcright*vyp[2:Ny-1, Nx]; # Free slip    
 # Top
 vyp[1,:]=2*vytop-vyp[2,:]
 # Bottom
@@ -4348,10 +4382,10 @@ end
 
 # Add markers to empty areas
 marknumold=marknum
-mdis=1e30*ones(Nym,Nxm)
-mnum = zeros(Nym,Nxm)
-mtyp = zeros(Nym,Nxm)
-mpor = zeros(Nym,Nxm)
+mdis=1e30*ones(Nym, Nxm)
+mnum = zeros(Nym, Nxm)
+mtyp = zeros(Nym, Nxm)
+mpor = zeros(Nym, Nxm)
 xxm=dxm/2:dxm:xsize-dxm/2
 yym=dym/2:dym:ysize-dym/2
 for m=1:1:marknum
