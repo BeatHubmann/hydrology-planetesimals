@@ -1898,7 +1898,7 @@ function fix_weights(x, y, x_axis, y_axis, dx, dy, jmin, jmax, imin, imax)
     @inbounds i = trunc(Int, (y - y_axis[1]) / dy) + 1
     j = min(max(j, jmin), jmax)
     i = min(max(i, imin), imax)
-    ij = [SVector(i, j), SVector(i+1, j), SVector(i, j+1), SVector(i+1, j+1)]
+    # ij = [SVector(i, j), SVector(i+1, j), SVector(i, j+1), SVector(i+1, j+1)]
     @inbounds dxmj = x - x_axis[j]
     @inbounds dymi = y - y_axis[i]
     weights = SVector(
@@ -1907,7 +1907,7 @@ function fix_weights(x, y, x_axis, y_axis, dx, dy, jmin, jmax, imin, imax)
         (1.0-dymi/dy) * (dxmj/dx),
         (dymi/dy) * (dxmj/dx)
         )
-    return ij, weights
+    return i, j, weights
 end
 
 
@@ -2028,7 +2028,6 @@ $(SIGNATURES)
 function interpolate_basic_nodes!(
         m,
         mrk,
-        # ij,
         i,
         j,
         weights,
@@ -2247,10 +2246,12 @@ function timestepping(
 # @timeit to "compute marker properties" begin
         # for m=1:1:marknum
         @threads for m=1:1:marknum
+
             # compute marker properties 
             compute_dynamic_marker_params!(m, markers, sp, dp)
 
-            ij, weights = fix_weights(
+            # interpolate marker properties to basic nodes
+            i, j, weights = fix_weights(
                 markers.xm[m],
                 markers.ym[m],
                 x,
@@ -2262,12 +2263,12 @@ function timestepping(
                 imin_basic,
                 imax_basic
             )
-
-            # interpolate marker properties to basic nodes
             interpolate_basic_nodes!(
-                ij,
-                weights,
+                m,
                 markers,
+                i,
+                j,
+                weights,
                 ETA0SUM,
                 ETASUM,
                 GGGSUM,
@@ -2279,46 +2280,49 @@ function timestepping(
                 )
 
             # # interpolate marker properties to Vx nodes
-            interpolate_vx_nodes!(
-                m,
-                markers,
-                RHOXSUM,
-                RHOFXSUM,
-                KXSUM,
-                PHIXSUM,
-                RXSUM,
-                WTXSUM
-                )
+            # interpolate_vx_nodes!(
+            #     m,
+            #     markers,
+            #     RHOXSUM,
+            #     RHOFXSUM,
+            #     KXSUM,
+            #     PHIXSUM,
+            #     RXSUM,
+            #     WTXSUM
+            #     )
 
-            # # interpolate marker properties to Vy nodes
-            interpolate_vy_nodes!(
-                m,
-                markers,
-                RHOYSUM,
-                RHOFYSUM,
-                KYSUM,
-                PHIYSUM,
-                RYSUM,
-                WTYSUM
-                )
+            # # # interpolate marker properties to Vy nodes
+            # interpolate_vy_nodes!(
+            #     m,
+            #     markers,
+            #     RHOYSUM,
+            #     RHOFYSUM,
+            #     KYSUM,
+            #     PHIYSUM,
+            #     RYSUM,
+            #     WTYSUM
+            #     )
 
-            # # interpolate marker properties to P nodes
-            interpolate_p_nodes!(
-                m,
-                markers,
-                GGGPSUM,
-                SXXSUM,
-                RHOSUM,
-                RHOCPSUM,
-                ALPHASUM,
-                ALPHAFSUM,
-                HRSUM,
-                TKSUM,
-                PHISUM,
-                WTPSUM
-                )
+            # # # interpolate marker properties to P nodes
+            # interpolate_p_nodes!(
+            #     m,
+            #     markers,
+            #     GGGPSUM,
+            #     SXXSUM,
+            #     RHOSUM,
+            #     RHOCPSUM,
+            #     ALPHASUM,
+            #     ALPHAFSUM,
+            #     HRSUM,
+            #     TKSUM,
+            #     PHISUM,
+            #     WTPSUM
+            #     )
         end
 
+
+        # reduce interpolation arrays
+        ETA = reduce(+, WTPSUM, dims=3)
 
 
 # end # timeit " compute marker properties"
@@ -2433,7 +2437,7 @@ function timestepping(
         # # sxxm00 = sxxm 
         # # sxym00 = sxym    
 
-        if timestep % 10 == 0
+        if timestep % 20 == 0
             println("timestep: ", timestep)
         end
 
