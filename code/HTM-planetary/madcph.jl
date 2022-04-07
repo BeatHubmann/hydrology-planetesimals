@@ -2003,6 +2003,7 @@ $(SIGNATURES)
 
     - m: index of marker whose properties are to be interpolated to nodes
     - markers: arrays containing all marker properties
+    - 
 
 
 # Returns
@@ -2158,17 +2159,48 @@ function timestepping(
                 COHSUM,
                 TENSUM,
                 FRISUM,
-                WTSUM)
+                WTSUM
+                )
 
             # # interpolate marker properties to Vx nodes
-            interpolate_vx_nodes!(m, markers,
-             sp, dp, interp_arrays)
+            interpolate_vx_nodes!(
+                m,
+                markers,
+                RHOXSUM,
+                RHOFXSUM,
+                KXSUM,
+                PHIXSUM,
+                RXSUM,
+                WTXSUM
+                )
 
             # # interpolate marker properties to Vy nodes
-            # interpolate_vy_nodes!(m, markers, sp, dp, interp_arrays)
+            interpolate_vy_nodes!(
+                m,
+                markers,
+                RHOYSUM,
+                RHOFYSUM,
+                KYSUM,
+                PHIYSUM,
+                RYSUM,
+                WTYSUM
+                )
 
             # # interpolate marker properties to P nodes
-            # interpolate_p_nodes!(m, markers, sp, dp, interp_arrays)
+            interpolate_p_nodes!(
+                m,
+                markers,
+                GGGPSUM,
+                SXXSUM,
+                RHOSUM,
+                RHOCPSUM,
+                ALPHASUM,
+                ALPHAFSUM,
+                HRSUM,
+                TKSUM,
+                PHISUM,
+                WTPSUM
+                )
         end
 
 
