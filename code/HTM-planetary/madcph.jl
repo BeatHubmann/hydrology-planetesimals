@@ -1792,73 +1792,75 @@ const markers = MarkerArrays(static_parameters.startmarknum)
 initmarkers!(markers, static_parameters, dynamic_parameters)
 
 
-"""
-Find upper/left grid node index for given position and grid reference axis
-and grid axis mesh width.
+# """
+# Find upper/left grid node index for given position and grid reference axis
+# and grid axis mesh width.
 
-$(SIGNATURES)
+# $(SIGNATURES)
 
-# Detail
+# # Detail
 
-    - position: input position [m]
-    - reference_axis: grid reference axis array [m]
-    - mesh_width: grid axis mesh width [m]
-    - idx_min: minimum assignable index on given grid axis
-    - idx_max: maximum assignable index on given grid axis
+#     - position: input position [m]
+#     - reference_axis: grid reference axis array [m]
+#     - mesh_width: grid axis mesh width [m]
+#     - idx_min: minimum assignable index on given grid axis
+#     - idx_max: maximum assignable index on given grid axis
 
-# Returns
+# # Returns
 
-    - fix: upper 'i' (y-axis) / left 'j' (x-axis) node index on given grid axis
-"""
-function fix(
-    position::Float64,
-    reference_axis::Array{Float64},
-    mesh_width::Float64,
-    idx_min::Int64,
-    idx_max::Int64)
-    @inbounds idx = trunc(Int, (position - reference_axis[1]) / mesh_width) + 1
-    return min(max(idx, idx_min), idx_max)
-end
+#     - fix: upper 'i' (y-axis) / left 'j' (x-axis) node index on given grid axis
+# """
+# function fix(
+#     position::Float64,
+#     reference_axis::Array{Float64},
+#     mesh_width::Float64,
+#     idx_min::Int64,
+#     idx_max::Int64)
+#     @inbounds idx = trunc(Int, (position - reference_axis[1]) / mesh_width) + 1
+#     return min(max(idx, idx_min), idx_max)
+# end
 
 
-"""
-Compute distance between given position and grid reference axis node index.
+# """
+# Compute distance between given position and grid reference axis node index.
 
-$(SIGNATURES)
+# $(SIGNATURES)
 
-# Detail
+# # Detail
 
-    - position: input position [m]
-    - reference_axis: grid reference axis array [m]
-    - axis_node_index: grid axis node index
+#     - position: input position [m]
+#     - reference_axis: grid reference axis array [m]
+#     - axis_node_index: grid axis node index
 
-# Returns
+# # Returns
 
-    - dist: distance between position and grid reference axis node index [m]
-"""
-function dist(
-    position::Float64, reference_axis::Array{Float64}, axis_node_index::Int64)
-    @inbounds return position - reference_axis[axis_node_index]
-end
-"""
-Compute bilinear interpolation weigths to nearest four grid nodes for given
-(x, y) position.
+#     - dist: distance between position and grid reference axis node index [m]
+# """
+# function dist(
+#     position::Float64, reference_axis::Array{Float64}, axis_node_index::Int64)
+#     @inbounds return position - reference_axis[axis_node_index]
+# end
 
-# Details
 
-    - x: x-position [m]
-    - y: y-position [m]
-    - x_ref_axis: x-grid reference axis array [m]
-    - y_ref_axis: y-grid reference axis array [m]
+# """
+# Compute bilinear interpolation weigths to nearest four grid nodes for given
+# (x, y) position.
 
-# Returns
-    - bilinear_weights: vector of 4 bilinear interpolation weights to
-      nearest four grid nodes:
-       [wtmij  : i  , j   node,
-        wtmi1j : i+1, j   node,
-        wtmij1 : i  , j+1 node,
-        wtmi1j1: i+1, j+1 node]
-"""
+# # Details
+
+#     - x: x-position [m]
+#     - y: y-position [m]
+#     - x_ref_axis: x-grid reference axis array [m]
+#     - y_ref_axis: y-grid reference axis array [m]
+
+# # Returns
+#     - bilinear_weights: vector of 4 bilinear interpolation weights to
+#       nearest four grid nodes:
+#        [wtmij  : i  , j   node,
+#         wtmi1j : i+1, j   node,
+#         wtmij1 : i  , j+1 node,
+#         wtmi1j1: i+1, j+1 node]
+# """
 # function bilinear_weights(x::Float64, y::Float64, n::Nodes)
 #     # find nearest four grid nodes
 #     @timeit to "fix1" i = fix(x, n.x, n.dx, n.imin, n.imax)
@@ -1876,23 +1878,52 @@ Compute bilinear interpolation weigths to nearest four grid nodes for given
 #     return i, j, @SVector[wtmij, wtmi1j, wtmij1, wtmi1j1]
 # end
 
-function bilinear_weights(x::Float64, y::Float64, n::Nodes)
-    # find nearest four grid nodes
-    @inbounds j = trunc(Int, (x - n.x[1]) / n.dx) + 1
-    @inbounds i = trunc(Int, (y - n.y[1]) / n.dy) + 1
-    j = min(max(j, n.jmin), n.jmax)
-    i = min(max(i, n.imin), n.imax)
-    @inbounds dxmj = x - n.x[j]
-    @inbounds dymi = y - n.y[i]
-    wtmij = (1.0-dxmj/n.dx) * (1.0-dymi/n.dy)
-    wtmi1j = (1.0-dxmj/n.dx) * (dymi/n.dy)    
-    wtmij1 = (dxmj/n.dx) * (1.0-dymi/n.dy)
-    wtmi1j1 = (dxmj/n.dx) * (dymi/n.dy)
+# function bilinear_weights(x::Float64, y::Float64, n::Nodes)
+#     # find nearest four grid nodes
+#     @inbounds j = trunc(Int, (x - n.x[1]) / n.dx) + 1
+#     @inbounds i = trunc(Int, (y - n.y[1]) / n.dy) + 1
+#     j = min(max(j, n.jmin), n.jmax)
+#     i = min(max(i, n.imin), n.imax)
+#     @inbounds dxmj = x - n.x[j]
+#     @inbounds dymi = y - n.y[i]
+#     wtmij = (1.0-dxmj/n.dx) * (1.0-dymi/n.dy)
+#     wtmi1j = (1.0-dxmj/n.dx) * (dymi/n.dy)    
+#     wtmij1 = (dxmj/n.dx) * (1.0-dymi/n.dy)
+#     wtmi1j1 = (dxmj/n.dx) * (dymi/n.dy)
     
-    return i, j, @SVector[wtmij, wtmi1j, wtmij1, wtmi1j1]
-end
+#     return i, j, @SVector[wtmij, wtmi1j, wtmij1, wtmi1j1]
+# end
 
 
+"""
+Compute top and left grid nodes indices and bilinear interpolation weigths to
+nearest four grid nodes for given (x, y) position and grid axes.
+
+$(SIGNATURES)
+
+# Details
+
+    - x: x-position [m]
+    - y: y-position [m]
+    - x_axis: x-grid reference axis array [m]
+    - y_axis: y-grid reference axis array [m]
+    - dx: x-grid axis mesh width [m]
+    - dy: y-grid axis mesh width [m]
+    - jmin: minimum assignable index on x-grid axis (basic/Vx/Vy/P)
+    - jmax: maximum assignable index on x-grid axis (basic/Vx/Vy/P)
+    - imin: minimum assignable index on y-grid axis (basic/Vx/Vy/P)
+    - imax: maximum assignable index on y-grid axis (basic/Vx/Vy/P)
+
+# Returns
+    - i: top (with reference to y) node index on y-grid axis
+    - j: left (with reference to x) node index on x-grid axis
+    - bilinear_weights: vector of 4 bilinear interpolation weights to
+      nearest four grid nodes:
+        [wtmij  : i  , j   node,
+        wtmi1j : i+1, j   node,
+        wtmij1 : i  , j+1 node,
+        wtmi1j1: i+1, j+1 node]
+"""
 function fix_weights(x, y, x_axis, y_axis, dx, dy, jmin, jmax, imin, imax)
     @inbounds j = trunc(Int, (x - x_axis[1]) / dx) + 1
     @inbounds i = trunc(Int, (y - y_axis[1]) / dy) + 1
@@ -2120,8 +2151,6 @@ function interpolate_basic_nodes!(
         # WTSUM[ij[3]..., threadid()] += weights[3]
         # WTSUM[ij[4]..., threadid()] += weights[4]
 end
-
-
 
 
 """
