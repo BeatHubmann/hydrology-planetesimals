@@ -2298,6 +2298,102 @@ function interpolate_vy_nodes(
 end
 
 
+"""
+Interpolate marker properties to P nodes.
+
+$(SIGNATURES)
+
+# Details
+
+    - m: index of marker whose properties are to be interpolated to nodes
+    - mrk: arrays containing all marker properties
+    - i: top node index of marker m on P grid
+    - j: left node index of marker m on P grid
+    - weights: bilinear interpolation weights to four neighbor nodes of marker m
+    - GGGPSUM: shear modulus array interpolated to P nodes
+    - SXXSUM: σ'xx array interpolated to P nodes
+    - RHOSUM: density array interpolated to P nodes
+    - RHOCPSUM: volumetric heat capacity array interpolated to P nodes
+    - ALPHASUM: thermal expansion array interpolated to P nodes
+    - ALPHAFSUM: fluid thermal expansion array interpolated to P nodes
+    - HRSUM: radioactive heating array interpolated to P nodes
+    - TKSUM: temperature array interpolated to P nodes
+    - PHISUM: porosity array interpolated to P nodes
+    - WTPSUM: weight array for bilinear interpolation to P nodes
+
+# Returns
+
+    -nothing
+"""
+function interpolate_p_nodes(
+    m,
+    mrk,
+    i,
+    j,
+    weights,
+    GGGPSUM,
+    SXXSUM,
+    RHOSUM,
+    RHOCPSUM,
+    ALPHASUM,
+    ALPHAFSUM,
+    HRSUM,
+    TKSUM,
+    PHISUM,
+    WTPSUM
+)
+    GGGPSUM[i, j, threadid()] += 1.0 / mrk.gggtotalm[m] * weights[1]
+    GGGPSUM[i+1, j, threadid()] += 1.0 / mrk.gggtotalm[m] * weights[2]
+    GGGPSUM[i, j+1, threadid()] += 1.0 / mrk.gggtotalm[m] * weights[3]
+    GGGPSUM[i+1, j+1, threadid()] += 1.0 / mrk.gggtotalm[m] * weights[4]
+
+    SXXSUM[i, j, threadid()] += mrk.sxxm[m] * weights[1]
+    SXXSUM[i+1, j, threadid()] += mrk.sxxm[m] * weights[2]
+    SXXSUM[i, j+1, threadid()] += mrk.sxxm[m] * weights[3]
+    SXXSUM[i+1, j+1, threadid()] += mrk.sxxm[m] * weights[4]
+
+    RHOSUM[i, j, threadid()] += mrk.rhototalm[m] * weights[1]
+    RHOSUM[i+1, j, threadid()] += mrk.rhototalm[m] * weights[2]
+    RHOSUM[i, j+1, threadid()] += mrk.rhototalm[m] * weights[3]
+    RHOSUM[i+1, j+1, threadid()] += mrk.rhototalm[m] * weights[4]
+
+    RHOCPSUM[i, j, threadid()] += mrk.rhocptotalm[m] * weights[1]
+    RHOCPSUM[i+1, j, threadid()] += mrk.rhocptotalm[m] * weights[2]
+    RHOCPSUM[i, j+1, threadid()] += mrk.rhocptotalm[m] * weights[3]
+    RHOCPSUM[i+1, j+1, threadid()] += mrk.rhocptotalm[m] * weights[4]
+
+    ALPHASUM[i, j, threadid()] += mrk.alphasolidm[m] * weights[1]
+    ALPHASUM[i+1, j, threadid()] += mrk.alphasolidm[m] * weights[2]
+    ALPHASUM[i, j+1, threadid()] += mrk.alphasolidm[m] * weights[3]
+    ALPHASUM[i+1, j+1, threadid()] += mrk.alphasolidm[m] * weights[4]
+
+    ALPHAFSUM[i, j, threadid()] += mrk.alphafluidm[m] * weights[1]
+    ALPHAFSUM[i+1, j, threadid()] += mrk.alphafluidm[m] * weights[2]
+    ALPHAFSUM[i, j+1, threadid()] += mrk.alphafluidm[m] * weights[3]
+    ALPHAFSUM[i+1, j+1, threadid()] += mrk.alphafluidm[m] * weights[4]
+
+    HRSUM[i, j, threadid()] += mrk.hrtotalm[m] * weights[1]
+    HRSUM[i+1, j, threadid()] += mrk.hrtotalm[m] * weights[2]
+    HRSUM[i, j+1, threadid()] += mrk.hrtotalm[m] * weights[3]
+    HRSUM[i+1, j+1, threadid()] += mrk.hrtotalm[m] * weights[4]
+
+    TKSUM[i, j, threadid()] += mrk.tkm[m] * mrk.rhocptotalm[m] * weights[1]
+    TKSUM[i+1, j, threadid()] += mrk.tkm[m] * mrk.rhocptotalm[m] * weights[2]
+    TKSUM[i, j+1, threadid()] += mrk.tkm[m] * mrk.rhocptotalm[m] * weights[3]
+    TKSUM[i+1, j+1, threadid()] += mrk.tkm[m] * mrk.rhocptotalm[m] * weights[4]
+
+    PHISUM[i, j, threadid()] += mrk.phim[m] * weights[1]
+    PHISUM[i+1, j, threadid()] += mrk.phim[m] * weights[2]
+    PHISUM[i, j+1, threadid()] += mrk.phim[m] * weights[3]
+    PHISUM[i+1, j+1, threadid()] += mrk.phim[m] * weights[4]
+
+    WTPSUM[i, j, threadid()] += weights[1]
+    WTPSUM[i+1, j, threadid()] += weights[2]
+    WTPSUM[i, j+1, threadid()] += weights[3]
+    WTPSUM[i+1, j+1, threadid()] += weights[4]
+end
+
+
 
 """
 Main simulation loop: runs timestepping.
