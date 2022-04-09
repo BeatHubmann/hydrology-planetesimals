@@ -1,5 +1,4 @@
 using Base.Threads
-# using Polyester
 using SparseArrays
 using MAT
 using DocStringExtensions
@@ -2522,65 +2521,63 @@ function timestepping(
     yp = SVector{Ny1,Float64}([i for i = -dy/2:dy:ysize+dy/2])
     # physical node properties
     # density [kg/m^3]
-    RHO::Array{Float64}
+    RHO = zeros(Float64, Ny1, Nx1)
     # volumetric heat capacity [J/m^3/K]
-    RHOCP::Array{Float64}
+    RHOCP = zeros(Float64, Ny1, Nx1)
     # thermal expansion [J/m^3/K]
-    ALPHA::Array{Float64}
+    ALPHA = zeros(Float64, Ny1, Nx1)
     # fluid thermal expansion [J/m^3/K]
-    ALPHAF::Array{Float64}
+    ALPHAF = zeros(Float64, Ny1, Nx1)
     # radioactive heating [W/m^3]
-    HR::Array{Float64}
+    HR = zeros(Float64, Ny1, Nx1)
     # adiabatic heating [W/m^3]
-    HA::Array{Float64}
+    HA = zeros(Float64, Ny1, Nx1)
     # shear heating [W/m^3]
-    HS::Array{Float64}
+    HS = zeros(Float64, Ny1, Nx1)
     # viscosity [Pa*s]
-    ETAP::Array{Float64}
+    ETAP = zeros(Float64, Ny1, Nx1)
     # shear modulus [Pa]
-    GGGP::Array{Float64}
+    GGGP = zeros(Float64, Ny1, Nx1)
     # EPSILONxx [1/s]
-    EXX::Array{Float64}
+    EXX = zeros(Float64, Ny1, Nx1)
     # SIGMA'xx [1/s]
-    SXX::Array{Float64}
+    SXX = zeros(Float64, Ny1, Nx1)
     # SIGMA0'xx [1/s]
-    SXX0::Array{Float64}
+    SXX0 = zeros(Float64, Ny1, Nx1)
     # old temperature [K]
-    tk1::Array{Float64}
+    tk1 = zeros(Float64, Ny1, Nx1)
     # new temperature [K]
-    tk2::Array{Float64}
+    tk2 = zeros(Float64, Ny1, Nx1)
     # solid Vx in pressure nodes [m/s]
-    vxp::Array{Float64}
+    vxp = zeros(Float64, Ny1, Nx1)
     # solid Vy in pressure nodes [m/s]
-    vyp::Array{Float64}
+    vyp = zeros(Float64, Ny1, Nx1)
     # fluid Vx in pressure nodes [m/s]
-    vxpf::Array{Float64}
+    vxpf = zeros(Float64, Ny1, Nx1)
     # fluid Vy in pressure nodes [m/s]
-    vypf::Array{Float64}
+    vypf = zeros(Float64, Ny1, Nx1)
     # total pressure [Pa]
-    pr::Array{Float64}
+    pr = zeros(Float64, Ny1, Nx1)
     # fluid pressure [Pa]
-    pf::Array{Float64}
+    pf = zeros(Float64, Ny1, Nx1)
     # solid pressure [Pa]
-    ps::Array{Float64}
+    ps = zeros(Float64, Ny1, Nx1)
     # old total pressure [Pa]
-    pr0::Array{Float64}
+    pr0 = zeros(Float64, Ny1, Nx1)
     # old fluid pressure [Pa]
-    pf0::Array{Float64}
+    pf0 = zeros(Float64, Ny1, Nx1)
     # old solid pressure [Pa]
-    ps0::Array{Float64}
+    ps0 = zeros(Float64, Ny1, Nx1)
     # bulk viscosity [Pa*s]
-    ETAPHI::Array{Float64}
+    ETAPHI = zeros(Float64, Ny1, Nx1)
     # bulk compresibility [Pa*s]
-    BETTAPHI::Array{Float64}
+    BETTAPHI = zeros(Float64, Ny1, Nx1)
     # porosity
-    PHI::Array{Float64}
+    PHI = zeros(Float64, Ny1, Nx1)
     # Dln[(1-PHI)/PHI]/Dt
-    APHI::Array{Float64}
+    APHI = zeros(Float64, Ny1, Nx1)
     # gravity potential [J/kg]
-    FI::Array{Float64}
-
-
+    FI = zeros(Float64, Ny1, Nx1)
 
 
     # @timeit to "setup interp_arrays" begin
