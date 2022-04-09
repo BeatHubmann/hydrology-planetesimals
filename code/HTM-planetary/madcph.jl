@@ -2185,7 +2185,7 @@ $(SIGNATURES)
 
     -nothing
 """
-function interpolate_basic_nodes!(
+function interpolate_vx_nodes(
     m,
     mrk,
     i,
@@ -2198,30 +2198,30 @@ function interpolate_basic_nodes!(
     RXSUM,
     WTXSUM
 )
-    RHOXSUM[i, j, threadid()] += mrk.rhom[m] * weights[1]
-    RHOXSUM[i+1, j, threadid()] += mrk.rhom[m] * weights[2]
-    RHOXSUM[i, j+1, threadid()] += mrk.rhom[m] * weights[3]
-    RHOXSUM[i+1, j+1, threadid()] += mrk.rhom[m] * weights[4]
+    RHOXSUM[i, j, threadid()] += mrk.rhototalm[m] * weights[1]
+    RHOXSUM[i+1, j, threadid()] += mrk.rhototalm[m] * weights[2]
+    RHOXSUM[i, j+1, threadid()] += mrk.rhototalm[m] * weights[3]
+    RHOXSUM[i+1, j+1, threadid()] += mrk.rhototalm[m] * weights[4]
 
-    RHOFXSUM[i, j, threadid()] += mrk.rhof[m] * weights[1]
-    RHOFXSUM[i+1, j, threadid()] += mrk.rhof[m] * weights[2]
-    RHOFXSUM[i, j+1, threadid()] += mrk.rhof[m] * weights[3]
-    RHOFXSUM[i+1, j+1, threadid()] += mrk.rhof[m] * weights[4]
+    RHOFXSUM[i, j, threadid()] += mrk.rhofluidcur[m] * weights[1]
+    RHOFXSUM[i+1, j, threadid()] += mrk.rhofluidcur[m] * weights[2]
+    RHOFXSUM[i, j+1, threadid()] += mrk.rhofluidcur[m] * weights[3]
+    RHOFXSUM[i+1, j+1, threadid()] += mrk.rhofluidcur[m] * weights[4]
 
-    KXSUM[i, j, threadid()] += mrk.k[m] * weights[1]
-    KXSUM[i+1, j, threadid()] += mrk.k[m] * weights[2]
-    KXSUM[i, j+1, threadid()] += mrk.k[m] * weights[3]
-    KXSUM[i+1, j+1, threadid()] += mrk.k[m] * weights[4]
+    KXSUM[i, j, threadid()] += mrk.ktotalm[m] * weights[1]
+    KXSUM[i+1, j, threadid()] += mrk.ktotalm[m] * weights[2]
+    KXSUM[i, j+1, threadid()] += mrk.ktotalm[m] * weights[3]
+    KXSUM[i+1, j+1, threadid()] += mrk.ktotalm[m] * weights[4]
 
-    PHIXSUM[i, j, threadid()] += mrk.ϕ[m] * weights[1]
-    PHIXSUM[i+1, j, threadid()] += mrk.ϕ[m] * weights[2]
-    PHIXSUM[i, j+1, threadid()] += mrk.ϕ[m] * weights[3]
-    PHIXSUM[i+1, j+1, threadid()] += mrk.ϕ[m] * weights[4]
+    PHIXSUM[i, j, threadid()] += mrk.phim[m] * weights[1]
+    PHIXSUM[i+1, j, threadid()] += mrk.phim[m] * weights[2]
+    PHIXSUM[i, j+1, threadid()] += mrk.phim[m] * weights[3]
+    PHIXSUM[i+1, j+1, threadid()] += mrk.phim[m] * weights[4]
 
-    RXSUM[i, j, threadid()] += mrk.ρf[m] * weights[1]
-    RXSUM[i+1, j, threadid()] += mrk.ρf[m] * weights[2]
-    RXSUM[i, j+1, threadid()] += mrk.ρf[m] * weights[3]
-    RXSUM[i+1, j+1, threadid()] += mrk.ρf[m] * weights[4]
+    RXSUM[i, j, threadid()] += mrk.etafluidcur[m] / mrk.kphim[m] * weights[1]
+    RXSUM[i+1, j, threadid()] += mrk.etafluidcur[m] / mrk.kphim[m] * weights[2]
+    RXSUM[i, j+1, threadid()] += mrk.etafluidcur[m] / mrk.kphim[m] * weights[3]
+    RXSUM[i+1, j+1, threadid()] += mrk.etafluidcur[m] /mrk.kphim[m] * weights[4]
 
     WTXSUM[i, j, threadid()] += weights[1]
     WTXSUM[i+1, j, threadid()] += weights[2]
