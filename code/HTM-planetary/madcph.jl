@@ -2163,33 +2163,87 @@ function timestepping(
     # set up staggered grid
     # basic nodes
     # grid geometry
-    # "x: horizontal coordinates of basic grid points [m]"
+    # x: horizontal coordinates of basic grid points [m]
     # x = @SVector [j for j = 0:dx:xsize] # should work but doesn't
     x = SVector{Nx, Float64}([j for j = 0:dx:xsize])
-    # "y: vertical coordinates of basic grid points [m]"
+    # y: vertical coordinates of basic grid points [m]
     # y = @SVector [i for i = 0:dy:ysize]
     y = SVector{Ny, Float64}([j for j = 0:dy:ysize])
     # physical node properties
-    # "viscoplastic viscosity, Pa*s"
+    # viscoplastic viscosity, Pa*s
     ETA = zeros(Float64, Ny, Nx)
-    # "viscous viscosity, Pa*s"
+    # viscous viscosity, Pa*s
     ETA0 = zeros(Float64, Ny, Nx)
-    # "shear modulus, Pa"
+    # shear modulus, Pa
     GGG = zeros(Float64, Ny, Nx)
-    # "epsilonxy, 1/s"
+    # epsilonxy, 1/s
     EXY = zeros(Float64, Ny, Nx)
-    # "sigma0xy, 1/s"
+    # sigma0xy, 1/s
     SXY0 = zeros(Float64, Ny, Nx)
-    # "rotation rate, 1/s"
+    # rotation rate, 1/s
     WYX = zeros(Float64, Ny, Nx)
-    # "compressive strength, Pa"
+    # compressive strength, Pa
     COH = zeros(Float64, Ny, Nx)
-    # "tensile strength, Pa"
+    # tensile strength, Pa
     TEN = zeros(Float64, Ny, Nx)
-    # "friction"
+    # friction
     FRI = zeros(Float64, Ny, Nx)
-    # "plastic yielding mark, 1=yes,0=no"
+    # plastic yielding mark, 1=yes,0=no
     YNY = zeros(Int8, Ny, Nx)
+
+    # Vx nodes
+    # grid geometry
+    # xvx: horizontal coordinates of vx grid points [m]
+    xvx = SVector{Ny1, Float64}([j for j = 0:dx:xsize+dy])
+    # yvx: vertical coordinates of vx grid points [m]
+    yvx = SVector{Nx1, Float64}([i for i = -dy/2:dy:ysize+dy/2])
+    # physical node properties
+    # density [kg/m^3]
+    RHOX = zeros(Float64, Ny1, Nx1) 
+    # fluid density [kg/m^3]
+    RHOFX = zeros(Float64, Ny1, Nx1)
+    # thermal conductivity [W/m/K]
+    KX = zeros(Float64, Ny1, Nx1)
+    # porosity
+    PHIX = zeros(Float64, Ny1, Nx1)
+    # solid vx-velocity [m/s]
+    vx = zeros(Float64, Ny1, Nx1)
+    # fluid vx-velocity [m/s]
+    vxf = zeros(Float64, Ny1, Nx1)
+    # etafluid/kphi ratio [m^2]
+    RX = zeros(Float64, Ny1, Nx1)
+    # qx-darcy flux [m/s]
+    qxD = zeros(Float64, Ny1, Nx1)
+    # gx-gravity [m/s^2]
+    gx = zeros(Float64, Ny1, Nx1)
+
+    # Vy Nodes
+    # grid geometry
+    # xvy: horizontal coordinates of vy grid points [m]
+    xvy = SVector{Nx1, Float64}([j for j = -dx/2:dx:xsize+dx/2])
+    # yvy: vertical coordinates of vy grid points [m]
+    yvy = SVector{Ny1, Float64}([i for i = 0:dy:ysize+dy])
+    # physical node properties
+    # "density [kg/m^3]"
+    RHOY::Array{Float64}
+    # "fluid density [kg/m^3]"
+    RHOFY::Array{Float64}
+    # "thermal conductivity [W/m/K]"
+    KY::Array{Float64}
+    # "porosity"
+    PHIY::Array{Float64}
+    # "solid vy-velocity [m/s]"
+    vy::Array{Float64}
+    # "fluid vy-velocity [m/s]"
+    vyf::Array{Float64}
+    # "etafluid/kphi ratio [m^2]"
+    RY::Array{Float64}
+    # "qy-darcy flux [m/s]"
+    qyD::Array{Float64}
+    # "gy-gravity [m/s^2]"
+    gy::Array{Float64}
+
+
 
 # @timeit to "setup interp_arrays" begin
     # set up marker interpolation arrays
@@ -2280,6 +2334,31 @@ function timestepping(
                 )
 
             # # interpolate marker properties to Vx nodes
+            i, j, weights = fix_weights(
+                markers.xm[m],
+                markers.ym[m],
+                xvx,
+                yvx,
+                dx,
+                dy, 
+                jmin_vx,
+                jmax_vx,
+                imin_vx,
+                imax_vx
+            )
+            interpolate_Vx_nodes!(
+                m,
+                markers,
+                i,
+                j,
+                weights,
+                RHOXSUM,
+                RHOFXSUM,
+                KXSUM,
+                PHIXSUM,
+                RXSUM,
+                WTXSUM
+                )
             # interpolate_vx_nodes!(
             #     m,
             #     markers,
