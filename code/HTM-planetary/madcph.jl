@@ -2184,7 +2184,7 @@ $(SIGNATURES)
 
     -nothing
 """
-function interpolate_vx_nodes(
+function interpolate_vx_nodes!(
     m,
     mrk,
     i,
@@ -2252,7 +2252,7 @@ $(SIGNATURES)
 
     -nothing
 """
-function interpolate_vy_nodes(
+function interpolate_vy_nodes!(
     m,
     mrk,
     i,
@@ -2324,7 +2324,7 @@ $(SIGNATURES)
 
     -nothing
 """
-function interpolate_p_nodes(
+function interpolate_p_nodes!(
     m,
     mrk,
     i,
@@ -2681,7 +2681,7 @@ function timestepping(
                 imin_vx,
                 imax_vx
             )
-            interpolate_Vx_nodes!(
+            interpolate_vx_nodes!(
                 m,
                 markers,
                 i,
@@ -2713,6 +2713,7 @@ function timestepping(
                 markers,
                 i,
                 j,
+                weights,
                 RHOYSUM,
                 RHOFYSUM,
                 KYSUM,
