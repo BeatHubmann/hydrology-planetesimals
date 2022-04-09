@@ -2231,6 +2231,75 @@ end
 
 
 """
+Interpolate marker properties to Vy nodes.
+
+$(SIGNATURES)
+
+# Details
+
+    - m: index of marker whose properties are to be interpolated to nodes
+    - mrk: arrays containing all marker properties
+    - i: top node index of marker m on Vy grid
+    - j: left node index of marker m on Vy grid
+    - weights: bilinear interpolation weights to four neighbor nodes of marker m
+    - RHOYSUM: density array interpolated to Vy nodes
+    - RHOFYSUM: fluid density array interpolated to Vy nodes
+    - KYSUM: thermal conductivity array interpolated to Vy nodes
+    - PHIYSUM: porosity array interpolated to Vy nodes
+    - RYSUM: ηfluid/kϕ array interpolated to Vy nodes
+    - WTYSUM: weight array for bilinear interpolation to Vy nodes
+
+# Returns
+
+    -nothing
+"""
+function interpolate_vy_nodes(
+    m,
+    mrk,
+    i,
+    j,
+    weights,
+    RHOYSUM,
+    RHOFYSUM,
+    KYSUM,
+    PHIYSUM,
+    RYSUM,
+    WTYSUM
+)
+    RHOYSUM[i, j, threadid()] += mrk.rhototalm[m] * weights[1]
+    RHOYSUM[i+1, j, threadid()] += mrk.rhototalm[m] * weights[2]
+    RHOYSUM[i, j+1, threadid()] += mrk.rhototalm[m] * weights[3]
+    RHOYSUM[i+1, j+1, threadid()] += mrk.rhototalm[m] * weights[4]
+
+    RHOFYSUM[i, j, threadid()] += mrk.rhofluidcur[m] * weights[1]
+    RHOFYSUM[i+1, j, threadid()] += mrk.rhofluidcur[m] * weights[2]
+    RHOFYSUM[i, j+1, threadid()] += mrk.rhofluidcur[m] * weights[3]
+    RHOFYSUM[i+1, j+1, threadid()] += mrk.rhofluidcur[m] * weights[4]
+
+    KYSUM[i, j, threadid()] += mrk.ktotalm[m] * weights[1]
+    KYSUM[i+1, j, threadid()] += mrk.ktotalm[m] * weights[2]
+    KYSUM[i, j+1, threadid()] += mrk.ktotalm[m] * weights[3]
+    KYSUM[i+1, j+1, threadid()] += mrk.ktotalm[m] * weights[4]
+
+    PHIYSUM[i, j, threadid()] += mrk.phim[m] * weights[1]
+    PHIYSUM[i+1, j, threadid()] += mrk.phim[m] * weights[2]
+    PHIYSUM[i, j+1, threadid()] += mrk.phim[m] * weights[3]
+    PHIYSUM[i+1, j+1, threadid()] += mrk.phim[m] * weights[4]
+
+    RYSUM[i, j, threadid()] += mrk.etafluidcur[m] / mrk.kphim[m] * weights[1]
+    RYSUM[i+1, j, threadid()] += mrk.etafluidcur[m] / mrk.kphim[m] * weights[2]
+    RYSUM[i, j+1, threadid()] += mrk.etafluidcur[m] / mrk.kphim[m] * weights[3]
+    RYSUM[i+1, j+1, threadid()] += mrk.etafluidcur[m] /mrk.kphim[m] * weights[4]
+
+    WTYSUM[i, j, threadid()] += weights[1]
+    WTYSUM[i+1, j, threadid()] += weights[2]
+    WTYSUM[i, j+1, threadid()] += weights[3]
+    WTYSUM[i+1, j+1, threadid()] += weights[4]
+end
+
+
+
+"""
 Main simulation loop: runs timestepping.
 
 $(SIGNATURES)
