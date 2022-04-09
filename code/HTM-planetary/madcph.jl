@@ -28,7 +28,7 @@ $(TYPEDFIELDS)
     "vertical model size [m]"
     ysize::Int64 = 140000
     "basic grid resolution in x direction (horizontal)"
-    Nx::Int
+    Nx::Int 
     "basic grid resolution in y direction (vertical)"	
     Ny::Int
     "Vx, Vy, P grid resolution in x direction (horizontal)"
@@ -2141,23 +2141,23 @@ $(SIGNATURES)
 """
 function timestepping(
     markers::MarkerArrays, sp::StaticParameters, dp::DynamicParameters
-    )
+)
     # unpack simulation parameters
     @unpack xsize, ysize,
-            Nx, Ny,
-            Nx1, Ny1,
-            dx, dy,
-            jmin_basic, jmax_basic,
-            imin_basic, imax_basic,
-            jmin_vx, jmax_vx,
-            imin_vx, imax_vx,
-            jmin_vy, jmax_vy,
-            imin_vy, imax_vy,
-            jmin_p, jmax_p,
-            imin_p, imax_p,
-            startstep,
-            nsteps,
-            endtime = sp
+    Nx, Ny,
+    Nx1, Ny1,
+    dx, dy,
+    jmin_basic, jmax_basic,
+    imin_basic, imax_basic,
+    jmin_vx, jmax_vx,
+    imin_vx, imax_vx,
+    jmin_vy, jmax_vy,
+    imin_vy, imax_vy,
+    jmin_p, jmax_p,
+    imin_p, imax_p,
+    startstep,
+    nsteps,
+    endtime = sp
     @unpack timestep, dt, timesum, marknum, hrsolidm, hrfluidm = dp
 
     # set up staggered grid
@@ -2165,10 +2165,10 @@ function timestepping(
     # grid geometry
     # x: horizontal coordinates of basic grid points [m]
     # x = @SVector [j for j = 0:dx:xsize] # should work but doesn't
-    x = SVector{Nx, Float64}([j for j = 0:dx:xsize])
+    x = SVector{Nx,Float64}([j for j = 0:dx:xsize])
     # y: vertical coordinates of basic grid points [m]
     # y = @SVector [i for i = 0:dy:ysize]
-    y = SVector{Ny, Float64}([j for j = 0:dy:ysize])
+    y = SVector{Ny,Float64}([j for j = 0:dy:ysize])
     # physical node properties
     # viscoplastic viscosity, Pa*s
     ETA = zeros(Float64, Ny, Nx)
@@ -2194,12 +2194,12 @@ function timestepping(
     # Vx nodes
     # grid geometry
     # xvx: horizontal coordinates of vx grid points [m]
-    xvx = SVector{Ny1, Float64}([j for j = 0:dx:xsize+dy])
+    xvx = SVector{Ny1,Float64}([j for j = 0:dx:xsize+dy])
     # yvx: vertical coordinates of vx grid points [m]
-    yvx = SVector{Nx1, Float64}([i for i = -dy/2:dy:ysize+dy/2])
+    yvx = SVector{Nx1,Float64}([i for i = -dy/2:dy:ysize+dy/2])
     # physical node properties
     # density [kg/m^3]
-    RHOX = zeros(Float64, Ny1, Nx1) 
+    RHOX = zeros(Float64, Ny1, Nx1)
     # fluid density [kg/m^3]
     RHOFX = zeros(Float64, Ny1, Nx1)
     # thermal conductivity [W/m/K]
@@ -2217,47 +2217,114 @@ function timestepping(
     # gx-gravity [m/s^2]
     gx = zeros(Float64, Ny1, Nx1)
 
-    # Vy Nodes
+    # Vy nodes
     # grid geometry
     # xvy: horizontal coordinates of vy grid points [m]
-    xvy = SVector{Nx1, Float64}([j for j = -dx/2:dx:xsize+dx/2])
+    xvy = SVector{Nx1,Float64}([j for j = -dx/2:dx:xsize+dx/2])
     # yvy: vertical coordinates of vy grid points [m]
-    yvy = SVector{Ny1, Float64}([i for i = 0:dy:ysize+dy])
+    yvy = SVector{Ny1,Float64}([i for i = 0:dy:ysize+dy])
     # physical node properties
     # "density [kg/m^3]"
-    RHOY::Array{Float64}
+    RHOY = zeros(Float64, Ny1, Nx1)
     # "fluid density [kg/m^3]"
-    RHOFY::Array{Float64}
+    RHOFY = zeros(Float64, Ny1, Nx1)
     # "thermal conductivity [W/m/K]"
-    KY::Array{Float64}
+    KY = zeros(Float64, Ny1, Nx1)
     # "porosity"
-    PHIY::Array{Float64}
+    PHIY = zeros(Float64, Ny1, Nx1)
     # "solid vy-velocity [m/s]"
-    vy::Array{Float64}
+    vy = zeros(Float64, Ny1, Nx1)
     # "fluid vy-velocity [m/s]"
-    vyf::Array{Float64}
+    vyf = zeros(Float64, Ny1, Nx1)
     # "etafluid/kphi ratio [m^2]"
-    RY::Array{Float64}
+    RY = zeros(Float64, Ny1, Nx1)
     # "qy-darcy flux [m/s]"
-    qyD::Array{Float64}
+    qyD = zeros(Float64, Ny1, Nx1)
     # "gy-gravity [m/s^2]"
-    gy::Array{Float64}
+    gy = zeros(Float64, Ny1, Nx1)
+
+    # P nodes
+    # grid geometry
+    # xp: horizontal coordinates of p grid points [m]
+    xp = SVector{Nx1,Float64}([j for j = -dx/2:dx:xsize+dx/2])
+    # yp: vertical coordinates of p grid points [m]
+    yp = SVector{Ny1,Float64}([i for i = -dy/2:dy:ysize+dy/2])
+    # physical node properties
+    # density [kg/m^3]
+    RHO::Array{Float64}
+    # volumetric heat capacity [J/m^3/K]
+    RHOCP::Array{Float64}
+    # thermal expansion [J/m^3/K]
+    ALPHA::Array{Float64}
+    # fluid thermal expansion [J/m^3/K]
+    ALPHAF::Array{Float64}
+    # radioactive heating [W/m^3]
+    HR::Array{Float64}
+    # adiabatic heating [W/m^3]
+    HA::Array{Float64}
+    # shear heating [W/m^3]
+    HS::Array{Float64}
+    # viscosity [Pa*s]
+    ETAP::Array{Float64}
+    # shear modulus [Pa]
+    GGGP::Array{Float64}
+    # EPSILONxx [1/s]
+    EXX::Array{Float64}
+    # SIGMA'xx [1/s]
+    SXX::Array{Float64}
+    # SIGMA0'xx [1/s]
+    SXX0::Array{Float64}
+    # old temperature [K]
+    tk1::Array{Float64}
+    # new temperature [K]
+    tk2::Array{Float64}
+    # solid Vx in pressure nodes [m/s]
+    vxp::Array{Float64}
+    # solid Vy in pressure nodes [m/s]
+    vyp::Array{Float64}
+    # fluid Vx in pressure nodes [m/s]
+    vxpf::Array{Float64}
+    # fluid Vy in pressure nodes [m/s]
+    vypf::Array{Float64}
+    # total pressure [Pa]
+    pr::Array{Float64}
+    # fluid pressure [Pa]
+    pf::Array{Float64}
+    # solid pressure [Pa]
+    ps::Array{Float64}
+    # old total pressure [Pa]
+    pr0::Array{Float64}
+    # old fluid pressure [Pa]
+    pf0::Array{Float64}
+    # old solid pressure [Pa]
+    ps0::Array{Float64}
+    # bulk viscosity [Pa*s]
+    ETAPHI::Array{Float64}
+    # bulk compresibility [Pa*s]
+    BETTAPHI::Array{Float64}
+    # porosity
+    PHI::Array{Float64}
+    # Dln[(1-PHI)/PHI]/Dt
+    APHI::Array{Float64}
+    # gravity potential [J/kg]
+    FI::Array{Float64}
 
 
 
-# @timeit to "setup interp_arrays" begin
+
+    # @timeit to "setup interp_arrays" begin
     # set up marker interpolation arrays
     # interp_arrays = InterpolationArrays(sp)
-# end # timeit "setup interp_arrays"
+    # end # timeit "setup interp_arrays"
 
-# @timeit to "timestepping loop" begin
+    # @timeit to "timestepping loop" begin
     # iterate timesteps   
     for timestep = startstep:1:100
-    # for timestep = startstep:1:nsteps
+        # for timestep = startstep:1:nsteps
         # set interpolation arrays to zero for this timestep
         # @timeit to "reset interp_arrays" reset_interpolation_arrays!(interp_arrays)        
         # reset_interpolation_arrays!(interp_arrays)
-    
+
         # set up interpolation arrays
         # basic nodes
         ETA0SUM = zeros(Ny, Nx, nthreads())
@@ -2297,9 +2364,9 @@ function timestepping(
         # calculate radioactive heating
         hrsolidm, hrfluidm = calculate_radioactive_heating(sp, dp)
 
-# @timeit to "compute marker properties" begin
+        # @timeit to "compute marker properties" begin
         # for m=1:1:marknum
-        @threads for m=1:1:marknum
+        @threads for m = 1:1:marknum
 
             # compute marker properties 
             compute_dynamic_marker_params!(m, markers, sp, dp)
@@ -2311,7 +2378,7 @@ function timestepping(
                 x,
                 y,
                 dx,
-                dy, 
+                dy,
                 jmin_basic,
                 jmax_basic,
                 imin_basic,
@@ -2331,7 +2398,7 @@ function timestepping(
                 TENSUM,
                 FRISUM,
                 WTSUM
-                )
+            )
 
             # # interpolate marker properties to Vx nodes
             i, j, weights = fix_weights(
@@ -2340,7 +2407,7 @@ function timestepping(
                 xvx,
                 yvx,
                 dx,
-                dy, 
+                dy,
                 jmin_vx,
                 jmax_vx,
                 imin_vx,
@@ -2358,7 +2425,7 @@ function timestepping(
                 PHIXSUM,
                 RXSUM,
                 WTXSUM
-                )
+            )
             # interpolate_vx_nodes!(
             #     m,
             #     markers,
@@ -2404,7 +2471,7 @@ function timestepping(
         ETA = reduce(+, WTPSUM, dims=3)
 
 
-# end # timeit " compute marker properties"
+        # end # timeit " compute marker properties"
 
         # # compute physical properties of basic nodes
         # compute_properties_basic_nodes!(sp, dp, interp_arrays)
@@ -2524,7 +2591,7 @@ function timestepping(
             break
         end
 
-# end # timeit "timestepping"
+        # end # timeit "timestepping"
     end # for timestep = startstep:1:nsteps
 end # function timestepping(p::Params)
 
