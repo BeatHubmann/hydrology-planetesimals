@@ -1392,21 +1392,29 @@ $(SIGNATURES)
 
     - nothing
 """
-function initmarkers!(ma::MarkerArrays, sp::StaticParameters) # @unpack xm, ym, tm, tkm, phim, etavpm = ma @unpack xsize,
-     ysize,
-     Nxm,
-     Nym,
-     dxm,
-     dym,
-     rplanet,
-     rcrust,
-     phimin,
-     etasolidm,
-     phim0 = sp
+function define_markers!(
+    xm,
+    ym,
+    tm,
+    tkm,
+    phim,
+    etavpm,
+    sp::StaticParameters
+)
+    @unpack xsize,
+    ysize,
+    xcenter,
+    ycenter,
+    Nxm,
+    Nym,
+    dxm,
+    dym,
+    rplanet,
+    rcrust,
+    phimin,
+    etasolidm,
+    phim0 = sp
 
-    xcenter = xsize / 2
-    ycenter = ysize / 2
-    radius(x, y) = sqrt((x - xcenter)^2 + (y - ycenter)^2)
     for jm=1:1:Nxm, im=1:1:Nym
         # calculate marker counter
         m = (jm-1) * Nym + im
@@ -1414,7 +1422,7 @@ function initmarkers!(ma::MarkerArrays, sp::StaticParameters) # @unpack xm, ym, 
         xm[m] = dxm/2 + (jm-1) * dxm + (rand()-0.5) * dxm
         ym[m] = dym/2 + (im-1) * dym + (rand()-0.5) * dym
         # primary marker properties 
-        rmark = radius(xm[m], ym[m])
+        rmark = distance(xm[m], ym[m], xcenter, ycenter)
         if rmark < rplanet
             # planet
             if rmark > rcrust
@@ -1441,9 +1449,6 @@ function initmarkers!(ma::MarkerArrays, sp::StaticParameters) # @unpack xm, ym, 
             # matrix viscosity
             etavpm[m] = etasolidm[tm[m]]
         end
-        # secondary marker properties
-        compute_static_marker_params!(m, ma, sp, dp)
-        compute_dynamic_marker_params!(m, ma, sp, dp)
     end
 end
 
@@ -2629,6 +2634,26 @@ function simulation_loop(markers::MarkerArrays, sp::StaticParameters)
     APHI = zeros(Float64, Ny1, Nx1)
     # gravity potential [J/kg]
     FI = zeros(Float64, Ny1, Nx1)
+
+
+    # -------------------------------------------------------------------------
+    # set up markers
+    # -------------------------------------------------------------------------
+    # marker arrays
+    xm = zeros(Float64, marknum)
+    ym = zeros(Float64, marknum)
+    tm = zeros(Float64, marknum)
+    tkm = zeros(Float64, marknum)
+    sxxm = zeros(Float64, marknum)
+    sxym = zeros(Float64, marknum)
+    etavpm = zeros(Float64, marknum)
+    phim = zeros(Float64, marknum)
+    # ...
+    # define markers: coordinates, temperature, and material type    
+    define_markers!(xm, ym, tm, tkm, phim, etavpm, sp)
+    # secondary marker properties
+    compute_static_marker_params!(m, ma, sp, dp)
+    compute_dynamic_marker_params!(m, ma, sp, dp)
 
 
     # -------------------------------------------------------------------------
