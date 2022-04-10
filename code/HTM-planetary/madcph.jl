@@ -2395,7 +2395,7 @@ end
 
 
 """
-Main simulation loop: runs timestepping.
+Main simulation loop: run calculations with timestepping.
 
 $(SIGNATURES)
 
@@ -2409,7 +2409,7 @@ $(SIGNATURES)
     
     - nothing
 """
-function timestepping(
+function simulation_loop(
     markers::MarkerArrays, sp::StaticParameters, dp::DynamicParameters
 )
     # -------------------------------------------------------------------------
