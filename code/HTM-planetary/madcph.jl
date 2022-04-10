@@ -292,358 +292,358 @@ Base.@kwdef mutable struct DynamicParameters
     end
 
 
-"""
-Abstract parent type of all nodes.
-"""
-abstract type Nodes end
+# """
+# Abstract parent type of all nodes.
+# """
+# abstract type Nodes end
 
 
-"""
-Basic nodes grid geometry and physical properties.
+# """
+# Basic nodes grid geometry and physical properties.
 
-$(TYPEDFIELDS)
-"""
-@with_kw struct BasicNodes <: Nodes
-    # grid geometry
-    "x: horizontal coordinates of basic grid points [m]"
-    x::Array{Float64}
-    "y: vertical coordinates of basic grid points [m]"
-    y::Array{Float64}
-    "Nx: number of basic grid points in x direction"
-    num_x::Int64
-    "Ny: number of basic grid points in y direction"
-    num_y::Int64
-    "dx: basic grid spacing in x direction [m]"
-    dx::Float64
-    "dy: basic grid spacing in y direction [m]"
-    dy::Float64
-    "minimum assignable basic grid index in x direction"
-    jmin::Int64
-    "minimum assignable basic grid index in y direction"
-    imin::Int64
-    "maximum assignable basic grid index in x direction"
-    jmax::Int64
-    "maximum assignable basic grid index in y direction"
-    imax::Int64
-    # physical node properties
-    "viscoplastic viscosity, Pa*s"
-    ETA::Array{Float64}
-    "viscous viscosity, Pa*s"
-    ETA0::Array{Float64}
-    "shear modulus, Pa"
-    GGG::Array{Float64}
-    "epsilonxy, 1/s"
-    EXY::Array{Float64}
-    "sigma0xy, 1/s"
-    SXY0::Array{Float64}
-    "rotation rate, 1/s"
-    WYX::Array{Float64}
-    "compressive strength, Pa"
-    COH::Array{Float64}
-    "tensile strength, Pa"
-    TEN::Array{Float64}
-    "friction"
-    FRI::Array{Float64}
-    "plastic yielding mark, 1=yes,0=no"
-    YNY::Array{Int8}
-    # constructors
-    "inner constructor"
-    BasicNodes(sp::StaticParameters) = new(
-        collect(0:sp.dx:sp.xsize),
-        collect(0:sp.dy:sp.ysize),
-        sp.Nx,
-        sp.Ny,
-        sp.dx,
-        sp.dy,
-        sp.jmin_basic,
-        sp.imin_basic,
-        sp.jmax_basic,
-        sp.imax_basic,
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx),
-        zeros(sp.Ny,sp.Nx)
-        )
-end
-
-
-"""
-Vx nodes grid geometry and physical properties.
-
-$(TYPEDFIELDS)
-"""
-@with_kw struct VxNodes <: Nodes
-    # grid geometry
-    "xvx: horizontal coordinates of vx grid points [m]"
-    x::Array{Float64}
-    "yvx: vertical coordinates of vx grid points [m]"
-    y::Array{Float64}
-    "Nx1: number of Vx grid points in x direction"
-    num_x::Int64
-    "Ny1: number of Vx grid points in y direction"
-    num_y::Int64
-    "dx: Vx grid spacing in x direction [m]"
-    dx::Float64
-    "dy: Vx grid spacing in y direction [m]"
-    dy::Float64
-    "minimum assignable Vx grid index in x direction"
-    jmin::Int64
-    "minimum assignable Vx grid index in y direction"
-    imin::Int64
-    "maximum assignable Vx grid index in x direction"
-    jmax::Int64
-    "maximum assignable Vx grid index in y direction"
-    imax::Int64
-    # physical node properties
-    "density [kg/m^3]"
-    RHOX::Array{Float64}
-    "fluid density [kg/m^3]"
-    RHOFX::Array{Float64}
-    "thermal conductivity [W/m/K]"
-    KX::Array{Float64}
-    "porosity"
-    PHIX::Array{Float64}
-    "solid vx-velocity [m/s]"
-    vx::Array{Float64}
-    "fluid vx-velocity [m/s]"
-    vxf::Array{Float64}
-    "etafluid/kphi ratio [m^2]"
-    RX::Array{Float64}
-    "qx-darcy flux [m/s]"
-    qxD::Array{Float64}
-    "gx-gravity [m/s^2]"
-    gx::Array{Float64}
-    "inner constructor"
-    VxNodes(sp::StaticParameters) = new(
-        collect(0:sp.dx:sp.xsize+sp.dy),
-        collect(-sp.dy/2:sp.dy:sp.ysize+sp.dy/2),
-        sp.Nx1,
-        sp.Ny1,
-        sp.dx,
-        sp.dy,
-        sp.jmin_vx,
-        sp.imin_vx,
-        sp.jmax_vx,
-        sp.imax_vx,
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1)
-     )
-end
+# $(TYPEDFIELDS)
+# """
+# @with_kw struct BasicNodes <: Nodes
+#     # grid geometry
+#     "x: horizontal coordinates of basic grid points [m]"
+#     x::Array{Float64}
+#     "y: vertical coordinates of basic grid points [m]"
+#     y::Array{Float64}
+#     "Nx: number of basic grid points in x direction"
+#     num_x::Int64
+#     "Ny: number of basic grid points in y direction"
+#     num_y::Int64
+#     "dx: basic grid spacing in x direction [m]"
+#     dx::Float64
+#     "dy: basic grid spacing in y direction [m]"
+#     dy::Float64
+#     "minimum assignable basic grid index in x direction"
+#     jmin::Int64
+#     "minimum assignable basic grid index in y direction"
+#     imin::Int64
+#     "maximum assignable basic grid index in x direction"
+#     jmax::Int64
+#     "maximum assignable basic grid index in y direction"
+#     imax::Int64
+#     # physical node properties
+#     "viscoplastic viscosity, Pa*s"
+#     ETA::Array{Float64}
+#     "viscous viscosity, Pa*s"
+#     ETA0::Array{Float64}
+#     "shear modulus, Pa"
+#     GGG::Array{Float64}
+#     "epsilonxy, 1/s"
+#     EXY::Array{Float64}
+#     "sigma0xy, 1/s"
+#     SXY0::Array{Float64}
+#     "rotation rate, 1/s"
+#     WYX::Array{Float64}
+#     "compressive strength, Pa"
+#     COH::Array{Float64}
+#     "tensile strength, Pa"
+#     TEN::Array{Float64}
+#     "friction"
+#     FRI::Array{Float64}
+#     "plastic yielding mark, 1=yes,0=no"
+#     YNY::Array{Int8}
+#     # constructors
+#     "inner constructor"
+#     BasicNodes(sp::StaticParameters) = new(
+#         collect(0:sp.dx:sp.xsize),
+#         collect(0:sp.dy:sp.ysize),
+#         sp.Nx,
+#         sp.Ny,
+#         sp.dx,
+#         sp.dy,
+#         sp.jmin_basic,
+#         sp.imin_basic,
+#         sp.jmax_basic,
+#         sp.imax_basic,
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx),
+#         zeros(sp.Ny,sp.Nx)
+#         )
+# end
 
 
-"""
-Vy nodes grid geometry and physical properties.
+# """
+# Vx nodes grid geometry and physical properties.
 
-$(TYPEDFIELDS)
-"""
-@with_kw struct VyNodes <: Nodes
-    # grid geometry
-    "xvy: horizontal coordinates of vy grid points [m]"
-    x::Array{Float64}
-    "yvy: vertical coordinates of vy grid points [m]"
-    y::Array{Float64}
-    "Nx1: number of Vy grid points in x direction"
-    num_x::Int64
-    "Ny1: number of Vy grid points in y direction"
-    num_y::Int64
-    "dx: Vy grid spacing in x direction [m]"
-    dx::Float64
-    "dy: Vy grid spacing in y direction [m]"
-    dy::Float64
-    "minimum assignable Vy grid index in x direction"
-    jmin::Int64
-    "minimum assignable Vy grid index in y direction"
-    imin::Int64
-    "maximum assignable Vy grid index in x direction"
-    jmax::Int64
-    "maximum assignable Vy grid index in y direction"
-    imax::Int64
-    # physical node properties
-    "density [kg/m^3]"
-    RHOY::Array{Float64}
-    "fluid density [kg/m^3]"
-    RHOFY::Array{Float64}
-    "thermal conductivity [W/m/K]"
-    KY::Array{Float64}
-    "porosity"
-    PHIY::Array{Float64}
-    "solid vy-velocity [m/s]"
-    vy::Array{Float64}
-    "fluid vy-velocity [m/s]"
-    vyf::Array{Float64}
-    "etafluid/kphi ratio [m^2]"
-    RY::Array{Float64}
-    "qy-darcy flux [m/s]"
-    qyD::Array{Float64}
-    "gy-gravity [m/s^2]"
-    gy::Array{Float64}
-    "inner constructor"
-    VyNodes(sp::StaticParameters) = new(
-        collect(-sp.dx/2:sp.dx:sp.xsize+sp.dx/2),
-        collect(0:sp.dy:sp.ysize+sp.dy),
-        sp.Nx1,
-        sp.Ny1,
-        sp.dx,
-        sp.dy,
-        sp.jmin_vy,
-        sp.imin_vy,
-        sp.jmax_vy,
-        sp.imax_vy,
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1)
-     )
-end
+# $(TYPEDFIELDS)
+# """
+# @with_kw struct VxNodes <: Nodes
+#     # grid geometry
+#     "xvx: horizontal coordinates of vx grid points [m]"
+#     x::Array{Float64}
+#     "yvx: vertical coordinates of vx grid points [m]"
+#     y::Array{Float64}
+#     "Nx1: number of Vx grid points in x direction"
+#     num_x::Int64
+#     "Ny1: number of Vx grid points in y direction"
+#     num_y::Int64
+#     "dx: Vx grid spacing in x direction [m]"
+#     dx::Float64
+#     "dy: Vx grid spacing in y direction [m]"
+#     dy::Float64
+#     "minimum assignable Vx grid index in x direction"
+#     jmin::Int64
+#     "minimum assignable Vx grid index in y direction"
+#     imin::Int64
+#     "maximum assignable Vx grid index in x direction"
+#     jmax::Int64
+#     "maximum assignable Vx grid index in y direction"
+#     imax::Int64
+#     # physical node properties
+#     "density [kg/m^3]"
+#     RHOX::Array{Float64}
+#     "fluid density [kg/m^3]"
+#     RHOFX::Array{Float64}
+#     "thermal conductivity [W/m/K]"
+#     KX::Array{Float64}
+#     "porosity"
+#     PHIX::Array{Float64}
+#     "solid vx-velocity [m/s]"
+#     vx::Array{Float64}
+#     "fluid vx-velocity [m/s]"
+#     vxf::Array{Float64}
+#     "etafluid/kphi ratio [m^2]"
+#     RX::Array{Float64}
+#     "qx-darcy flux [m/s]"
+#     qxD::Array{Float64}
+#     "gx-gravity [m/s^2]"
+#     gx::Array{Float64}
+#     "inner constructor"
+#     VxNodes(sp::StaticParameters) = new(
+#         collect(0:sp.dx:sp.xsize+sp.dy),
+#         collect(-sp.dy/2:sp.dy:sp.ysize+sp.dy/2),
+#         sp.Nx1,
+#         sp.Ny1,
+#         sp.dx,
+#         sp.dy,
+#         sp.jmin_vx,
+#         sp.imin_vx,
+#         sp.jmax_vx,
+#         sp.imax_vx,
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1)
+#      )
+# end
 
 
-"""
-P nodes grid geometry and physical properties.
+# """
+# Vy nodes grid geometry and physical properties.
 
-$(TYPEDFIELDS)
-"""
-@with_kw struct PNodes <: Nodes
-    # grid geometry
-    "horizontal coordinates of P grid points [m]"
-    xp::Array{Float64}
-    "vertical coordinates of P grid points [m]"
-    yp::Array{Float64}
-    "Nx1: number of P grid points in x direction"
-    num_x::Int64
-    "Ny1: number of P grid points in y direction"
-    num_y::Int64
-    "dx: P grid spacing in x direction [m]"
-    dx::Float64
-    "dy: P grid spacing in y direction [m]"
-    dy::Float64
-    "minimum assignable P grid index in x direction"
-    jmin::Int64
-    "minimum assignable P grid index in y direction"
-    imin::Int64
-    "maximum assignable P grid index in x direction"
-    jmax::Int64
-    "maximum assignable P grid index in y direction"
-    imax::Int64
-    # physical node properties
-    "density [kg/m^3]"
-    RHO::Array{Float64}
-    "volumetric heat capacity [J/m^3/K]"
-    RHOCP::Array{Float64}
-    "thermal expansion [J/m^3/K]"
-    ALPHA::Array{Float64}
-    "fluid thermal expansion [J/m^3/K]"
-    ALPHAF::Array{Float64}
-    "radioactive heating [W/m^3]"
-    HR::Array{Float64}
-    "adiabatic heating [W/m^3]"
-    HA::Array{Float64}
-    "shear heating [W/m^3]"
-    HS::Array{Float64}
-    "viscosity [Pa*s]"
-    ETAP::Array{Float64}
-    "shear modulus [Pa]"
-    GGGP::Array{Float64}
-    "EPSILONxx [1/s]"
-    EXX::Array{Float64}
-    "SIGMA'xx [1/s]"
-    SXX::Array{Float64}
-    "SIGMA0'xx [1/s]"
-    SXX0::Array{Float64}
-    "old temperature [K]"
-    tk1::Array{Float64}
-    "new temperature [K]"
-    tk2::Array{Float64}
-    "solid Vx in pressure nodes [m/s]"
-    vxp::Array{Float64}
-    "solid Vy in pressure nodes [m/s]"
-    vyp::Array{Float64}
-    "fluid Vx in pressure nodes [m/s]"
-    vxpf::Array{Float64}
-    "fluid Vy in pressure nodes [m/s]"
-    vypf::Array{Float64}
-    "total pressure [Pa]"
-    pr::Array{Float64}
-    "fluid pressure [Pa]"
-    pf::Array{Float64}
-    "solid pressure [Pa]"
-    ps::Array{Float64}
-    "old total pressure [Pa]"
-    pr0::Array{Float64}
-    "old fluid pressure [Pa]"
-    pf0::Array{Float64}
-    "old solid pressure [Pa]"
-    ps0::Array{Float64}
-    "bulk viscosity [Pa*s]"
-    ETAPHI::Array{Float64}
-    "bulk compresibility [Pa*s]"
-    BETTAPHI::Array{Float64}
-    "porosity"
-    PHI::Array{Float64}
-    "Dln[(1-PHI)/PHI]/Dt"
-    APHI::Array{Float64}
-    "gravity potential [J/kg]"
-    FI::Array{Float64}
-    "inner constructor"
-    PNodes(sp::StaticParameters) = new(
-        collect(-sp.dx/2:sp.dx:sp.xsize+sp.dx/2),
-        collect(-sp.dy/2:sp.dy:sp.ysize+sp.dy/2),
-        sp.Nx1,
-        sp.Ny1,
-        sp.dx,
-        sp.dy,
-        sp.jmin_p,
-        sp.imin_p,
-        sp.jmax_p,
-        sp.imax_p,    
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1),
-        zeros(sp.Ny1, sp.Nx1)
-    )
-end
+# $(TYPEDFIELDS)
+# """
+# @with_kw struct VyNodes <: Nodes
+#     # grid geometry
+#     "xvy: horizontal coordinates of vy grid points [m]"
+#     x::Array{Float64}
+#     "yvy: vertical coordinates of vy grid points [m]"
+#     y::Array{Float64}
+#     "Nx1: number of Vy grid points in x direction"
+#     num_x::Int64
+#     "Ny1: number of Vy grid points in y direction"
+#     num_y::Int64
+#     "dx: Vy grid spacing in x direction [m]"
+#     dx::Float64
+#     "dy: Vy grid spacing in y direction [m]"
+#     dy::Float64
+#     "minimum assignable Vy grid index in x direction"
+#     jmin::Int64
+#     "minimum assignable Vy grid index in y direction"
+#     imin::Int64
+#     "maximum assignable Vy grid index in x direction"
+#     jmax::Int64
+#     "maximum assignable Vy grid index in y direction"
+#     imax::Int64
+#     # physical node properties
+#     "density [kg/m^3]"
+#     RHOY::Array{Float64}
+#     "fluid density [kg/m^3]"
+#     RHOFY::Array{Float64}
+#     "thermal conductivity [W/m/K]"
+#     KY::Array{Float64}
+#     "porosity"
+#     PHIY::Array{Float64}
+#     "solid vy-velocity [m/s]"
+#     vy::Array{Float64}
+#     "fluid vy-velocity [m/s]"
+#     vyf::Array{Float64}
+#     "etafluid/kphi ratio [m^2]"
+#     RY::Array{Float64}
+#     "qy-darcy flux [m/s]"
+#     qyD::Array{Float64}
+#     "gy-gravity [m/s^2]"
+#     gy::Array{Float64}
+#     "inner constructor"
+#     VyNodes(sp::StaticParameters) = new(
+#         collect(-sp.dx/2:sp.dx:sp.xsize+sp.dx/2),
+#         collect(0:sp.dy:sp.ysize+sp.dy),
+#         sp.Nx1,
+#         sp.Ny1,
+#         sp.dx,
+#         sp.dy,
+#         sp.jmin_vy,
+#         sp.imin_vy,
+#         sp.jmax_vy,
+#         sp.imax_vy,
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1)
+#      )
+# end
+
+
+# """
+# P nodes grid geometry and physical properties.
+
+# $(TYPEDFIELDS)
+# """
+# @with_kw struct PNodes <: Nodes
+#     # grid geometry
+#     "horizontal coordinates of P grid points [m]"
+#     xp::Array{Float64}
+#     "vertical coordinates of P grid points [m]"
+#     yp::Array{Float64}
+#     "Nx1: number of P grid points in x direction"
+#     num_x::Int64
+#     "Ny1: number of P grid points in y direction"
+#     num_y::Int64
+#     "dx: P grid spacing in x direction [m]"
+#     dx::Float64
+#     "dy: P grid spacing in y direction [m]"
+#     dy::Float64
+#     "minimum assignable P grid index in x direction"
+#     jmin::Int64
+#     "minimum assignable P grid index in y direction"
+#     imin::Int64
+#     "maximum assignable P grid index in x direction"
+#     jmax::Int64
+#     "maximum assignable P grid index in y direction"
+#     imax::Int64
+#     # physical node properties
+#     "density [kg/m^3]"
+#     RHO::Array{Float64}
+#     "volumetric heat capacity [J/m^3/K]"
+#     RHOCP::Array{Float64}
+#     "thermal expansion [J/m^3/K]"
+#     ALPHA::Array{Float64}
+#     "fluid thermal expansion [J/m^3/K]"
+#     ALPHAF::Array{Float64}
+#     "radioactive heating [W/m^3]"
+#     HR::Array{Float64}
+#     "adiabatic heating [W/m^3]"
+#     HA::Array{Float64}
+#     "shear heating [W/m^3]"
+#     HS::Array{Float64}
+#     "viscosity [Pa*s]"
+#     ETAP::Array{Float64}
+#     "shear modulus [Pa]"
+#     GGGP::Array{Float64}
+#     "EPSILONxx [1/s]"
+#     EXX::Array{Float64}
+#     "SIGMA'xx [1/s]"
+#     SXX::Array{Float64}
+#     "SIGMA0'xx [1/s]"
+#     SXX0::Array{Float64}
+#     "old temperature [K]"
+#     tk1::Array{Float64}
+#     "new temperature [K]"
+#     tk2::Array{Float64}
+#     "solid Vx in pressure nodes [m/s]"
+#     vxp::Array{Float64}
+#     "solid Vy in pressure nodes [m/s]"
+#     vyp::Array{Float64}
+#     "fluid Vx in pressure nodes [m/s]"
+#     vxpf::Array{Float64}
+#     "fluid Vy in pressure nodes [m/s]"
+#     vypf::Array{Float64}
+#     "total pressure [Pa]"
+#     pr::Array{Float64}
+#     "fluid pressure [Pa]"
+#     pf::Array{Float64}
+#     "solid pressure [Pa]"
+#     ps::Array{Float64}
+#     "old total pressure [Pa]"
+#     pr0::Array{Float64}
+#     "old fluid pressure [Pa]"
+#     pf0::Array{Float64}
+#     "old solid pressure [Pa]"
+#     ps0::Array{Float64}
+#     "bulk viscosity [Pa*s]"
+#     ETAPHI::Array{Float64}
+#     "bulk compresibility [Pa*s]"
+#     BETTAPHI::Array{Float64}
+#     "porosity"
+#     PHI::Array{Float64}
+#     "Dln[(1-PHI)/PHI]/Dt"
+#     APHI::Array{Float64}
+#     "gravity potential [J/kg]"
+#     FI::Array{Float64}
+#     "inner constructor"
+#     PNodes(sp::StaticParameters) = new(
+#         collect(-sp.dx/2:sp.dx:sp.xsize+sp.dx/2),
+#         collect(-sp.dy/2:sp.dy:sp.ysize+sp.dy/2),
+#         sp.Nx1,
+#         sp.Ny1,
+#         sp.dx,
+#         sp.dy,
+#         sp.jmin_p,
+#         sp.imin_p,
+#         sp.jmax_p,
+#         sp.imax_p,    
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1),
+#         zeros(sp.Ny1, sp.Nx1)
+#     )
+# end
 
 
 # """
@@ -1012,143 +1012,143 @@ $(TYPEDFIELDS)
 end
 
 
-"""
-Interpolation arrays: Calculated during timestepping
-to interpolate properties from markers to nodes
+# """
+# Interpolation arrays: Calculated during timestepping
+# to interpolate properties from markers to nodes
 
-$(TYPEDFIELDS)
-"""
-@with_kw struct InterpolationArrays
-    # basic nodes
-    "basic nodes: ETA0SUM"
-    ETA0SUM::Tuple
-    "basic nodes: ETASUM"
-    ETASUM::Tuple
-    "basic nodes: GGGSUM"
-    GGGSUM::Tuple
-    "basic nodes: SXYSUM"
-    SXYSUM::Tuple
-    "basic nodes: COHSUM"
-    COHSUM::Tuple
-    "basic nodes: TENSUM"
-    TENSUM::Tuple
-    "basic nodes: FRISUM"	
-    FRISUM::Tuple
-    "basic nodes: WTSUM"
-    WTSUM::Tuple
-    # Vx-nodes
-    "Vx-nodes: RHOXSUM"	
-    RHOXSUM::Tuple
-    "Vx-nodes: RHOFXSUM"
-    RHOFXSUM::Tuple
-    "Vx-nodes: KXSUM"
-    KXSUM::Tuple
-    "Vx-nodes: PHIXSUM"
-    PHIXSUM::Tuple
-    "Vx-nodes: RXSUM"	
-    RXSUM::Tuple
-    "Vx-nodes: WTXSUM"	
-    WTXSUM::Tuple
-    # Vy-nodes
-    "Vy-nodes: RHOYSUM"	
-    RHOYSUM::Tuple
-    "Vy-nodes: RHOFYSUM"
-    RHOFYSUM::Tuple
-    "Vy-nodes: KYSUM"	
-    KYSUM::Tuple
-    "Vy-nodes: PHIYSUM"
-    PHIYSUM::Tuple
-    "Vy-nodes: RYSUM"
-    RYSUM::Tuple
-    "Vy-nodes: WTYSUM"
-    WTYSUM::Tuple
-    # P-Nodes
-    "P-nodes: GGGPSUM"
-    GGGPSUM::Tuple
-    "P-nodes: SXXSUM"
-    SXXSUM::Tuple
-    "P-nodes: RHOSUM"
-    RHOSUM::Tuple
-    "P-nodes: RHOCPSUM"
-    RHOCPSUM::Tuple
-    "P-nodes: ALPHASUM"	
-    ALPHASUM::Tuple
-    "P-nodes: ALFAFSUM"
-    ALPHAFSUM::Tuple
-    "P-nodes: HRSUM"	
-    HRSUM::Tuple
-    "P-nodes: TKSUM"
-    TKSUM::Tuple
-    "P-nodes: PHISUM"
-    PHISUM::Tuple
-    "P-nodes: WTPSUM"
-    WTPSUM::Tuple
-    "inner constructor"
-    InterpolationArrays(Nx, Ny, Nx1, Ny1) = new(
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
-    )
-    InterpolationArrays(sp::StaticParameters) = new(
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
-        Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()])
-    )
-end
+# $(TYPEDFIELDS)
+# """
+# @with_kw struct InterpolationArrays
+#     # basic nodes
+#     "basic nodes: ETA0SUM"
+#     ETA0SUM::Tuple
+#     "basic nodes: ETASUM"
+#     ETASUM::Tuple
+#     "basic nodes: GGGSUM"
+#     GGGSUM::Tuple
+#     "basic nodes: SXYSUM"
+#     SXYSUM::Tuple
+#     "basic nodes: COHSUM"
+#     COHSUM::Tuple
+#     "basic nodes: TENSUM"
+#     TENSUM::Tuple
+#     "basic nodes: FRISUM"	
+#     FRISUM::Tuple
+#     "basic nodes: WTSUM"
+#     WTSUM::Tuple
+#     # Vx-nodes
+#     "Vx-nodes: RHOXSUM"	
+#     RHOXSUM::Tuple
+#     "Vx-nodes: RHOFXSUM"
+#     RHOFXSUM::Tuple
+#     "Vx-nodes: KXSUM"
+#     KXSUM::Tuple
+#     "Vx-nodes: PHIXSUM"
+#     PHIXSUM::Tuple
+#     "Vx-nodes: RXSUM"	
+#     RXSUM::Tuple
+#     "Vx-nodes: WTXSUM"	
+#     WTXSUM::Tuple
+#     # Vy-nodes
+#     "Vy-nodes: RHOYSUM"	
+#     RHOYSUM::Tuple
+#     "Vy-nodes: RHOFYSUM"
+#     RHOFYSUM::Tuple
+#     "Vy-nodes: KYSUM"	
+#     KYSUM::Tuple
+#     "Vy-nodes: PHIYSUM"
+#     PHIYSUM::Tuple
+#     "Vy-nodes: RYSUM"
+#     RYSUM::Tuple
+#     "Vy-nodes: WTYSUM"
+#     WTYSUM::Tuple
+#     # P-Nodes
+#     "P-nodes: GGGPSUM"
+#     GGGPSUM::Tuple
+#     "P-nodes: SXXSUM"
+#     SXXSUM::Tuple
+#     "P-nodes: RHOSUM"
+#     RHOSUM::Tuple
+#     "P-nodes: RHOCPSUM"
+#     RHOCPSUM::Tuple
+#     "P-nodes: ALPHASUM"	
+#     ALPHASUM::Tuple
+#     "P-nodes: ALFAFSUM"
+#     ALPHAFSUM::Tuple
+#     "P-nodes: HRSUM"	
+#     HRSUM::Tuple
+#     "P-nodes: TKSUM"
+#     TKSUM::Tuple
+#     "P-nodes: PHISUM"
+#     PHISUM::Tuple
+#     "P-nodes: WTPSUM"
+#     WTPSUM::Tuple
+#     "inner constructor"
+#     InterpolationArrays(Nx, Ny, Nx1, Ny1) = new(
+#         Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny, Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, Ny1, Nx1) for _ in 1:nthreads()]),
+#     )
+#     InterpolationArrays(sp::StaticParameters) = new(
+#         Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny, sp.Nx) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()]),
+#         Tuple([Matrix{Float64}(undef, sp.Ny1, sp.Nx1) for _ in 1:nthreads()])
+#     )
+# end
 
 
 # @with_kw struct InterpArrays2
@@ -1283,73 +1283,73 @@ end
 #     )
 # end
 
-"""
-Global matrices: Hydro-mechanical solution
+# """
+# Global matrices: Hydro-mechanical solution
 
-$(TYPEDFIELDS)
-"""
-@with_kw struct GlobalHydroMechanicalSolution
-# Base.@kwdef mutable struct GlobalHydroMechanicalSolution
-    "L matrix"
-    L::SparseMatrixCSC{Float64, Int64}
-    "R vector"
-    R::Vector{Float64}
-    "inner constructor"
-    GlobalHydroMechanical(Nx1, Ny1) = new(
-        spzeros(Nx1*Ny1*6, Nx1*Ny1*6),
-        zeros(Nx1*Ny1*6)
-        )
-    GlobalHydroMechanical(sp::StaticParameters) = new(
-        spzeros(sp.Nx1*sp.Ny1*6, sp.Nx1*sp.Ny1*6),
-        zeros(sp.Nx1*sp.Ny1*6)
-        )
-end
-
-
-"""
-Global matrices: Thermal solution
-
-$(TYPEDFIELDS)
-"""
-@with_kw struct GlobalThermalSolution
-# Base.@kwdef mutable struct GlobalThermalSolution
-    "LT matrix"
-    LT::SparseMatrixCSC{Float64, Int64}
-    "RT vector"
-    RT::Vector{Float64}
-    "inner constructor"
-    GlobalThermal(Nx1, Ny1) = new(
-        spzeros(Nx1*Ny1, Nx1*Ny1),
-        zeros(Nx1*Ny1)
-        )
-    GlobalThermal(sp::StaticParameters) = new(
-        spzeros(sp.Nx1*sp.Ny1, sp.Nx1*sp.Ny1),
-        zeros(sp.Nx1*sp.Ny1)
-        )
-end
+# $(TYPEDFIELDS)
+# """
+# @with_kw struct GlobalHydroMechanicalSolution
+# # Base.@kwdef mutable struct GlobalHydroMechanicalSolution
+#     "L matrix"
+#     L::SparseMatrixCSC{Float64, Int64}
+#     "R vector"
+#     R::Vector{Float64}
+#     "inner constructor"
+#     GlobalHydroMechanical(Nx1, Ny1) = new(
+#         spzeros(Nx1*Ny1*6, Nx1*Ny1*6),
+#         zeros(Nx1*Ny1*6)
+#         )
+#     GlobalHydroMechanical(sp::StaticParameters) = new(
+#         spzeros(sp.Nx1*sp.Ny1*6, sp.Nx1*sp.Ny1*6),
+#         zeros(sp.Nx1*sp.Ny1*6)
+#         )
+# end
 
 
-"""
-Global matrices: Gravity solution
+# """
+# Global matrices: Thermal solution
 
-$(TYPEDFIELDS)
-"""
-@with_kw struct GlobalGravitySolution
-# Base.@kwdef mutable struct GlobalGravitySolution
-    "LP matrix"
-    LP::SparseMatrixCSC{Float64, Int64}
-    "RP vector"
-    RP::Vector{Float64}
-    "inner constructor"
-    GlobalGravity(Nx1, Ny1) = new(
-        spzeros(Nx1*Ny1, Nx1*Ny1),
-        zeros(Nx1*Ny1)
-        )
-    GlobalGravity(sp::StaticParameters) = new(
-        spzeros(sp.Nx1*sp.Ny1, sp.Nx1*sp.Ny1),
-        zeros(sp.Nx1*sp.Ny1)
-        )
-end
+# $(TYPEDFIELDS)
+# """
+# @with_kw struct GlobalThermalSolution
+# # Base.@kwdef mutable struct GlobalThermalSolution
+#     "LT matrix"
+#     LT::SparseMatrixCSC{Float64, Int64}
+#     "RT vector"
+#     RT::Vector{Float64}
+#     "inner constructor"
+#     GlobalThermal(Nx1, Ny1) = new(
+#         spzeros(Nx1*Ny1, Nx1*Ny1),
+#         zeros(Nx1*Ny1)
+#         )
+#     GlobalThermal(sp::StaticParameters) = new(
+#         spzeros(sp.Nx1*sp.Ny1, sp.Nx1*sp.Ny1),
+#         zeros(sp.Nx1*sp.Ny1)
+#         )
+# end
+
+
+# """
+# Global matrices: Gravity solution
+
+# $(TYPEDFIELDS)
+# """
+# @with_kw struct GlobalGravitySolution
+# # Base.@kwdef mutable struct GlobalGravitySolution
+#     "LP matrix"
+#     LP::SparseMatrixCSC{Float64, Int64}
+#     "RP vector"
+#     RP::Vector{Float64}
+#     "inner constructor"
+#     GlobalGravity(Nx1, Ny1) = new(
+#         spzeros(Nx1*Ny1, Nx1*Ny1),
+#         zeros(Nx1*Ny1)
+#         )
+#     GlobalGravity(sp::StaticParameters) = new(
+#         spzeros(sp.Nx1*sp.Ny1, sp.Nx1*sp.Ny1),
+#         zeros(sp.Nx1*sp.Ny1)
+#         )
+# end
 
 
 
@@ -2412,7 +2412,9 @@ $(SIGNATURES)
 function timestepping(
     markers::MarkerArrays, sp::StaticParameters, dp::DynamicParameters
 )
+    # -------------------------------------------------------------------------
     # unpack simulation parameters
+    # -------------------------------------------------------------------------
     @unpack xsize, ysize,
     Nx, Ny,
     Nx1, Ny1,
@@ -2430,7 +2432,10 @@ function timestepping(
     endtime = sp
     @unpack timestep, dt, timesum, marknum, hrsolidm, hrfluidm = dp
 
+    
+    # -------------------------------------------------------------------------
     # set up staggered grid
+    # -------------------------------------------------------------------------
     # basic nodes
     # grid geometry
     # x: horizontal coordinates of basic grid points [m]
@@ -2580,20 +2585,32 @@ function timestepping(
     FI = zeros(Float64, Ny1, Nx1)
 
 
-    # @timeit to "setup interp_arrays" begin
-    # set up marker interpolation arrays
-    # interp_arrays = InterpolationArrays(sp)
-    # end # timeit "setup interp_arrays"
+    # -------------------------------------------------------------------------
+    # set up of matrices for global gravity/thermal/hydromechanical solutions
+    # -------------------------------------------------------------------------
+    # hydromechanical solution: LHS coefficient matrix
+    L = SparseMatrixCSC{Float64, Int64}(Nx1*Ny1*6, Nx1*Ny1*6)
+    # hydromechanical solution: RHS Vector
+    R = zeros(Float64, Nx1*Ny1*6)
+    # thermal solution: LHS coefficient matrix
+    LT = SparseMatrixCSC{Float64, Int64}(Nx1*Ny1, Nx1*Ny1)
+    # thermal solution: RHS Vector
+    RT = zeros(Float64, Nx1*Ny1)
+    # gravity solution: LHS coefficient matrix
+    LP = SparseMatrixCSC{Float64, Int64}(Nx1*Ny1, Nx1*Ny1)
+    # gravity solution: RHS Vector
+    RP = zeros(Float64, Nx1*Ny1)
 
-    # @timeit to "timestepping loop" begin
+
+    # -------------------------------------------------------------------------
     # iterate timesteps   
+    # -------------------------------------------------------------------------
     for timestep = startstep:1:100
-        # for timestep = startstep:1:nsteps
-        # set interpolation arrays to zero for this timestep
-        # @timeit to "reset interp_arrays" reset_interpolation_arrays!(interp_arrays)        
-        # reset_interpolation_arrays!(interp_arrays)
+    # for timestep = startstep:1:nsteps
 
+        # ---------------------------------------------------------------------
         # set up interpolation arrays
+        # ---------------------------------------------------------------------
         # basic nodes
         ETA0SUM = zeros(Ny, Nx, nthreads())
         ETASUM = zeros(Ny, Nx, nthreads())
@@ -2629,13 +2646,17 @@ function timestepping(
         PHISUM = zeros(Ny1, Nx1, nthreads())
         WTPSUM = zeros(Ny1, Nx1, nthreads())
 
+
+        # ---------------------------------------------------------------------
         # calculate radioactive heating
+        # ---------------------------------------------------------------------
         hrsolidm, hrfluidm = calculate_radioactive_heating(sp, dp)
 
-        # @timeit to "compute marker properties" begin
-        # for m=1:1:marknum
+        
+        # ---------------------------------------------------------------------
+        # computer marker properties and interpolate to staggered grid nodes
+        # ---------------------------------------------------------------------
         @threads for m = 1:1:marknum
-
             # compute marker properties 
             compute_dynamic_marker_params!(m, markers, sp, dp)
 
@@ -2759,118 +2780,205 @@ function timestepping(
         # ETA = reduce(+, WTPSUM, dims=3)
 
 
-        # end # timeit " compute marker properties"
 
-        # # compute physical properties of basic nodes
+        # ---------------------------------------------------------------------
+        # compute physical properties of basic nodes
+        # ---------------------------------------------------------------------
         # compute_properties_basic_nodes!(sp, dp, interp_arrays)
 
+
+        # ---------------------------------------------------------------------
         # # compute physical properties of Vx nodes
+        # ---------------------------------------------------------------------
         # compute_properties_vx_nodes!(sp, dp, interp_arrays)
 
+
+        # ---------------------------------------------------------------------
         # # compute physical properties of Vy nodes
+        # ---------------------------------------------------------------------
         # compute_properties_vy_nodes!(sp, dp, interp_arrays)
 
+
+        # ---------------------------------------------------------------------
         # # compute physical properties of P nodes
+        # ---------------------------------------------------------------------
         # compute_properties_p_nodes!(sp, dp, interp_arrays)
 
+
+        # ---------------------------------------------------------------------
         # # applying thermal boundary conditions for interpolated temperature
+        # ---------------------------------------------------------------------
         # apply_thermal_bc(sp, dp, tk1)
 
+
+        # ---------------------------------------------------------------------
         # # compute gravity solution
+        # ---------------------------------------------------------------------
         # compute_gravity_solution!(sp, dp, interp_arrays)
 
+
+        # ---------------------------------------------------------------------
         # # compute gravitational acceleration
+        # ---------------------------------------------------------------------
         # compute_grav_accel!(sp, dp, interp_arrays)
 
+
+        # ---------------------------------------------------------------------
         # # probe increasing computational timestep
+        # ---------------------------------------------------------------------
         # dt = min(dt*dtkoefup, dtelastic)
 
+
+        # ---------------------------------------------------------------------
         # # perform plastic iterations
+        # ---------------------------------------------------------------------
         # for iplast = 1:1:nplast
         #     # ~600 lines MATLAB
         # end
 
+
+        # ---------------------------------------------------------------------
         # # interpolate updated viscoplastic viscosity to markers
+        # ---------------------------------------------------------------------
         # for m = 1:1:marknum
         #     # ~50 lines MATLAB 
         # end
 
+
+        # ---------------------------------------------------------------------
         # # apply subgrid stress diffusion to markers
+        # ---------------------------------------------------------------------
         # for m = 1:1:marknum
         #     # ~100 lines MATLAB 
         # end
 
+
+        # ---------------------------------------------------------------------
         # # compute DSXXsubgrid, DSXYsubgrid
+        # ---------------------------------------------------------------------
         # compute_dsxx_dsxy_subgrids!(sp, dp, interp_arrays)
 
+
+        # ---------------------------------------------------------------------
         # # interpolate DSXX, DSXY to markers
+        # ---------------------------------------------------------------------
         # for m = 1:1:marknum
         #     # ~50 lines MATLAB 
         # end
 
+
+        # ---------------------------------------------------------------------
         # # compute shear heating HS in P nodes
+        # ---------------------------------------------------------------------
         # compute_HS_p_nodes!(sp, dp, interp_arrays)
 
+
+        # ---------------------------------------------------------------------
         # # compute adiabatic heating HA in P nodes
+        # ---------------------------------------------------------------------
         # compute_HA_p_nodes!(sp, dp, interp_arrays)
 
+
+        # ---------------------------------------------------------------------
         # # perform thermal iterations
+        # ---------------------------------------------------------------------
         # # ~100 lines MATLAB
 
+
+        # ---------------------------------------------------------------------
         # # apply subgrid temperature diffusion on markers
+        # ---------------------------------------------------------------------
         # for m = 1:1:marknum
         #     # ~50 lines MATLAB
         # end
 
+
+        # ---------------------------------------------------------------------
         # # compute DTsubgrid
+        # ---------------------------------------------------------------------
         # compute_DT_subgrid!(sp, dp, interp_arrays)
 
+
+        # ---------------------------------------------------------------------
         # # interpolate DT to markers
+        # ---------------------------------------------------------------------
         # for m = 1:1:marknum
         #     # ~30 lines MATLAB
         # end
 
+
+        # ---------------------------------------------------------------------
         # # update porosity on markers
+        # ---------------------------------------------------------------------
         # for m = 1:1:marknum
         #     # ~30 lines MATLAB
         # end
 
+
+        # ---------------------------------------------------------------------
         # # compute fluid velocity in P nodes including boundary conditions
+        # ---------------------------------------------------------------------
         # compute_v_fluid_p_nodes(sp, dp, interp_arrays)
 
+
+        # ---------------------------------------------------------------------
         # # compute velocity in P nodes
+        # ---------------------------------------------------------------------
         # compute_v_p_nodes!(sp, dp, interp_arrays)
 
+
+        # ---------------------------------------------------------------------
         # # compute rotation rate in basic nodes
+        # ---------------------------------------------------------------------
         # compute_ω_basic_nodes!(sp, dp, interp_arrays)
 
+
+        # ---------------------------------------------------------------------
         # # move markers with RK4
+        # ---------------------------------------------------------------------
         # for m = 1:1:marknum
         #     # ~300 lines MATLAB
         # end
 
+
+        # ---------------------------------------------------------------------
         # # backtrack P nodes: Ptotal with RK4
+        # ---------------------------------------------------------------------
 
+
+        # ---------------------------------------------------------------------
         # # backtrack P nodes: Pfluid with RK1/2/3
+        # ---------------------------------------------------------------------
 
+
+        # ---------------------------------------------------------------------
         # # replenish sparse areas with additional markers
+        # ---------------------------------------------------------------------
         # for m = 1:1:marknum
         #     # ~100 lines MATLAB
         # end
 
+
+        # ---------------------------------------------------------------------
         # # update timesum
+        # ---------------------------------------------------------------------
 
+
+        # ---------------------------------------------------------------------
         # # save data for analysis and visualization
+        # ---------------------------------------------------------------------
 
 
-
-
-
-
-        # # save old stresses - RMK: not used anywhere in code
+        # ---------------------------------------------------------------------
+        # # save old stresses - RMK: not used anywhere in code ?
+        # ---------------------------------------------------------------------
         # # sxxm00 = sxxm 
         # # sxym00 = sxym    
 
+
+        # ---------------------------------------------------------------------
+        # finish timestep
+        # ---------------------------------------------------------------------
         if timestep % 20 == 0
             println("timestep: ", timestep)
         end
@@ -2879,7 +2987,6 @@ function timestepping(
             break
         end
 
-        # end # timeit "timestepping"
     end # for timestep = startstep:1:nsteps
 end # function timestepping(p::Params)
 
