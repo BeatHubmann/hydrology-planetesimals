@@ -1782,7 +1782,7 @@ const static_parameters = StaticParameters(
     Nymc = 4
 )
 # initialize dynamic parameters from static parameters
-const dynamic_parameters = DynamicParameters(static_parameters)
+# const dynamic_parameters = DynamicParameters(static_parameters)
 # const basicnodes = BasicNodes(static_parameters)
 # const vxnodes = VxNodes(static_parameters)
 # const vynodes = VyNodes(static_parameters)
