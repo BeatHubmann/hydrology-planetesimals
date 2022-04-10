@@ -23,9 +23,13 @@ $(TYPEDFIELDS)
     hr_fe::Bool = true
     # model size, geometry, and resolution
     "horizontal model size [m]"
-    xsize::Int64 = 140000
+    xsize::Float64 = 140000
     "vertical model size [m]"
-    ysize::Int64 = 140000
+    ysize::Float64 = 140000
+    "horizontal center of model"
+    xcenter::Float64 = xsize / 2
+    "vertical center of model"
+    ycenter::Float64 = ysize / 2  
     "basic grid resolution in x direction (horizontal)"
     Nx::Int 
     "basic grid resolution in y direction (vertical)"	
@@ -1352,6 +1356,26 @@ end
 # end
 
 
+"""
+Calculate Euclidean distance to center of model from given point coordinates.
+
+$(SIGNATURES)
+
+# Details
+
+    - x: x-coordinate of point [m]
+    - y: y-coordinate of point [m]
+    - sp: StaticParameters object
+
+# Returns
+
+    - distance to center of model [m]
+"""
+function distance2center(x, y, sp)
+    @unpack xcenter, ycenter = sp
+    return sqrt(abs2(x-xcenter) + abs2(y-ycenter))
+end
+
 
 """
 Initialize markers according to model parameters
@@ -1370,9 +1394,18 @@ $(SIGNATURES)
 """
 function initmarkers!(
     ma::MarkerArrays, sp::StaticParameters, dp::DynamicParameters)
-    @unpack xm, ym, tm, tkm, phim, etavpm = ma
-    @unpack xsize, ysize, Nxm, Nym, dxm, dym, rplanet, rcrust, phimin,
-        etasolidm, phim0 = sp
+    # @unpack xm, ym, tm, tkm, phim, etavpm = ma
+    @unpack xsize,
+     ysize,
+     Nxm,
+     Nym,
+     dxm,
+     dym,
+     rplanet,
+     rcrust,
+     phimin,
+     etasolidm,
+     phim0 = sp
 
     xcenter = xsize / 2
     ycenter = ysize / 2
@@ -1782,7 +1815,7 @@ const static_parameters = StaticParameters(
     Nymc = 4
 )
 # initialize dynamic parameters from static parameters
-# const dynamic_parameters = DynamicParameters(static_parameters)
+const dynamic_parameters = DynamicParameters(static_parameters)
 # const basicnodes = BasicNodes(static_parameters)
 # const vxnodes = VxNodes(static_parameters)
 # const vynodes = VyNodes(static_parameters)
