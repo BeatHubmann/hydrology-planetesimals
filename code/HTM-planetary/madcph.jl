@@ -1357,23 +1357,23 @@ end
 
 
 """
-Calculate Euclidean distance to center of model from given point coordinates.
+Calculate Euclidean distance between two point coordinates.
 
 $(SIGNATURES)
 
 # Details
 
-    - x: x-coordinate of point [m]
-    - y: y-coordinate of point [m]
-    - sp: StaticParameters object
+    - x1: x-coordinate of point 1 [m]
+    - y1: y-coordinate of point 1 [m]
+    - x2: x-coordinate of point 2 [m]
+    - y2: y-coordinate of point 2 [m]
 
 # Returns
 
-    - distance to center of model [m]
+    - Euclidean distance between point 1 and point 2 [m]
 """
-function distance2center(x, y, sp)
-    @unpack xcenter, ycenter = sp
-    return sqrt(abs2(x-xcenter) + abs2(y-ycenter))
+function distance(x1, y1, x2, y2)
+    return sqrt(abs2(x1-x2) + abs2(y1-y2))
 end
 
 
@@ -1392,10 +1392,7 @@ $(SIGNATURES)
 
     - nothing
 """
-function initmarkers!(
-    ma::MarkerArrays, sp::StaticParameters, dp::DynamicParameters)
-    # @unpack xm, ym, tm, tkm, phim, etavpm = ma
-    @unpack xsize,
+function initmarkers!(ma::MarkerArrays, sp::StaticParameters) # @unpack xm, ym, tm, tkm, phim, etavpm = ma @unpack xsize,
      ysize,
      Nxm,
      Nym,
