@@ -1783,10 +1783,10 @@ const static_parameters = StaticParameters(
 )
 # initialize dynamic parameters from static parameters
 const dynamic_parameters = DynamicParameters(static_parameters)
-const basicnodes = BasicNodes(static_parameters)
-const vxnodes = VxNodes(static_parameters)
-const vynodes = VyNodes(static_parameters)
-const pnodes = PNodes(static_parameters)
+# const basicnodes = BasicNodes(static_parameters)
+# const vxnodes = VxNodes(static_parameters)
+# const vynodes = VyNodes(static_parameters)
+# const pnodes = PNodes(static_parameters)
 const markers = MarkerArrays(static_parameters.startmarknum)
 initmarkers!(markers, static_parameters, dynamic_parameters)
 
@@ -2403,17 +2403,14 @@ $(SIGNATURES)
 
     - markers: arrays containing all marker properties
     - sp: static simulation parameters
-    - dp: dynamic simulation parameters
 
 # Returns
     
     - nothing
 """
-function simulation_loop(
-    markers::MarkerArrays, sp::StaticParameters, dp::DynamicParameters
-)
+function simulation_loop(markers::MarkerArrays, sp::StaticParameters)
     # -------------------------------------------------------------------------
-    # unpack simulation parameters
+    # unpack static simulation parameters
     # -------------------------------------------------------------------------
     @unpack xsize, ysize,
     Nx, Ny,
@@ -2427,12 +2424,31 @@ function simulation_loop(
     imin_vy, imax_vy,
     jmin_p, jmax_p,
     imin_p, imax_p,
+    dtelastic,
     startstep,
     nsteps,
-    endtime = sp
-    @unpack timestep, dt, timesum, marknum, hrsolidm, hrfluidm = dp
+    starttime, 
+    endtime,
+    startmarknum = sp
 
     
+    # -------------------------------------------------------------------------
+    # set up dynamic simulation parameters from given static parameters
+    # -------------------------------------------------------------------------
+    # timestep counter (current), init to startstep
+    timestep = startstep
+    # computational timestep (current), init to dtelastic [s]
+    dt = dtelastic
+    # time sum (current), init to starttime [s]
+    timesum = starttime
+    # current number of markers, init to startmarknum
+    marknum = startmarknum
+    # radiogenic heat production solid phase, init to zero
+    hrsolidm = SVector{3, Float64}(zeros(3))
+    # radiogenic heat production fluid phase, init to zero
+    hrfluidm = SVector{3, Float64}(zeros(3))
+   
+
     # -------------------------------------------------------------------------
     # set up staggered grid
     # -------------------------------------------------------------------------
