@@ -257,39 +257,39 @@ $(TYPEDFIELDS)
 end
 
 
- """
- Dynamic parameters: Grids, markers, switches, constants, etc. which undergo
- change throughout the simulation.
+#  """
+#  Dynamic parameters: Grids, markers, switches, constants, etc. which undergo
+#  change throughout the simulation.
 
-$(TYPEDFIELDS)
-"""
-Base.@kwdef mutable struct DynamicParameters
-    "timestep counter (current), init to startstep"
-    timestep::Int64
-    "computational timestep (current), init to dtelastic [s]"
-    dt::Float64
-    "time sum (current), init to starttime [s]"
-    timesum::Float64
-    "current number of markers, init to startmarknum"
-    marknum::Int64
-    "radiogenic heat production solid phase, init to zero"
-    hrsolidm::SVector{3, Float64} = zeros(3)
-    "radiogenic heat production fluid phase, init to zero"
-    hrfluidm::SVector{3, Float64} = zeros(3)
-    "inner constructor"
-    DynamicParameters(startstep, dt, timesum, marknum) = new(
-        startstep,
-        dt,
-        timesum,
-        marknum
-        )
-    DynamicParameters(sp::StaticParameters) = new(
-        sp.startstep,
-        sp.dtelastic,
-        sp.starttime,
-        sp.startmarknum,
-        )
-    end
+# $(TYPEDFIELDS)
+# """
+# Base.@kwdef mutable struct DynamicParameters
+#     "timestep counter (current), init to startstep"
+#     timestep::Int64
+#     "computational timestep (current), init to dtelastic [s]"
+#     dt::Float64
+#     "time sum (current), init to starttime [s]"
+#     timesum::Float64
+#     "current number of markers, init to startmarknum"
+#     marknum::Int64
+#     "radiogenic heat production solid phase, init to zero"
+#     hrsolidm::SVector{3, Float64} = zeros(3)
+#     "radiogenic heat production fluid phase, init to zero"
+#     hrfluidm::SVector{3, Float64} = zeros(3)
+#     "inner constructor"
+#     DynamicParameters(startstep, dt, timesum, marknum) = new(
+#         startstep,
+#         dt,
+#         timesum,
+#         marknum
+#         )
+#     DynamicParameters(sp::StaticParameters) = new(
+#         sp.startstep,
+#         sp.dtelastic,
+#         sp.starttime,
+#         sp.startmarknum,
+#         )
+#     end
 
 
 # """
