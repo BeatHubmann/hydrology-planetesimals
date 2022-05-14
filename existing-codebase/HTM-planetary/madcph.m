@@ -15,16 +15,16 @@ namemat    =  ['madcph_',num2str(timestep)];
 load(namemat);
 else % if uncommented, uncoment end in line 266
 clear all;
-
 %Switch for radioactive heating
 hr_al=1;  %if 1 radioactive heating from 26Al active
 hr_fe=1;  %if 1 radioactive heating from 60Fe active
 
 % Define Numerical model
-xsize=140000; % Horizontal model size, m
-ysize=140000; % Vertical model size, m
-Nx=141; % Horizontal grid resolution
-Ny=141; % Vertical grid resolution
+xsize=140000;%140000; % Horizontal model size, m
+ysize=140000;%140000; % Vertical model size, m
+Nx=71;%141; % Horizontal grid resolution
+Ny=71;%141; % Vertical grid resolution
+
 Nx1=Nx+1;
 Ny1=Ny+1;
 dx=xsize/(Nx-1); % Horizontal grid step, m
@@ -174,15 +174,15 @@ phimin=1e-4; % Min porosity
 phimax=1-phimin; % Max porosity
 
 % Define marker coordinates, temperature and material type
-rplanet=50000; % Planetary radius
-rcrust=48000; % Crust radius
+rplanet=5000;%50000; % Planetary radius
+rcrust=4800;%48000; % Crust radius
 psurface=1e+3; % Surface pressure
 m=1; % Marker counter
 for jm=1:1:Nxm
     for im=1:1:Nym
         % Define marker coordinates
-        xm(m)=dxm/2+(jm-1)*dxm+(rand-0.5)*dxm;
-        ym(m)=dym/2+(im-1)*dym+(rand-0.5)*dym;
+        xm(m)=dxm/2+(jm-1)*dxm;%+(rand-0.5)*dxm;
+        ym(m)=dym/2+(im-1)*dym;%+(rand-0.5)*dym;
         % Marker properties
         rmark=((xm(m)-xsize/2)^2+(ym(m)-ysize/2)^2)^0.5;
         if(rmark<rplanet)
@@ -192,7 +192,7 @@ for jm=1:1:Nxm
                 tm(m)=2; % crust
             end
             tkm(m)=300; % Temperature
-            phim(m)=phim0*(1+1.0*(rand-0.5)); % Porosity
+            phim(m)=phim0;%*(1+1.0*(rand-0.5)); % Porosity
             etavpm(m)=etasolidm(tm(m));%*exp(-28*phim(m)); % Matrix viscosity
         else
             % Sticky space (to have internal free surface)
@@ -244,7 +244,7 @@ vybottom=strainrate*ysize/2;
 
 % Timestepping
 nname='madcph_'; %mat filename
-savematstep=50; %.mat storage periodicity
+savematstep=10; %.mat storage periodicity
 dtelastic=1e+11; % Maximal computational timestep, s
 dt=dtelastic; % Current computational timestep, s
 dtkoef=2; % Koefficient to decrese computational timestep
@@ -264,12 +264,12 @@ yerrmax=1e+2; % Tolerance level for yielding error
 YERRNOD=zeros(1,nplast); % Yielding error of nodes
 etawt=0; % Weight for old viscosity
 dphimax=0.01; % max porosity ratio change per time step
-nsteps=30000; % number of timesteps
+nsteps=1000%30000; % number of timesteps
 timestep=1;
 end
 savematstep=50; %.mat storage periodicity
 for timestep=timestep:1:nsteps
-
+tic
 % Updating radioactive heating
 %26Al
 if hr_al==1
@@ -1292,6 +1292,10 @@ end
 if(ynpl>0)
     YERRNOD(iplast)=(ddd/ynpl)^0.5;
 end
+disp(['iplast = ', num2str(iplast)])
+disp(['ynpl = ', num2str(ynpl)])
+disp(['ddd = ', num2str(ddd)])
+disp(['YERRNOD(iplast) = ', num2str(YERRNOD(iplast))])
 
 
 % Stop iteration
@@ -2607,6 +2611,11 @@ marknumnew=marknum
 
 % Update timesum
 timesum=timesum+dtm;
+disp(strcat("timestep: ", num2str(timestep)));
+disp(strcat("dt [s]: ", num2str(dt,'%e')));
+disp(strcat("dtm [s]: ", num2str(dtm,'%e')));
+disp(strcat("timesum [Ma]: ", num2str(timesum*1e-6/365.25/24/3600)));
+
 
 % Translate vx,vy and qxD,qyD into polar coordinates for visualization
 vrp=sqrt((vxp+vxp((Ny+1)*(Nx+1)/2)).^2+(vyp+vyp((Ny+1)*(Nx+1)/2)).^2);
@@ -2619,9 +2628,10 @@ if(fix(timestep/savematstep)*savematstep==timestep)
     fprintf(fdata,'%d',timestep);
     fclose(fdata);
 end
-
+toc
 if timesum > 15*3600*24*365.25*1000000
     break
 end
 end
+
 
