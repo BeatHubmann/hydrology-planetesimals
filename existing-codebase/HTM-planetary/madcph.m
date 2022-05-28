@@ -20,10 +20,10 @@ hr_al=1;  %if 1 radioactive heating from 26Al active
 hr_fe=1;  %if 1 radioactive heating from 60Fe active
 
 % Define Numerical model
-xsize=140000;%140000; % Horizontal model size, m
-ysize=140000;%140000; % Vertical model size, m
-Nx=71;%141; % Horizontal grid resolution
-Ny=71;%141; % Vertical grid resolution
+xsize=14000;%140000; % Horizontal model size, m
+ysize=14000;%140000; % Vertical model size, m
+Nx=15;%141; % Horizontal grid resolution
+Ny=15;%141; % Vertical grid resolution
 
 Nx1=Nx+1;
 Ny1=Ny+1;
@@ -181,8 +181,8 @@ m=1; % Marker counter
 for jm=1:1:Nxm
     for im=1:1:Nym
         % Define marker coordinates
-        xm(m)=dxm/2+(jm-1)*dxm;%+(rand-0.5)*dxm;
-        ym(m)=dym/2+(im-1)*dym;%+(rand-0.5)*dym;
+        xm(m)=dxm/2+(jm-1)*dxm;%   +(rand-0.5)*dxm;
+        ym(m)=dym/2+(im-1)*dym;%   +(rand-0.5)*dym;
         % Marker properties
         rmark=((xm(m)-xsize/2)^2+(ym(m)-ysize/2)^2)^0.5;
         if(rmark<rplanet)
@@ -192,7 +192,7 @@ for jm=1:1:Nxm
                 tm(m)=2; % crust
             end
             tkm(m)=300; % Temperature
-            phim(m)=phim0;%*(1+1.0*(rand-0.5)); % Porosity
+            phim(m)=phim0;%   *(1+1.0*(rand-0.5)); % Porosity
             etavpm(m)=etasolidm(tm(m));%*exp(-28*phim(m)); % Matrix viscosity
         else
             % Sticky space (to have internal free surface)
@@ -264,7 +264,7 @@ yerrmax=1e+2; % Tolerance level for yielding error
 YERRNOD=zeros(1,nplast); % Yielding error of nodes
 etawt=0; % Weight for old viscosity
 dphimax=0.01; % max porosity ratio change per time step
-nsteps=1000%30000; % number of timesteps
+nsteps=30000; % number of timesteps
 timestep=1;
 end
 savematstep=50; %.mat storage periodicity
@@ -2591,8 +2591,8 @@ for j=1:1:Nxm
                 % Add marker number
                 marknum=marknum+1;
                 % Assign marker coordinates
-                xm(marknum)=xxm(j)+(rand-0.5)*dxm;
-                ym(marknum)=yym(i)+(rand-0.5)*dym;
+                xm(marknum)=xxm(j);%   +(rand-0.5)*dxm;
+                ym(marknum)=yym(i);%   +(rand-0.5)*dym;
                 % Copy marker properties
                 m=-mnum(i,j);
                 tm(marknum)=tm(m); % Material type

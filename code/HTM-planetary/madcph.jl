@@ -3066,14 +3066,14 @@ end # function timestepping(p::Params)
     # Define i;j indexes for the upper left node
     j=trunc((xm[m]-x[1])/dx)+1
     i=trunc((ym[m]-y[1])/dy)+1
-    if(j<1)
+    if j<1 
         j=1
-    elseif[j>Nx-1]
+    elseif j>Nx-1
         j=Nx-1
     end
-    if(i<1)
+    if i<1
         i=1
-    elseif[i>Ny-1]
+    elseif i>Ny-1
         i=Ny-1
     end
     # Compute distances
@@ -3127,14 +3127,14 @@ end # function timestepping(p::Params)
     # Define i;j indexes for the upper left node
     j=trunc((xm[m]-xvx[1])/dx)+1
     i=trunc((ym[m]-yvx[1])/dy)+1
-    if(j<1)
+    if j<1
         j=1
-    elseif[j>Nx-1]
+    elseif j>Nx-1
         j=Nx-1
     end
-    if(i<1)
+    if i<1
         i=1
-    elseif[i>Ny]
+    elseif i>Ny
         i=Ny
     end
     # Compute distances
@@ -3179,14 +3179,14 @@ end # function timestepping(p::Params)
     # Define i;j indexes for the upper left node
     j=trunc((xm[m]-xvy[1])/dx)+1
     i=trunc((ym[m]-yvy[1])/dy)+1
-    if(j<1)
+    if j<1
         j=1
-    elseif[j>Nx]
+    elseif j>Nx
         j=Nx
     end
-    if(i<1)
+    if i<1
         i=1
-    elseif[i>Ny-1]
+    elseif i>Ny-1
         i=Ny-1
     end
     # Compute distances
@@ -3231,14 +3231,14 @@ end # function timestepping(p::Params)
     # Define i;j indexes for the upper left node
     j=trunc((xm[m]-xp[1])/dx)+1
     i=trunc((ym[m]-yp[1])/dy)+1
-    if(j<1)
+    if j<1
         j=1
-    elseif[j>Nx]
+    elseif j>Nx
         j=Nx
     end
-    if(i<1)
+    if i<1
         i=1
-    elseif[i>Ny]
+    elseif i>Ny
         i=Ny
     end
     # Compute distances
@@ -3930,7 +3930,7 @@ for i=1:1:Ny
     # Compute yielding stress
     syieldc=COH[i,j]+FRI[i,j]*(prB-pfB); # Confined fracture
     syieldt=TEN[i,j]+(prB-pfB); # Tensile fracture
-    syield=max(minimum(syieldt,syieldc),0); # Non-negative strength requirement
+    syield=max(min(syieldt,syieldc),0); # Non-negative strength requirement
     # Update error for old yielding nodes
     ynn=0
     if(YNY[i,j]>0)
