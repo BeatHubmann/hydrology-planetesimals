@@ -1,6 +1,7 @@
 function [C] = isapprox(A, B, atol)
-%UNTITLED5 Summary of this function goes here
-%   Detailed explanation goes here
+% isapprox Compare two matrices A, B for approximate identity
+% from https://ch.mathworks.com/matlabcentral/answers/97069-how-can-i-compare-numbers-for-equality-within-a-tolerance-in-matlab-8-0-r2012b
+% See also the 2015 function http://www.mathworks.com/help/matlab/ref/ismembertol.html
 assert(all(size(A) == size(B)));
 C = false(size(A));
 for j=1:size(A, 2)
