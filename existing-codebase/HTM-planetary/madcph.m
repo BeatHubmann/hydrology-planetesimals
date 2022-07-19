@@ -20,10 +20,10 @@ hr_al=1;  %if 1 radioactive heating from 26Al active
 hr_fe=1;  %if 1 radioactive heating from 60Fe active
 
 % Define Numerical model
-xsize=14000;%140000; % Horizontal model size, m
-ysize=14000;%140000; % Vertical model size, m
-Nx=15;%141; % Horizontal grid resolution
-Ny=15;%141; % Vertical grid resolution
+xsize=140000;%140000; % Horizontal model size, m
+ysize=140000;%140000; % Vertical model size, m
+Nx=141;%141; % Horizontal grid resolution
+Ny=141;%141; % Vertical grid resolution
 
 Nx1=Nx+1;
 Ny1=Ny+1;
@@ -174,8 +174,8 @@ phimin=1e-4; % Min porosity
 phimax=1-phimin; % Max porosity
 
 % Define marker coordinates, temperature and material type
-rplanet=5000;%50000; % Planetary radius
-rcrust=4800;%48000; % Crust radius
+rplanet=50000;%50000; % Planetary radius
+rcrust=48000;%48000; % Crust radius
 psurface=1e+3; % Surface pressure
 m=1; % Marker counter
 for jm=1:1:Nxm
@@ -264,7 +264,7 @@ yerrmax=1e+2; % Tolerance level for yielding error
 YERRNOD=zeros(1,nplast); % Yielding error of nodes
 etawt=0; % Weight for old viscosity
 dphimax=0.01; % max porosity ratio change per time step
-nsteps=30000; % number of timesteps
+nsteps=1; % number of timesteps
 timestep=1;
 end
 savematstep=50; %.mat storage periodicity

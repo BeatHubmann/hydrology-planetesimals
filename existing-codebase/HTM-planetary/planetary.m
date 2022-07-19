@@ -18,7 +18,7 @@ clear all;
 
 %Switch for radioactive heating
 hr_al=1;  %if 1 radioactive heating from 26Al active
-hr_fe=1;  %if 1 radioactive heating from 60Fe active
+hr_fe=0;  %if 1 radioactive heating from 60Fe active
 
 % Define Numerical model
 xsize=140000; % Horizontal model size, m
@@ -183,8 +183,8 @@ m=1; % Marker counter
 for jm=1:1:Nxm
     for im=1:1:Nym
         % Define marker coordinates
-        xm(m)=dxm/2+(jm-1)*dxm+(rand-0.5)*dxm;
-        ym(m)=dym/2+(im-1)*dym+(rand-0.5)*dym;
+        xm(m)=dxm/2+(jm-1)*dxm;%+(rand-0.5)*dxm;
+        ym(m)=dym/2+(im-1)*dym;%+(rand-0.5)*dym;
         % Marker properties
         rmark=((xm(m)-xsize/2)^2+(ym(m)-ysize/2)^2)^0.5;
         if(rmark<rplanet)
@@ -195,8 +195,8 @@ for jm=1:1:Nxm
             end
 % CHANGE!!!
             tkm(m)=170; % Temperature
-            phim(m)=phim0*(1+1.0*(rand-0.5)); % Porosity
-            etavpm(m)=etasolidm(tm(m))*exp(-28*phim(m)); % Matrix viscosity
+            phim(m)=phim0;%*(1+1.0*(rand-0.5)); % Porosity
+            etavpm(m)=etasolidm(tm(m));%*exp(-28*phim(m)); % Matrix viscosity
         else
             % Sticky space (to have internal free surface)
             tm(m)=3; % Material type
@@ -250,7 +250,7 @@ vybottom=strainrate*ysize/2;
 nname='planetary-NGD_'; %mat filename
 nnamefile='planetary-NGD_'; % jpeg filename Fig1
 
-savematstep=50; %.mat storage periodicity
+savematstep=10; %.mat storage periodicity
 dtelastic=1e+11; % Maximal computational timestep, s
 dt=dtelastic; % Current computational timestep, s
 dtkoef=2; % Koefficient to decrese computational timestep
@@ -270,7 +270,7 @@ yerrmax=1e+2; % Tolerance level for yielding error
 YERRNOD=zeros(1,nplast); % Yielding error of nodes
 etawt=0; % Weight for old viscosity
 dphimax=0.01; % max porosity ratio change per time step
-nsteps=1; % number of timesteps
+nsteps=10; % number of timesteps
 timestep=1;
 % end % comment out if restarts disabled at beginning of code
 savematstep=1; %.mat storage periodicity
@@ -1083,9 +1083,9 @@ for j=1:1:Nx1
     end
 end
 % CHANGE!!!: 
-pavr=(pf(2,2)+pf(2,Nx)+pf(Ny,2)+pf(Ny,Nx))/4;
-pr=pr-pavr+0;
-pf=pf-pavr+0;
+% pavr=(pf(2,2)+pf(2,Nx)+pf(Ny,2)+pf(Ny,Nx))/4;
+% pr=pr-pavr+0;
+% pf=pf-pavr+0;
 
 % Compute Dln((1-PHI)/PHI)/Dt
 APHI=zeros(Ny1,Nx1);
@@ -2600,8 +2600,8 @@ for j=1:1:Nxm
                 % Add marker number
                 marknum=marknum+1;
                 % Assign marker coordinates
-                xm(marknum)=xxm(j)+(rand-0.5)*dxm;
-                ym(marknum)=yym(i)+(rand-0.5)*dym;
+                xm(marknum)=xxm(j);%+(rand-0.5)*dxm;
+                ym(marknum)=yym(i);%+(rand-0.5)*dym;
                 % Copy marker properties
                 m=-mnum(i,j);
                 tm(marknum)=tm(m); % Material type
