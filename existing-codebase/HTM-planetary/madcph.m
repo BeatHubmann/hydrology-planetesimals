@@ -264,7 +264,7 @@ yerrmax=1e+2; % Tolerance level for yielding error
 YERRNOD=zeros(1,nplast); % Yielding error of nodes
 etawt=0; % Weight for old viscosity
 dphimax=0.01; % max porosity ratio change per time step
-nsteps=1; % number of timesteps
+nsteps=10; % number of timesteps
 timestep=1;
 end
 savematstep=50; %.mat storage periodicity
