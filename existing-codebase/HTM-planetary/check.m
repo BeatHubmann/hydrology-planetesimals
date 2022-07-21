@@ -1,4 +1,4 @@
-function [correct, hm, f] = check(grid1,grid2)
+function [correct, eps_total, f] = check(grid1,grid2)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 assert(all(size(grid1)==size(grid2)));
@@ -38,13 +38,28 @@ xmin = 1;
 xmax = xsize;
 hm = [];
 f = figure;
-f.Position =[10 300 1800 800];
-subplot(1,2,1);
-histogram(L1_errors);
-axis('square');
 if (1<ysize && 1<xsize)
-    subplot(1,2,2);
+    f.Position =[10 300 1800 800];
+    p1=subplot(1,2,1);
+else
+    f.Position =[10 300 895 800];
+    p1=subplot(1,1,1);
+end
+hs=histogram(L1_errors);
+axis('square');
+xlabel('L1 error');
+ylabel('node count');
+title('L1 error histogram');
+if (1<ysize && 1<xsize)
+    p2=subplot(1,2,2);
     hm=heatmap(abs(grid1(ymin:ymax,xmin:xmax)-grid2(ymin:ymax,xmin:xmax)),...
         'XData', xmin:xmax, 'YData', ymin:ymax);
+    i_x=false(size(hm.XDisplayLabels)); i_x(1)=true; i_x(end)=true;
+    i_y=false(size(hm.YDisplayLabels)); i_y(1)=true; i_x(end)=true;
+    hm.XDisplayLabels(~i_x) = {''};
+    hm.YDisplayLabels(~i_x) = {''};
+    xlabel('x [nodes]');
+    ylabel('y [nodes]');
+    title('L1 error heatmap');
 end
 end

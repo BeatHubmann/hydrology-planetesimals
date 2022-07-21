@@ -2,8 +2,8 @@ function [xm_jl,ym_jl,tk0_jl,tk1_jl,tk2_jl,DT_jl,APHI_jl,vxf_jl,vyf_jl,pscale_jl
     GGG_jl,GGGP_jl,SXY0_jl,SXX0_jl,RHOX_jl,RHOY_jl,RHOFX_jl,RHOFY_jl,...
     RX_jl,RY_jl,ETAPHI_jl,BETTAPHI_jl,PHI_jl,gx_jl,gy_jl,pr0_jl,pf0_jl,...
     dt_jl,R_jl,L_jl,S_jl,vx_jl,vy_jl,qxD_jl,qyD_jl,pr_jl,pf_jl] = M_1078(step)
-fpath = 'C:\Users\ich\outTest\M_1078_';
-% fpath = '/Users/z7717/test/M_1078_';
+% fpath = 'C:\Users\ich\outTest\M_1078_';
+fpath = '/Users/z7717/test/M_1078_';
 xm_jl = h5read([fpath num2str(step) '.jld2'], '/xm')';
 ym_jl = h5read([fpath num2str(step) '.jld2'], '/ym')';
 tk0_jl = h5read([fpath num2str(step) '.jld2'], '/tk0');

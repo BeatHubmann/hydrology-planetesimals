@@ -270,10 +270,24 @@ yerrmax=1e+2; % Tolerance level for yielding error
 YERRNOD=zeros(1,nplast); % Yielding error of nodes
 etawt=0; % Weight for old viscosity
 dphimax=0.01; % max porosity ratio change per time step
-nsteps=10; % number of timesteps
+nsteps=20; % number of timesteps
 timestep=1;
 % end % comment out if restarts disabled at beginning of code
 savematstep=1; %.mat storage periodicity
+% convergence evaluation
+maxT_m = zeros(nsteps,1);
+maxT_j = zeros(nsteps,1);
+meanT_10_m = zeros(nsteps,1);
+meanT_10_j = zeros(nsteps,1);
+meanT_40_m = zeros(nsteps,1);
+meanT_40_j = zeros(nsteps,1);
+dRHO_m = zeros(nsteps,1);
+dRHO_j = zeros(nsteps,1);
+meanRHO_10_m = zeros(nsteps,1);
+meanRHO_10_j = zeros(nsteps,1);
+meanRHO_40_m = zeros(nsteps,1);
+meanRHO_40_j = zeros(nsteps,1);
+
 for timestep=timestep:1:nsteps
 
 % Updating radioactive heating
@@ -1125,7 +1139,26 @@ vyf(:,Nx1)=-bcfright*vyf(:,Nx);
 vxf0=vxf; vxf=vxf+vx;
 vyf0=vyf; vyf=vyf+vy;
 
-
+% checking convergence
+if timestep==2 || timestep==4 || timestep==10 || timestep==20
+    check_hydromech(timestep,xm,ym,tk0,tk1,tk2,DT,APHI,vxf,vyf,pscale,ETA,ETAP,GGG,...
+    GGGP,SXY0,SXX0,RHOX,RHOY,RHOFX,RHOFY,RX,RY,ETAPHI,BETTAPHI,PHI,gx,gy,...
+    pr0,pf0,dt,R,L,S,vx,vy,qxD,qyD,pr,pf);
+end
+tk2_jl = load_jld2('tk2', timestep);
+RHOX_jl = load_jld2('RHOX', timestep);
+maxT_m(timestep) = max(tk2, [], 'all');
+maxT_j(timestep) = max(tk2_jl, [], 'all');
+meanT_10_m(timestep) = ravg(tk2, 10);
+meanT_10_j(timestep) = ravg(tk2_jl, 10);
+meanT_40_m(timestep) = ravg(tk2, 40);
+meanT_40_j(timestep) = ravg(tk2_jl, 40);
+dRHO_m(timestep) = abs(ravg(RHOX, 47)-ravg(RHOX, 1));
+dRHO_j(timestep) = abs(ravg(RHOX_jl, 47)-ravg(RHOX_jl, 1));
+meanRHO_10_m(timestep) = ravg(RHOX, 10);
+meanRHO_10_j(timestep) = ravg(RHOX_jl, 10);
+meanRHO_40_m(timestep) = ravg(RHOX, 40);
+meanRHO_40_j(timestep) = ravg(RHOX_jl, 40);
 % Define displacement timestep dtm
 dtm=dt;
 maxvx=max(max(abs(vx)));
@@ -1736,7 +1769,6 @@ end
 % Compute/save overall temperature changes
 DT=tk2-tk0;
 DT0=DT;
-
 
 % Apply subgrid temperature diffusion on markers
 if(dsubgridt>0)
@@ -2857,3 +2889,95 @@ if timesum > 15*3600*24*365.25*1000000
 end
 end
 
+range = [1:nsteps];
+s1 = figure;
+s1.Position =[10 300 1800 800];
+p1 = subplot(1,2,1);
+axis('square');
+plot(range, maxT_m, '-*');
+hold on
+plot(range, maxT_j, '-o');
+hold off
+xlabel('timestep');
+xlim([1 nsteps]);
+ylabel('max(T) [K]');
+ylim([170 200]);
+title('maximum temperature');
+legend('MATLAB planetary', 'Julia HydrologyPlanetesimals');
+p2 = subplot(1,2,2);
+axis('square');
+plot(range, dRHO_m, '-*');
+hold on
+plot(range, dRHO_j, '-o');
+hold off
+xlabel('timestep');
+xlim([1 nsteps]);
+ylabel('\Delta RHO [kg m^{-3}]');
+title('density contrast center to crust');
+legend('MATLAB planetary', 'Julia HydrologyPlanetesimals');
+orient(s1,'landscape');
+sgtitle('Comparing maximum temperature, density constrast');
+% saveas(s1, 'comparison_1.pdf');
+set(gcf,'color','w'); export_fig('comparison_1', '-pdf','-m2');
+
+s2 = figure;
+s2.Position =[10 300 1800 800];
+p1 = subplot(1,2,1);
+axis('square');
+plot(range, meanT_10_m, '-*');
+hold on
+plot(range, meanT_10_j, '-o');
+hold off
+xlabel('timestep');
+xlim([1 nsteps]);
+ylabel('mean(T) at R=10km [K]');
+ylim([170 200]);
+title('mean temperature at radius R=10km');
+legend('MATLAB planetary', 'Julia HydrologyPlanetesimals');
+p2 = subplot(1,2,2);
+axis('square');
+plot(range, meanT_40_m, '-*');
+hold on
+plot(range, meanT_40_j, '-o');
+hold off
+xlabel('timestep');
+xlim([1 nsteps]);
+ylim([170 200]);    
+ylabel('mean(T) at R=40km [K]');
+title('mean temperature at radius R=40km');
+legend('MATLAB planetary', 'Julia HydrologyPlanetesimals');
+sgtitle('Comparing mean temperature at radii R=10km, R=40km');
+orient(s2,'landscape');
+% saveas(s2, 'comparison_2.pdf');
+set(gcf,'color','w'); export_fig('comparison_2', '-pdf','-m2');
+
+s3 = figure;
+s3.Position =[10 300 1800 800];
+p1 = subplot(1,2,1);
+axis('square');
+plot(range, meanRHO_10_m, '-*');
+hold on
+plot(range, meanRHO_10_j, '-o');
+hold off
+xlabel('timestep');
+xlim([1 nsteps]);
+ylabel('mean(RHO) at R=10km [kg m^{-3}]');
+ylim([2750 3000]);
+title('mean density at radius R=10km');
+legend('MATLAB planetary', 'Julia HydrologyPlanetesimals');
+p2 = subplot(1,2,2);
+axis('square');
+plot(range, meanRHO_40_m, '-*');
+hold on
+plot(range, meanRHO_40_j, '-o');
+hold off
+xlabel('timestep');
+xlim([1 nsteps]);
+ylabel('mean(RHO) at R=40km [kg m^{-3}]');
+ylim([2750 3000]);
+title('mean density at radius R=40km');
+legend('MATLAB planetary', 'Julia HydrologyPlanetesimals');
+sgtitle('Comparing mean density at radii R=10km, R=40km');
+orient(s3,'landscape');
+% saveas(s3, 'comparison_3.pdf');
+set(gcf,'color','w'); export_fig('comparison_3', '-pdf','-m2');
