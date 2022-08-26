@@ -287,9 +287,15 @@ meanRHO_10_m = zeros(nsteps,1);
 meanRHO_10_j = zeros(nsteps,1);
 meanRHO_40_m = zeros(nsteps,1);
 meanRHO_40_j = zeros(nsteps,1);
+% benchmarking
+marker_prop_to_grid = zeros(nsteps,1);
+sparse_assembly = zeros(nsteps,1);
+sparse_solve = zeros(nsteps,1);
+marker_rk4 = zeros(nsteps,1);
+sim_loop = zeros(nsteps,1);
 
 for timestep=timestep:1:nsteps
-
+sim_loop_start = tic;
 % Updating radioactive heating
 %26Al
 if hr_al==1
@@ -310,7 +316,8 @@ hrfluidm(1,1)=0;
 % Save old stresses
 sxxm00=sxxm; 
 sxym00=sxym;    
-    
+
+marker_prop_to_grid_start = tic;
 % Interpolate properties from markers to nodes
 % Basic nodes
 ETA0SUM=zeros(Ny,Nx);
@@ -684,6 +691,7 @@ for j=1:1:Nx1
         end
     end
 end
+marker_prop_to_grid(timestep) = toc(marker_prop_to_grid_start);
 % Applying thermal boundary conditions for interpolated temperature
 % Upper boundary 
 tk1(1,2:Nx)=tk1(2,2:Nx); % Insulating boundary
@@ -799,6 +807,7 @@ for i=2:1:Ny
 end
 % Hydro-Mechanical Solution
 % Composing global matrixes L(), R() for Stokes and continuity equations
+sparse_assembly_start = tic;
 for j=1:1:Nx1
     for i=1:1:Ny1
         % Define global indexes in algebraic space
@@ -1073,9 +1082,11 @@ for j=1:1:Nx1
 
     end
 end
-
+sparse_assembly(timestep) = toc(sparse_assembly_start);
+tic;
 % 4) Solving matrixes, reloading solution
 S=L\R; % Obtaining algebraic vector of solutions S()
+sparse_solve(timestep) = toc;
 % Reload solutions S() to vx(), vy(), p()
 % Going through all grid points
 for j=1:1:Nx1
@@ -1140,25 +1151,25 @@ vxf0=vxf; vxf=vxf+vx;
 vyf0=vyf; vyf=vyf+vy;
 
 % checking convergence
-if timestep==2 || timestep==4 || timestep==10 || timestep==20
-    check_hydromech(timestep,xm,ym,tk0,tk1,tk2,DT,APHI,vxf,vyf,pscale,ETA,ETAP,GGG,...
-    GGGP,SXY0,SXX0,RHOX,RHOY,RHOFX,RHOFY,RX,RY,ETAPHI,BETTAPHI,PHI,gx,gy,...
-    pr0,pf0,dt,R,L,S,vx,vy,qxD,qyD,pr,pf);
-end
-tk2_jl = load_jld2('tk2', timestep);
-RHOX_jl = load_jld2('RHOX', timestep);
-maxT_m(timestep) = max(tk2, [], 'all');
-maxT_j(timestep) = max(tk2_jl, [], 'all');
-meanT_10_m(timestep) = ravg(tk2, 10);
-meanT_10_j(timestep) = ravg(tk2_jl, 10);
-meanT_40_m(timestep) = ravg(tk2, 40);
-meanT_40_j(timestep) = ravg(tk2_jl, 40);
-dRHO_m(timestep) = abs(ravg(RHOX, 47)-ravg(RHOX, 1));
-dRHO_j(timestep) = abs(ravg(RHOX_jl, 47)-ravg(RHOX_jl, 1));
-meanRHO_10_m(timestep) = ravg(RHOX, 10);
-meanRHO_10_j(timestep) = ravg(RHOX_jl, 10);
-meanRHO_40_m(timestep) = ravg(RHOX, 40);
-meanRHO_40_j(timestep) = ravg(RHOX_jl, 40);
+% if timestep==2 || timestep==4 || timestep==10 || timestep==20
+%     check_hydromech(timestep,xm,ym,tk0,tk1,tk2,DT,APHI,vxf,vyf,pscale,ETA,ETAP,GGG,...
+%     GGGP,SXY0,SXX0,RHOX,RHOY,RHOFX,RHOFY,RX,RY,ETAPHI,BETTAPHI,PHI,gx,gy,...
+%     pr0,pf0,dt,R,L,S,vx,vy,qxD,qyD,pr,pf);
+% end
+% tk2_jl = load_jld2('tk2', timestep);
+% RHOX_jl = load_jld2('RHOX', timestep);
+% maxT_m(timestep) = max(tk2, [], 'all');
+% maxT_j(timestep) = max(tk2_jl, [], 'all');
+% meanT_10_m(timestep) = ravg(tk2, 10);
+% meanT_10_j(timestep) = ravg(tk2_jl, 10);
+% meanT_40_m(timestep) = ravg(tk2, 40);
+% meanT_40_j(timestep) = ravg(tk2_jl, 40);
+% dRHO_m(timestep) = abs(ravg(RHOX, 47)-ravg(RHOX, 1));
+% dRHO_j(timestep) = abs(ravg(RHOX_jl, 47)-ravg(RHOX_jl, 1));
+% meanRHO_10_m(timestep) = ravg(RHOX, 10);
+% meanRHO_10_j(timestep) = ravg(RHOX_jl, 10);
+% meanRHO_40_m(timestep) = ravg(RHOX, 40);
+% meanRHO_40_j(timestep) = ravg(RHOX_jl, 40);
 % Define displacement timestep dtm
 dtm=dt;
 maxvx=max(max(abs(vx)));
@@ -1987,7 +1998,7 @@ for i=1:1:Ny
         wyx(i,j)=0.5*((vy(i,j+1)-vy(i,j))/dx-(vx(i+1,j)-vx(i,j))/dy);
     end
 end
-
+marker_rk4_start = tic;
 % Move markers with 4th order Runge-Kutta
 vxm=zeros(4,1);
 vym=zeros(4,1);
@@ -2270,6 +2281,7 @@ for m=1:1:marknum
         phim(m)*(tkm(m)+dtkfsm)*rhocpfluidm(tm(m)))/...
         ((1-phim(m))*rhocpsolidm(tm(m))+phim(m)*rhocpfluidm(tm(m)));
 end  
+marker_rk4(timestep) = toc(marker_rk4_start);
 
 % Backtracing Pressure nodes: Ptotal
 % Backtracing is based on 4th order Runge-Kutta
@@ -2530,7 +2542,6 @@ for ii=2:1:Ny
 end
 end
 
-
 % Add markers to empty areas
 marknumold=marknum
 mdis=1e30*ones(Nym,Nxm);
@@ -2652,6 +2663,7 @@ marknumnew=marknum
 
 % Update timesum
 timesum=timesum+dtm;
+sim_loop(timestep) = toc(sim_loop_start);
 
 % Translate vx,vy and qxD,qyD into polar coordinates for visualization
 vrp=sqrt((vxp+vxp((Ny+1)*(Nx+1)/2)).^2+(vyp+vyp((Ny+1)*(Nx+1)/2)).^2);
